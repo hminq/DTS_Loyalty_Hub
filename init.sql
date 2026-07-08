@@ -33,6 +33,19 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT uq_users_username UNIQUE (username)
 );
 
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_refresh_tokens_user
+        FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT uq_refresh_tokens_token_hash UNIQUE (token_hash)
+);
+
 CREATE TABLE IF NOT EXISTS point_wallets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
@@ -54,6 +67,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
     status campaign_status NOT NULL DEFAULT 'PREPARING',
     created_by UUID NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
 
     CONSTRAINT fk_campaigns_created_by
         FOREIGN KEY (created_by) REFERENCES users (id),
@@ -72,6 +86,7 @@ CREATE TABLE IF NOT EXISTS campaign_rewards (
     available_stock INTEGER NOT NULL,
     row_version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
 
     CONSTRAINT fk_campaign_rewards_campaign
         FOREIGN KEY (campaign_id) REFERENCES campaigns (id),
