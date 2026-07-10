@@ -1,5 +1,6 @@
 @startuml Redeem_Voucher_Sequence
 autonumber
+autoactivate on
 ' ──────────────────────────────────────
 '  STYLE
 ' ──────────────────────────────────────
@@ -19,7 +20,7 @@ title Customer Redeem Voucher
 ' ──────────────────────────────────────
 '  PARTICIPANTS
 ' ──────────────────────────────────────
-actor       "Client\n(Swagger/Postman)"  as Client
+actor       "Client\n(Postman)"  as Client
 boundary    "Rate Limiter"               as RL
 control     ":GlobalExceptionHandler"    as GEH
 control     ":RedemptionController"      as Ctrl
@@ -122,7 +123,7 @@ end
 '  STEP 5: Finalize Redemption Transaction
 ' ──────────────────────────────────────
 == Finalize Redemption Transaction ==
-loop Retry whole transaction on optimistic conflict (3 attempts)
+group Retry Wallet Balance Update (max 3 attempts)
     group Atomic database transaction
     UC -> UoW : BeginTransactionAsync()
     group Deduct User Points (Optimistic Locking)
@@ -135,6 +136,11 @@ loop Retry whole transaction on optimistic conflict (3 attempts)
             UoW -> DB  : ROLLBACK
             DB  --> UoW : OK
             UoW --> UC : OK
+            note over UC
+            Rollback before locking campaign_rewards.
+            Avoids locking the hot inventory row
+            for invalid wallet requests.
+            end note
             UC -> UoW  : PointWalletRepository\n.GetRedeemWalletSnapshotAsync(userId)
             UoW -> DB   : Re-fetch latest wallet state
             DB  --> UoW : walletSnapshot
@@ -146,112 +152,113 @@ loop Retry whole transaction on optimistic conflict (3 attempts)
             else Retryable Conflict
                 UC -> UC : Continue next retry attempt
             end
-        end
-    end
-    group Deduct Reward Stock (Optimistic Locking)
-        UC -> UoW  : CampaignRewardRepository\n.DeductRewardStockAsync(redeemSnapshot)
-        UoW -> DB   : Deduct stock where reward row_version matches,\nreward is enabled, campaign is active,\ntime window is valid, and available_stock > 0
-        DB  --> UoW : rowsAffected
-        UoW --> UC : rowsAffected
-        alt rowsAffected = 0 — Not Redeemable, Out Of Stock, or Reward Conflict
-            UC -> UoW : RollbackAsync()
-            UoW -> DB  : ROLLBACK
-            DB  --> UoW : OK
-            UoW --> UC : OK
-            UC -> UoW : CampaignRewardRepository\n.GetRedeemSnapshotAsync(campaignRewardId)
-            UoW -> DB  : Re-fetch latest reward state
-            DB  --> UoW : redeemSnapshot
-            UoW --> UC : RedeemSnapshotDto
-            alt No Longer Redeemable or Out Of Stock
-                note over UC : No need retry.
-                UC --> GEH : throw VoucherNotRedeemableException\n: DomainException
-                GEH --> Client : 400 Bad Request\n"Voucher is not redeemable"
-            else Retryable Conflict
-                UC -> UC : Continue next retry attempt
+        else Wallet Deducted
+            group Lock Reward Stock (Pessimistic Locking)
+                UC -> UoW  : CampaignRewardRepository\n.LockRedeemStateForUpdateAsync(campaignRewardId)
+                UoW -> DB   : SELECT reward row and current campaign state\nFOR UPDATE on campaign_rewards row
+                DB  --> UoW : lockedRedeemState | null
+                UoW --> UC : LockedRedeemStateDto
+                alt No Longer Redeemable or Out Of Stock
+                    note over UC
+                    Reward/campaign is re-checked
+                    after the reward row lock is acquired.
+                    end note
+                    UC -> UoW : RollbackAsync()
+                    UoW -> DB  : ROLLBACK
+                    DB  --> UoW : OK
+                    UoW --> UC : OK
+                    UC --> GEH : throw VoucherNotRedeemableException\n: DomainException
+                    GEH --> Client : 400 Bad Request\n"Voucher is not redeemable"
+                else Reward Stock Available
+                    UC -> UoW  : CampaignRewardRepository\n.DeductRewardStockAsync(campaignRewardId)
+                    UoW -> DB   : Deduct stock where reward is enabled,\ncampaign is active, time window is valid,\nand available_stock > 0
+                    DB  --> UoW : OK
+                    UoW --> UC : OK
+                    group Claim Voucher
+                        alt Dynamic Voucher Code
+                            UC -> UoW  : VoucherRepository\n.ClaimDynamicAsync(campaignRewardId)
+                            UoW -> DB   : Lock unused voucher and set redeemed_at\n(FOR UPDATE SKIP LOCKED)
+                            alt Claim OK
+                                DB  --> UoW : claimedVoucher
+                                UoW --> UC : ClaimedVoucherDto
+                            else No Voucher Available
+                                DB  --> UoW : null
+                                UoW --> UC : null
+                                UC -> UoW : RollbackAsync()
+                                UoW -> DB  : ROLLBACK
+                                DB  --> UoW : OK
+                                UoW --> UC : OK
+                                UC --> GEH : throw VoucherNotRedeemableException\n: DomainException
+                                GEH --> Client : 400 Bad Request\n"Voucher is not redeemable"
+                            end
+                        else Static Voucher Code
+                            UC -> UoW  : VoucherRepository\n.GetStaticVoucherAsync(campaignRewardId)
+                            UoW -> DB   : Fetch shared voucher code
+                            alt Voucher Found
+                                DB  --> UoW : sharedVoucher
+                                UoW --> UC : ClaimedVoucherDto
+                            else Voucher Missing
+                                DB  --> UoW : null
+                                UoW --> UC : null
+                                UC -> UoW : RollbackAsync()
+                                UoW -> DB  : ROLLBACK
+                                DB  --> UoW : OK
+                                UoW --> UC : OK
+                                UC --> GEH : throw VoucherNotRedeemableException\n: DomainException
+                                GEH --> Client : 400 Bad Request\n"Voucher is not redeemable"
+                            end
+                        end
+                    end
+                        group Save Redemption History
+                            UC -> UoW  : RedemptionHistoryRepository\n.AddAsync(redemptionHistory)
+                            UoW -> DB   : Insert redemption history\n(redeemed_by, voucher_id, campaign_reward_id)
+                            alt Unique Violation — Already Redeemed
+                                note over UC : Double-redeem guard with db constraints.
+                                DB  --> UoW : unique violation
+                                UoW --> UC : unique violation
+                                UC -> UoW : RollbackAsync()
+                                UoW -> DB  : ROLLBACK
+                                DB  --> UoW : OK
+                                UoW --> UC : OK
+                                UC --> GEH : throw VoucherAlreadyRedeemedException\n: DomainException
+                                GEH --> Client : 409 Conflict\n"Voucher already redeemed"
+                            else Insert OK
+                                DB  --> UoW : OK
+                                UoW --> UC : OK
+                            end
+                        end
+                        group Save Point Transaction
+                            UC -> UoW  : PointTransactionRepository\n.AddAsync(pointTransaction)
+                            UoW -> DB   : Insert point transaction record
+                            DB  --> UoW : OK
+                            UoW --> UC : OK
+                        end
+                        group Save Audit Log
+                            UC -> Audit : BuildRedemptionAuditLog(actorId,\nentityType, entityId, oldValue, newValue)
+                            Audit --> UC : auditLog
+                            UC -> UoW : AuditLogRepository\n.AddAsync(auditLog)
+                            UoW -> DB  : Insert audit log record\nin current transaction
+                            alt Insert Failed
+                                DB --> UoW : error
+                                UoW --> UC : error
+                                UC -> UoW : RollbackAsync()
+                                UoW -> DB  : ROLLBACK
+                                DB  --> UoW : OK
+                                UoW --> UC : OK
+                                UC --> GEH : throw exception
+                                GEH --> Client : 500 Internal Server Error\n"An unexpected error occurred"
+                            else Insert OK
+                                DB --> UoW : OK
+                                UoW --> UC : OK
+                            end
+                        end
+                        UC -> UoW : CommitAsync()
+                        UoW -> DB  : COMMIT
+                        DB  --> UoW : OK
+                    end
+                end
             end
         end
-    end
-    group Claim Voucher
-        alt Dynamic Voucher Code
-            UC -> UoW  : VoucherRepository\n.ClaimDynamicAsync(campaignRewardId)
-            UoW -> DB   : Lock unused voucher and set redeemed_at\n(FOR UPDATE SKIP LOCKED)
-            alt Claim OK
-                DB  --> UoW : claimedVoucher
-                UoW --> UC : ClaimedVoucherDto
-            else No Voucher Available
-                DB  --> UoW : null
-                UoW --> UC : null
-                UC -> UoW : RollbackAsync()
-                UoW -> DB  : ROLLBACK
-                DB  --> UoW : OK
-                UoW --> UC : OK
-                UC --> GEH : throw VoucherNotRedeemableException\n: DomainException
-                GEH --> Client : 400 Bad Request\n"Voucher is not redeemable"
-            end
-        else Static Voucher Code
-            UC -> UoW  : VoucherRepository\n.GetStaticVoucherAsync(campaignRewardId)
-            UoW -> DB   : Fetch shared voucher code
-            alt Voucher Found
-                DB  --> UoW : sharedVoucher
-                UoW --> UC : ClaimedVoucherDto
-            else Voucher Missing
-                DB  --> UoW : null
-                UoW --> UC : null
-                UC -> UoW : RollbackAsync()
-                UoW -> DB  : ROLLBACK
-                DB  --> UoW : OK
-                UoW --> UC : OK
-                UC --> GEH : throw VoucherNotRedeemableException\n: DomainException
-                GEH --> Client : 400 Bad Request\n"Voucher is not redeemable"
-            end
-        end
-    end
-    group Save Redemption History
-        UC -> UoW  : RedemptionHistoryRepository\n.AddAsync(redemptionHistory)
-        UoW -> DB   : Insert redemption history\n(redeemed_by, voucher_id, campaign_reward_id)
-        alt Unique Violation — Already Redeemed
-            note over UC : Final double-redeem guard.
-            DB  --> UoW : unique violation
-            UoW --> UC : unique violation
-            UC -> UoW : RollbackAsync()
-            UoW -> DB  : ROLLBACK
-            DB  --> UoW : OK
-            UoW --> UC : OK
-            UC --> GEH : throw VoucherAlreadyRedeemedException\n: DomainException
-            GEH --> Client : 409 Conflict\n"Voucher already redeemed"
-        else Insert OK
-            DB  --> UoW : OK
-            UoW --> UC : OK
-        end
-    end
-    group Save Point Transaction
-        UC -> UoW  : PointTransactionRepository\n.AddAsync(pointTransaction)
-        UoW -> DB   : Insert point transaction record
-        DB  --> UoW : OK
-        UoW --> UC : OK
-    end
-    group Save Audit Log
-        UC -> Audit : BuildRedemptionAuditLog(actorId,\nentityType, entityId, oldValue, newValue)
-        Audit --> UC : auditLog
-        UC -> UoW : AuditLogRepository\n.AddAsync(auditLog)
-        UoW -> DB  : Insert audit log record\nin current transaction
-        alt Insert Failed
-            DB --> UoW : error
-            UoW --> UC : error
-            UC -> UoW : RollbackAsync()
-            UoW -> DB  : ROLLBACK
-            DB  --> UoW : OK
-            UoW --> UC : OK
-            UC --> GEH : throw exception
-            GEH --> Client : 500 Internal Server Error\n"An unexpected error occurred"
-        else Insert OK
-            DB --> UoW : OK
-            UoW --> UC : OK
-        end
-    end
-    UC -> UoW : CommitAsync()
-    UoW -> DB  : COMMIT
-    DB  --> UoW : OK
     end
 end
 ' ──────────────────────────────────────
