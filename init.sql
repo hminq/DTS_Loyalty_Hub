@@ -179,7 +179,6 @@ CREATE TABLE IF NOT EXISTS campaign_rewards (
     points_required INTEGER NOT NULL,
     total_stock INTEGER NOT NULL,
     available_stock INTEGER NOT NULL,
-    row_version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     deleted_at TIMESTAMPTZ,
 
