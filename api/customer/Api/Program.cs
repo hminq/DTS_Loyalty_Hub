@@ -1,11 +1,24 @@
+using Infrastructure;
+
+var currentDirectory = Directory.GetCurrentDirectory();
+var envPath = Path.Combine(currentDirectory, ".env");
+
+if (!File.Exists(envPath))
+{
+    envPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", ".env"));
+}
+
+if (File.Exists(envPath))
+{
+    DotNetEnv.Env.Load(envPath);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 
 var app = builder.Build();
-
 
 app.UseHttpsRedirection();
 
