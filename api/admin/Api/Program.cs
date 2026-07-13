@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using FluentValidation;
-using Api.Validators;
+using Api.Validators.Auth;
 using Core.UseCases.Auth.Commands;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Api.Dtos.Responses;
 using Api.Mappers;
+using Core.Entities.Constants;
 using Infrastructure.Options;
 
 var currentDirectory = Directory.GetCurrentDirectory();
@@ -59,11 +59,16 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        PermissionCodes.Permissions.View,
+        policy => policy.RequireClaim("permission", PermissionCodes.Permissions.View));
+});
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
