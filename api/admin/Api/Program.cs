@@ -1,54 +1,74 @@
+using Api;
+using Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using FluentValidation;
+using Api.Validators;
+using Core.UseCases.Auth.Commands;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Api.Dtos.Responses;
+using Api.Mappers;
+using Infrastructure.Options;
+
+var currentDirectory = Directory.GetCurrentDirectory();
+var envPath = Path.Combine(currentDirectory, ".env");
+
+if (!File.Exists(envPath))
+{
+    envPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", ".env"));
+}
+
+if (File.Exists(envPath))
+{
+    DotNetEnv.Env.Load(envPath);
+}
+
 var builder = WebApplication.CreateBuilder(args);
+var jwtOptions = JwtOptions.FromConfiguration(builder.Configuration);
 
-// Add services to the container.
-
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddMediatR(config =>
+    config.RegisterServicesFromAssemblyContaining<LoginCommand>());
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+        new BadRequestObjectResult(ApiErrorResponseDto.Validation(
+            ValidationErrorMapper.FromModelState(context.ModelState)));
+});
+builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.MapPost("/api/users/auth/login", () => 
-{
-    var response = new
-    {
-        status = "Success",
-        data = new
-        {
-            token_type = "Bearer",
-            access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkdW5nYmFua2luZyIsImV4cCI6NDA3Njk2MDAwMH0.AriFinDemoToken2026",
-            refresh_token = "rfr_92jsK_AriFinPlatformSecureKey2026"
-        }
-    };
-
-    return Results.Ok(response); // Trả về HTTP 200 OK kèm JSON body
-});
-
-// Endpoint chức năng để kiểm tra xem Token đã tự động ăn theo chưa
-app.MapGet("/api/users/vouchers/redeem", (HttpContext context) =>
-{
-    // Đọc header Authorization gửi lên từ Postman
-    if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader))
-    {
-        return Results.Json(new { error = "Missing Authorization Header" }, statusCode: 401);
-    }
-
-    return Results.Ok(new { 
-        message = "Xác thực Token thành công!", 
-        your_header = authHeader.ToString() 
-    });
-});
 
 app.Run();
