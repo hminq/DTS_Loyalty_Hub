@@ -10,7 +10,17 @@ public static class PermissionCodes
         Roles.Delete,
         Permissions.View,
         RolePermissions.View,
-        RolePermissions.Update
+        RolePermissions.Update,
+        AdminUsers.View,
+        AdminUsers.Create,
+        AdminUsers.Update,
+        AdminUsers.Disable,
+        AdminUsers.ResetPassword,
+        CustomerUsers.View,
+        CustomerUsers.Create,
+        CustomerUsers.Update,
+        CustomerUsers.Disable,
+        CustomerUsers.ResetPassword
     ];
 
     public static IReadOnlySet<string> All => DefinedCodes;
@@ -47,6 +57,24 @@ public static class PermissionCodes
     {
         public const string View = "role_permission.view";
         public const string Update = "role_permission.update";
+    }
+
+    public static class AdminUsers
+    {
+        public const string View = "admin_user.view";
+        public const string Create = "admin_user.create";
+        public const string Update = "admin_user.update";
+        public const string Disable = "admin_user.disable";
+        public const string ResetPassword = "admin_user.reset_password";
+    }
+
+    public static class CustomerUsers
+    {
+        public const string View = "customer_user.view";
+        public const string Create = "customer_user.create";
+        public const string Update = "customer_user.update";
+        public const string Disable = "customer_user.disable";
+        public const string ResetPassword = "customer_user.reset_password";
     }
 
     private static string Normalize(string code)
