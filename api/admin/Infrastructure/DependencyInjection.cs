@@ -1,4 +1,8 @@
+using Core.Abstractions;
+using Infrastructure.Auth;
+using Infrastructure.Implementations;
 using Infrastructure.Models.Context;
+using Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,35 +11,21 @@ namespace Infrastructure;
 
 public static class DependencyInjection
 {
-    private static readonly string[] RequiredConfigurationKeys =
-    [
-        "DATABASE_URL"
-    ];
-
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        ValidateRequiredConfiguration(configuration);
+        var databaseOptions = DatabaseOptions.FromConfiguration(configuration);
+        var jwtOptions = JwtOptions.FromConfiguration(configuration);
 
         services.AddDbContext<LoyaltyHubDbContext>(options =>
-            options.UseNpgsql(configuration["DATABASE_URL"]));
+            options.UseNpgsql(databaseOptions.ConnectionString));
 
+        services.AddSingleton(databaseOptions);
+        services.AddSingleton(jwtOptions);
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPasswordVerifier, PasswordVerifier>();
+        services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         return services;
-    }
-
-    private static void ValidateRequiredConfiguration(IConfiguration configuration)
-    {
-        var missingKeys = RequiredConfigurationKeys
-            .Where(key => string.IsNullOrWhiteSpace(configuration[key]))
-            .ToArray();
-
-        if (missingKeys.Length == 0)
-        {
-            return;
-        }
-
-        throw new InvalidOperationException(
-            $"Missing required configuration value(s): {string.Join(", ", missingKeys)}");
     }
 }
