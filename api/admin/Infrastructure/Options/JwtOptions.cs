@@ -29,19 +29,11 @@ public sealed class JwtOptions
         var secret = ReadRequired(configuration, "JWT_SECRET");
         var issuer = ReadRequired(configuration, "JWT_ISSUER");
         var audience = ReadRequired(configuration, "JWT_AUDIENCE");
-        var expiresMinutesValue = ReadRequired(configuration, "JWT_EXPIRES_MINUTES");
+        var expiresMinutes = ReadRequiredPositiveInt(configuration, "JWT_EXPIRES_MINUTES");
 
         if (secret.Length < 32)
         {
             throw new InvalidOperationException("JWT_SECRET must be at least 32 characters.");
-        }
-
-        int expiresMinutes = 0;
-
-        if (!string.IsNullOrWhiteSpace(expiresMinutesValue) &&
-            (!int.TryParse(expiresMinutesValue, out expiresMinutes) || expiresMinutes <= 0))
-        {
-            throw new InvalidOperationException("JWT_EXPIRES_MINUTES must be a positive integer.");
         }
 
         return new JwtOptions(
@@ -61,5 +53,17 @@ public sealed class JwtOptions
         }
 
         return value;
+    }
+
+    private static int ReadRequiredPositiveInt(IConfiguration configuration, string key)
+    {
+        var value = ReadRequired(configuration, key);
+
+        if (!int.TryParse(value, out var parsedValue) || parsedValue <= 0)
+        {
+            throw new InvalidOperationException($"{key} must be a positive integer.");
+        }
+
+        return parsedValue;
     }
 }
