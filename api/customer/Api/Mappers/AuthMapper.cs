@@ -30,4 +30,26 @@ public static class AuthMapper
             }
         };
     }
+
+    public static RegisterCommand ToCommand(this RegisterRequestDto request)
+    {
+        return new RegisterCommand(
+            request.Username!.Trim(),
+            request.Email!.Trim(),
+            request.Password!,
+            request.FullName!.Trim(),
+            request.Phone!.Trim());
+    }
+
+    public static RegisterResponseDto ToResponseDto(this RegisterResult result)
+    {
+        return new RegisterResponseDto
+        {
+            UserId = result.UserId,
+            CustomerId = result.CustomerId,
+            Username = result.Username,
+            Email = result.Email,
+            FullName = result.FullName
+        };
+    }
 }
