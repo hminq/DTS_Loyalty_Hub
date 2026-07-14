@@ -128,9 +128,6 @@ public sealed class UserRepository : IUserRepository
             user.Username,
             user.FullName ?? string.Empty,
             user.PasswordHash,
-            user.Status,
-            Guid.Empty,
-            string.Empty,
-            []);
+            user.Status);
     }
 }

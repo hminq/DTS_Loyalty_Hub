@@ -17,9 +17,13 @@ public sealed class JwtAccessTokenService : IAccessTokenService
         _options = options;
     }
 
-    public AccessToken CreateAccessToken(CustomerLoginUser user)
+    public DateTime CreateExpiresAt()
     {
-        var expiresAt = DateTime.UtcNow.AddMinutes(_options.ExpiresMinutes);
+        return DateTime.UtcNow.AddMinutes(_options.ExpiresMinutes);
+    }
+
+    public AccessToken CreateAccessToken(CustomerTokenUser user, DateTime expiresAt)
+    {
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret));
         var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
@@ -27,12 +31,8 @@ public sealed class JwtAccessTokenService : IAccessTokenService
         {
             new(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
             new(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new("customer_id", user.CustomerId.ToString()),
-            new("role_id", user.RoleId.ToString()),
-            new(ClaimTypes.Role, user.RoleName)
+            new("customer_id", user.CustomerId.ToString())
         };
-
-        claims.AddRange(user.PermissionCodes.Select(permissionCode => new Claim("permission", permissionCode)));
 
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,
