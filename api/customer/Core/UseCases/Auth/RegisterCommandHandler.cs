@@ -11,13 +11,16 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordVerifier _passwordVerifier;
+    private readonly IAccessTokenService _accessTokenService;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
-        IPasswordVerifier passwordVerifier)
+        IPasswordVerifier passwordVerifier,
+        IAccessTokenService accessTokenService)
     {
         _userRepository = userRepository;
         _passwordVerifier = passwordVerifier;
+        _accessTokenService = accessTokenService;
     }
 
     public async Task<RegisterResult> Handle(RegisterCommand request, CancellationToken ct)
@@ -57,11 +60,24 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
                 request.Phone),
             ct);
 
+        var expiresAt = _accessTokenService.CreateExpiresAt();
+
+        var accessToken = _accessTokenService.CreateAccessToken(
+            new CustomerTokenUser(
+                created.UserId,
+                created.CustomerId,
+                request.Username),
+            expiresAt);
+
         return new RegisterResult(
-            created.UserId,
-            created.CustomerId,
-            request.Username,
-            request.Email,
-            request.FullName);
+            accessToken.Value,
+            "Bearer",
+            accessToken.ExpiresAt,
+            new CustomerRegisterResult(
+                created.UserId,
+                created.CustomerId,
+                request.Username,
+                request.Email,
+                request.FullName));
     }
 }

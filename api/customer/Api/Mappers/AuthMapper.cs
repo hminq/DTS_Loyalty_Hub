@@ -45,11 +45,17 @@ public static class AuthMapper
     {
         return new RegisterResponseDto
         {
-            UserId = result.UserId,
-            CustomerId = result.CustomerId,
-            Username = result.Username,
-            Email = result.Email,
-            FullName = result.FullName
+            AccessToken = result.AccessToken,
+            TokenType = result.TokenType,
+            ExpiresAt = result.ExpiresAt,
+            Customer = new CustomerRegisterResponseDto
+            {
+                UserId = result.Customer.UserId,
+                CustomerId = result.Customer.CustomerId,
+                Username = result.Customer.Username,
+                Email = result.Customer.Email,
+                FullName = result.Customer.FullName
+            }
         };
     }
 }

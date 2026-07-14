@@ -1,3 +1,4 @@
+using Api.Authentication;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.Users;
 using Api.Mappers;
@@ -14,37 +15,35 @@ namespace Api.Controllers.Users;
 public sealed class UserController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ICurrentCustomerAccessor _currentCustomerAccessor;
 
-    public UserController(ISender sender)
+    public UserController(
+        ISender sender,
+        ICurrentCustomerAccessor currentCustomerAccessor)
     {
         _sender = sender;
+        _currentCustomerAccessor = currentCustomerAccessor;
     }
 
     [HttpGet("profile")]
     public async Task<ActionResult<ApiResponseDto<UserProfileAndWalletResponseDto>>> GetProfile(CancellationToken ct)
     {
-        var customerIdClaim = User.FindFirst("customer_id")?.Value;
-
-        if (string.IsNullOrEmpty(customerIdClaim) || !Guid.TryParse(customerIdClaim, out var customerId))
+        if (!_currentCustomerAccessor.TryGetCurrentCustomer(out var currentCustomer) || currentCustomer is null)
         {
             return Unauthorized(ApiErrorResponseDto.Create(
                 "UNAUTHORIZED",
-                "Invalid or missing customer ID claim."));
+                "Invalid or missing customer token."));
         }
 
-        var query = new GetProfileAndWalletQuery(customerId);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(
+            new GetProfileAndWalletQuery(currentCustomer.CustomerId),
+            ct);
 
         if (result is null)
         {
-            return NotFound(ApiErrorResponseDto.Validation([
-                new ApiValidationErrorDto
-                {
-                    Field = "CustomerId",
-                    Code = "CUSTOMER_NOT_FOUND",
-                    Message = "Customer profile was not found."
-                }
-            ]));
+            return NotFound(ApiErrorResponseDto.Create(
+                "CUSTOMER_NOT_FOUND",
+                "Customer profile was not found."));
         }
 
         return Ok(new ApiResponseDto<UserProfileAndWalletResponseDto>

@@ -1,4 +1,5 @@
 using Api;
+using Api.Authentication;
 using Api.Validators;
 using Core.UseCases.Auth.Commands;
 using FluentValidation;
@@ -31,6 +32,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssemblyContaining<LoginCommand>());
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentCustomerAccessor, CurrentCustomerAccessor>();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>

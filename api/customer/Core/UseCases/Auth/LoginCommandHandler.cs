@@ -36,7 +36,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                 DomainErrorType.Unauthorized);
         }
 
-        var accessToken = _accessTokenService.CreateAccessToken(user);
+        var expiresAt = _accessTokenService.CreateExpiresAt();
+        var accessToken = _accessTokenService.CreateAccessToken(user.ToTokenUser(), expiresAt);
 
         return new LoginResult(
             accessToken.Value,

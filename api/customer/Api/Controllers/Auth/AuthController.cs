@@ -16,7 +16,6 @@ public sealed class AuthController : ControllerBase
     private readonly IValidator<LoginRequestDto> _loginRequestValidator;
     private readonly IValidator<RegisterRequestDto> _registerRequestValidator;
 
-
     public AuthController(
         ISender sender,
         IValidator<LoginRequestDto> loginRequestValidator,
@@ -36,19 +35,14 @@ public sealed class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            var details = validationResult.Errors
-                .Select(error => new ApiValidationErrorDto
-                {
-                    Field = error.PropertyName,
-                    Code = error.ErrorCode,
-                    Message = error.ErrorMessage
-                })
-                .ToArray();
+            var details = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
 
             return BadRequest(ApiErrorResponseDto.Validation(details));
         }
 
-        var result = await _sender.Send(request.ToCommand(), ct);
+        var result = await _sender.Send(
+            request.ToCommand(),
+            ct);
 
         return Ok(new ApiResponseDto<LoginResponseDto>
         {
@@ -65,26 +59,18 @@ public sealed class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            var details = validationResult.Errors
-                .Select(error => new ApiValidationErrorDto
-                {
-                    Field = error.PropertyName,
-                    Code = error.ErrorCode,
-                    Message = error.ErrorMessage
-                })
-                .ToArray();
+            var details = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
 
             return BadRequest(ApiErrorResponseDto.Validation(details));
         }
 
-        var result = await _sender.Send(request.ToCommand(), ct);
+        var result = await _sender.Send(
+            request.ToCommand(),
+            ct);
 
         return StatusCode(StatusCodes.Status201Created, new ApiResponseDto<RegisterResponseDto>
         {
             Data = result.ToResponseDto()
         });
-
-        // TODO: Publish UserRegisteredEvent 
     }
-
 }
