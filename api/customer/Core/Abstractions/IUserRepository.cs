@@ -5,7 +5,6 @@ namespace Core.Abstractions;
 public interface IUserRepository
 {
     Task<CustomerLoginUser?> GetByUsernameAsync(string username, CancellationToken ct);
-<<<<<<< HEAD
 
     Task<CustomerLoginUser?> GetByIdAsync(Guid userId, CancellationToken ct);
 
@@ -16,6 +15,4 @@ public interface IUserRepository
     Task<bool> ExistsByPhoneAsync(string phone, CancellationToken ct);
 
     Task<CreatedCustomerUser> CreateAsync(NewCustomerUser newUser, CancellationToken ct);
-=======
->>>>>>> origin/feature/admin-auth
 }
