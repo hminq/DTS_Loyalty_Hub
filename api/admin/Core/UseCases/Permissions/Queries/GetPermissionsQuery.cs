@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Core.UseCases.Permissions.Queries;
 
-public sealed record GetPermissionMatrixQuery : IRequest<IReadOnlyCollection<PermissionGroupResult>>;
+public sealed record GetPermissionsQuery : IRequest<IReadOnlyCollection<PermissionGroupResult>>;

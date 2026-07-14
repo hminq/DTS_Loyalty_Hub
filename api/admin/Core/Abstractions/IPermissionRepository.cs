@@ -4,6 +4,6 @@ namespace Core.Abstractions;
 
 public interface IPermissionRepository
 {
-    Task<IReadOnlyCollection<PermissionGroupResult>> GetPermissionMatrixAsync(
+    Task<IReadOnlyCollection<PermissionGroupResult>> GetPermissionsAsync(
         CancellationToken ct = default);
 }
