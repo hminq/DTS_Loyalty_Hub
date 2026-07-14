@@ -1,0 +1,27 @@
+using Core.Entities;
+
+namespace Core.Abstractions;
+
+public interface IRoleRepository
+{
+    Task<bool> ExistsByNameAsync(string name, CancellationToken ct = default);
+
+    Task<bool> ExistsByNameExceptAsync(
+        string name,
+        Guid excludedRoleId,
+        CancellationToken ct = default);
+
+    Task<Role?> GetByIdAsync(Guid roleId, CancellationToken ct = default);
+
+    Task<bool> HasAssignedAdminsAsync(Guid roleId, CancellationToken ct = default);
+
+    Task<IReadOnlySet<Guid>> GetExistingPermissionIdsAsync(
+        IReadOnlyCollection<Guid> permissionIds,
+        CancellationToken ct = default);
+
+    Task<Role> CreateAsync(Role role, CancellationToken ct = default);
+
+    Task<Role> UpdateAsync(Role role, CancellationToken ct = default);
+
+    Task DeleteAsync(Guid roleId, CancellationToken ct = default);
+}

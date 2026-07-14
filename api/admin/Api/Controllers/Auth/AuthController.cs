@@ -32,20 +32,15 @@ public sealed class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            var details = validationResult.Errors
-                .Select(error => new ApiValidationErrorDto
-                {
-                    Field = error.PropertyName,
-                    Code = error.ErrorCode,
-                    Message = error.ErrorMessage
-                })
-                .ToArray();
+            var details = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
 
             return BadRequest(ApiErrorResponseDto.Validation(details));
         }
 
         var result = await _sender.Send(
-            request.ToCommand(),
+            request.ToCommand(
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Request.Headers.UserAgent.ToString()),
             ct);
 
         return Ok(new ApiResponseDto<LoginResponseDto>

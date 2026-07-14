@@ -1,16 +1,18 @@
 using Api;
+using Api.Authorization;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using FluentValidation;
-using Api.Validators;
+using Api.Validators.Auth;
 using Core.UseCases.Auth.Commands;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Api.Dtos.Responses;
 using Api.Mappers;
+using Core.Entities.Constants;
 using Infrastructure.Options;
+using Microsoft.AspNetCore.Authorization;
 
 var currentDirectory = Directory.GetCurrentDirectory();
 var envPath = Path.Combine(currentDirectory, ".env");
@@ -45,6 +47,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -59,11 +62,24 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permissionCode in PermissionCodes.All)
+    {
+        options.AddPolicy(
+            permissionCode,
+            policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.Requirements.Add(new PermissionRequirement(permissionCode));
+            });
+    }
+});
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddSingleton(databaseOptions);
         services.AddSingleton(jwtOptions);
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         return services;
