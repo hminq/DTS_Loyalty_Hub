@@ -26,9 +26,11 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAdminSessionRepository, AdminSessionRepository>();
         services.AddScoped<IAdminPermissionChecker, AdminPermissionChecker>();
+        services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         return services;
     }
