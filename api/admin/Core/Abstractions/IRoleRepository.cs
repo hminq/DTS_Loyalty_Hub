@@ -1,4 +1,6 @@
 using Core.Entities;
+using Core.UseCases.Common;
+using Core.UseCases.Roles.Results;
 
 namespace Core.Abstractions;
 
@@ -12,6 +14,12 @@ public interface IRoleRepository
         CancellationToken ct = default);
 
     Task<Role?> GetByIdAsync(Guid roleId, CancellationToken ct = default);
+
+    Task<PagedResult<RoleResult>> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? keyword,
+        CancellationToken ct = default);
 
     Task<bool> HasAssignedAdminsAsync(Guid roleId, CancellationToken ct = default);
 

@@ -8,7 +8,7 @@ public static class ValidationErrorMapper
 {
     public static IReadOnlyCollection<ApiValidationErrorDto> FromModelState(ModelStateDictionary modelState)
     {
-        return modelState
+        var errors = modelState
             .Where(entry => entry.Value?.Errors.Count > 0)
             .SelectMany(entry => entry.Value!.Errors.Select(error => new ApiValidationErrorDto
             {
@@ -19,6 +19,15 @@ public static class ValidationErrorMapper
                     : error.ErrorMessage
             }))
             .ToArray();
+
+        if (errors.Any(error => error.Field != "request"))
+        {
+            return errors
+                .Where(error => error.Field != "request")
+                .ToArray();
+        }
+
+        return errors;
     }
 
     public static IReadOnlyCollection<ApiValidationErrorDto> FromValidationFailures(

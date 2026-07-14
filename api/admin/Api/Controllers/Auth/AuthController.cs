@@ -38,9 +38,7 @@ public sealed class AuthController : ControllerBase
         }
 
         var result = await _sender.Send(
-            request.ToCommand(
-                HttpContext.Connection.RemoteIpAddress?.ToString(),
-                Request.Headers.UserAgent.ToString()),
+            request.ToCommand(),
             ct);
 
         return Ok(new ApiResponseDto<LoginResponseDto>

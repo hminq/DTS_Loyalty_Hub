@@ -5,6 +5,4 @@ namespace Core.UseCases.Auth.Commands;
 
 public sealed record LoginCommand(
     string Username,
-    string Password,
-    string? IpAddress,
-    string? UserAgent) : IRequest<LoginResult>;
+    string Password) : IRequest<LoginResult>;

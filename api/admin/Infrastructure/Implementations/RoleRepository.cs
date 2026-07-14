@@ -1,5 +1,7 @@
 using Core.Abstractions;
 using Core.Exceptions;
+using Core.UseCases.Common;
+using Core.UseCases.Roles.Results;
 using Infrastructure.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using DomainRole = Core.Entities.Role;
@@ -58,6 +60,48 @@ public sealed class RoleRepository : IRoleRepository
             role.Name,
             role.RolePermissions.Select(rolePermission => rolePermission.PermissionId),
             role.CreatedAt);
+    }
+
+    public async Task<PagedResult<RoleResult>> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? keyword,
+        CancellationToken ct = default)
+    {
+        var query = _dbContext.Roles
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var pattern = $"%{keyword.Trim()}%";
+            query = query.Where(role => EF.Functions.ILike(role.Name, pattern));
+        }
+
+        var totalItems = await query.CountAsync(ct);
+
+        var roles = await query
+            .Include(role => role.RolePermissions)
+            .OrderBy(role => role.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        var items = roles
+            .Select(role => new RoleResult(
+                role.RoleId,
+                role.Name,
+                role.RolePermissions
+                    .Select(rolePermission => rolePermission.PermissionId)
+                    .ToArray(),
+                role.CreatedAt))
+            .ToArray();
+
+        return new PagedResult<RoleResult>(
+            items,
+            page,
+            pageSize,
+            totalItems);
     }
 
     public Task<bool> HasAssignedAdminsAsync(Guid roleId, CancellationToken ct = default)

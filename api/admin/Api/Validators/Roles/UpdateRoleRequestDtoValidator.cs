@@ -8,6 +8,7 @@ public sealed class UpdateRoleRequestDtoValidator : AbstractValidator<UpdateRole
     public UpdateRoleRequestDtoValidator()
     {
         RuleFor(request => request.Name)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("ROLE_NAME_REQUIRED")
             .WithMessage("Role name is required.")
@@ -17,6 +18,7 @@ public sealed class UpdateRoleRequestDtoValidator : AbstractValidator<UpdateRole
             .OverridePropertyName("name");
 
         RuleFor(request => request.PermissionIds)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("ROLE_PERMISSION_IDS_REQUIRED")
             .WithMessage("Permission ids are required.")

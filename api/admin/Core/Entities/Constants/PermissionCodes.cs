@@ -16,6 +16,7 @@ public static class PermissionCodes
         AdminUsers.Update,
         AdminUsers.Disable,
         AdminUsers.ResetPassword,
+        AdminUsers.RevokeSession,
         CustomerUsers.View,
         CustomerUsers.Create,
         CustomerUsers.Update,
@@ -66,6 +67,7 @@ public static class PermissionCodes
         public const string Update = "admin_user.update";
         public const string Disable = "admin_user.disable";
         public const string ResetPassword = "admin_user.reset_password";
+        public const string RevokeSession = "admin_user.revoke_session";
     }
 
     public static class CustomerUsers
