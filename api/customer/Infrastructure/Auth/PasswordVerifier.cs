@@ -31,9 +31,12 @@ public sealed class PasswordVerifier : IPasswordVerifier
             || passwordHash.StartsWith("$2b$", StringComparison.Ordinal)
             || passwordHash.StartsWith("$2y$", StringComparison.Ordinal);
     }
+<<<<<<< HEAD
 
     public string Hash(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password);
     }
+=======
+>>>>>>> origin/feature/admin-auth
 }

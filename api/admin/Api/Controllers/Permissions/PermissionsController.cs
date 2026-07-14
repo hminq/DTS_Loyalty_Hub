@@ -22,10 +22,10 @@ public sealed class PermissionsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<PermissionGroupResponseDto>>>> GetMatrix(
+    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<PermissionGroupResponseDto>>>> Get(
         CancellationToken ct)
     {
-        var result = await _sender.Send(new GetPermissionMatrixQuery(), ct);
+        var result = await _sender.Send(new GetPermissionsQuery(), ct);
 
         return Ok(new ApiResponseDto<IReadOnlyCollection<PermissionGroupResponseDto>>
         {

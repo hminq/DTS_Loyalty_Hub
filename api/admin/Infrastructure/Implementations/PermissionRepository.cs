@@ -14,7 +14,7 @@ public sealed class PermissionRepository : IPermissionRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<PermissionGroupResult>> GetPermissionMatrixAsync(
+    public async Task<IReadOnlyCollection<PermissionGroupResult>> GetPermissionsAsync(
         CancellationToken ct = default)
     {
         var permissions = await _dbContext.Permissions

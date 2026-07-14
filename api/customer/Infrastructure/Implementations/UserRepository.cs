@@ -1,11 +1,17 @@
 using Core.Entities.Constants;
 using Core.Abstractions;
+<<<<<<< HEAD
 using Core.Exceptions;
 using Core.UseCases.Auth.Models;
 using Infrastructure.Models;
 using Infrastructure.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+=======
+using Core.UseCases.Auth.Models;
+using Infrastructure.Models.Context;
+using Microsoft.EntityFrameworkCore;
+>>>>>>> origin/feature/admin-auth
 
 namespace Infrastructure.Implementations;
 
@@ -27,6 +33,7 @@ public sealed class UserRepository : IUserRepository
             .Where(u => u.Username == username && u.UserType == UserTypes.Customer)
             .SingleOrDefaultAsync(ct);
 
+<<<<<<< HEAD
         return await ToCustomerLoginUserAsync(user, ct);
     }
 
@@ -106,6 +113,8 @@ public sealed class UserRepository : IUserRepository
 
     private async Task<CustomerLoginUser?> ToCustomerLoginUserAsync(User? user, CancellationToken ct)
     {
+=======
+>>>>>>> origin/feature/admin-auth
         if (user is null)
         {
             return null;

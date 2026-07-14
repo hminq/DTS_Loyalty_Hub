@@ -4,5 +4,7 @@ namespace Core.Abstractions;
 
 public interface IAccessTokenService
 {
-    AccessToken CreateAccessToken(AdminLoginUser user);
+    DateTime CreateExpiresAt();
+
+    AccessToken CreateAccessToken(AdminLoginUser user, AdminLoginSession session);
 }

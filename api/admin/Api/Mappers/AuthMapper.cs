@@ -7,11 +7,16 @@ namespace Api.Mappers;
 
 public static class AuthMapper
 {
-    public static LoginCommand ToCommand(this LoginRequestDto request)
+    public static LoginCommand ToCommand(
+        this LoginRequestDto request,
+        string? ipAddress,
+        string? userAgent)
     {
         return new LoginCommand(
             request.Username!.Trim(),
-            request.Password!);
+            request.Password!,
+            ipAddress,
+            userAgent);
     }
 
     public static LoginResponseDto ToResponseDto(this LoginResult result)

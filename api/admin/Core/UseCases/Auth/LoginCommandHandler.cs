@@ -11,15 +11,18 @@ namespace Core.UseCases.Auth;
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResult>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IAdminSessionRepository _adminSessionRepository;
     private readonly IPasswordVerifier _passwordVerifier;
     private readonly IAccessTokenService _accessTokenService;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
+        IAdminSessionRepository adminSessionRepository,
         IPasswordVerifier passwordVerifier,
         IAccessTokenService accessTokenService)
     {
         _userRepository = userRepository;
+        _adminSessionRepository = adminSessionRepository;
         _passwordVerifier = passwordVerifier;
         _accessTokenService = accessTokenService;
     }
@@ -38,7 +41,14 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                 DomainErrorType.Unauthorized);
         }
 
-        var accessToken = _accessTokenService.CreateAccessToken(user);
+        var expiresAt = _accessTokenService.CreateExpiresAt();
+        var session = await _adminSessionRepository.ReplaceActiveSessionAsync(
+            user.AdminId,
+            user.UserId,
+            expiresAt,
+            ct);
+
+        var accessToken = _accessTokenService.CreateAccessToken(user, session);
 
         return new LoginResult(
             accessToken.Value,

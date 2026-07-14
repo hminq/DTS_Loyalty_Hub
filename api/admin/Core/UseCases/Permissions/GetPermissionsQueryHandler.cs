@@ -5,20 +5,20 @@ using MediatR;
 
 namespace Core.UseCases.Permissions;
 
-public sealed class GetPermissionMatrixQueryHandler
-    : IRequestHandler<GetPermissionMatrixQuery, IReadOnlyCollection<PermissionGroupResult>>
+public sealed class GetPermissionsQueryHandler
+    : IRequestHandler<GetPermissionsQuery, IReadOnlyCollection<PermissionGroupResult>>
 {
     private readonly IPermissionRepository _permissionRepository;
 
-    public GetPermissionMatrixQueryHandler(IPermissionRepository permissionRepository)
+    public GetPermissionsQueryHandler(IPermissionRepository permissionRepository)
     {
         _permissionRepository = permissionRepository;
     }
 
     public Task<IReadOnlyCollection<PermissionGroupResult>> Handle(
-        GetPermissionMatrixQuery request,
+        GetPermissionsQuery request,
         CancellationToken ct)
     {
-        return _permissionRepository.GetPermissionMatrixAsync(ct);
+        return _permissionRepository.GetPermissionsAsync(ct);
     }
 }
