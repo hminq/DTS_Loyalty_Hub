@@ -1,5 +1,6 @@
 using Api.Dtos.Requests.Auth;
 using FluentValidation;
+using Api.Constants;
 
 namespace Api.Validators;
 
@@ -11,18 +12,18 @@ public sealed class LoginRequestDtoValidator : AbstractValidator<LoginRequestDto
             .NotEmpty()
             .WithErrorCode("USERNAME_REQUIRED")
             .WithMessage("Username is required.")
-            .MaximumLength(50)
+            .MaximumLength(ValidationConstants.MaxUsernameLength)
             .WithErrorCode("USERNAME_TOO_LONG")
-            .WithMessage("Username must be 50 characters or fewer.")
+            .WithMessage("Username must be {MaximumLength} characters or fewer.")
             .OverridePropertyName("username");;
 
         RuleFor(request => request.Password)
             .NotEmpty()
             .WithErrorCode("PASSWORD_REQUIRED")
             .WithMessage("Password is required.")
-            .MaximumLength(200)
+            .MaximumLength(ValidationConstants.MaxPasswordLength)
             .WithErrorCode("PASSWORD_TOO_LONG")
-            .WithMessage("Password must be 200 characters or fewer.")
+            .WithMessage("Password must be {MaximumLength} characters or fewer.")
             .OverridePropertyName("password");
     }
 }

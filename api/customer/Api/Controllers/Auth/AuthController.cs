@@ -14,13 +14,17 @@ public sealed class AuthController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IValidator<LoginRequestDto> _loginRequestValidator;
+    private readonly IValidator<RegisterRequestDto> _registerRequestValidator;
+
 
     public AuthController(
         ISender sender,
-        IValidator<LoginRequestDto> loginRequestValidator)
+        IValidator<LoginRequestDto> loginRequestValidator,
+        IValidator<RegisterRequestDto> registerRequestValidator)
     {
         _sender = sender;
         _loginRequestValidator = loginRequestValidator;
+        _registerRequestValidator = registerRequestValidator;
     }
 
     [HttpPost("login")]
@@ -51,4 +55,36 @@ public sealed class AuthController : ControllerBase
             Data = result.ToResponseDto()
         });
     }
+
+    [HttpPost("register")]
+    public async Task<ActionResult<ApiResponseDto<RegisterResponseDto>>> Register(
+        [FromBody] RegisterRequestDto request,
+        CancellationToken ct)
+    {
+        var validationResult = await _registerRequestValidator.ValidateAsync(request, ct);
+
+        if (!validationResult.IsValid)
+        {
+            var details = validationResult.Errors
+                .Select(error => new ApiValidationErrorDto
+                {
+                    Field = error.PropertyName,
+                    Code = error.ErrorCode,
+                    Message = error.ErrorMessage
+                })
+                .ToArray();
+
+            return BadRequest(ApiErrorResponseDto.Validation(details));
+        }
+
+        var result = await _sender.Send(request.ToCommand(), ct);
+
+        return StatusCode(StatusCodes.Status201Created, new ApiResponseDto<RegisterResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
+
+        // TODO: Publish UserRegisteredEvent 
+    }
+
 }
