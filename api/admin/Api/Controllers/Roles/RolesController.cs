@@ -4,6 +4,7 @@ using Api.Dtos.Responses.Roles;
 using Api.Mappers;
 using Core.Entities.Constants;
 using Core.UseCases.Roles.Commands;
+using Core.UseCases.Roles.Queries;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -17,17 +18,53 @@ namespace Api.Controllers.Roles;
 public sealed class RolesController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IValidator<GetRolesRequestDto> _getRolesValidator;
     private readonly IValidator<CreateRoleRequestDto> _createRoleValidator;
     private readonly IValidator<UpdateRoleRequestDto> _updateRoleValidator;
 
     public RolesController(
         ISender sender,
+        IValidator<GetRolesRequestDto> getRolesValidator,
         IValidator<CreateRoleRequestDto> createRoleValidator,
         IValidator<UpdateRoleRequestDto> updateRoleValidator)
     {
         _sender = sender;
+        _getRolesValidator = getRolesValidator;
         _createRoleValidator = createRoleValidator;
         _updateRoleValidator = updateRoleValidator;
+    }
+
+    [HttpGet]
+    [Authorize(Policy = PermissionCodes.Roles.View)]
+    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<RoleResponseDto>>>> GetList(
+        [FromQuery] GetRolesRequestDto request,
+        CancellationToken ct)
+    {
+        var validationResult = await _getRolesValidator.ValidateAsync(request, ct);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(ApiErrorResponseDto.Validation(
+                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+        }
+
+        var result = await _sender.Send(request.ToQuery(), ct);
+
+        return Ok(result.ToPagedResponseDto());
+    }
+
+    [HttpGet("{roleId:guid}")]
+    [Authorize(Policy = PermissionCodes.Roles.View)]
+    public async Task<ActionResult<ApiResponseDto<RoleResponseDto>>> GetById(
+        Guid roleId,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetRoleByIdQuery(roleId), ct);
+
+        return Ok(new ApiResponseDto<RoleResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
     }
 
     [HttpPost]
