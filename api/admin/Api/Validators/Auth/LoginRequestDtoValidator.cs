@@ -8,6 +8,7 @@ public sealed class LoginRequestDtoValidator : AbstractValidator<LoginRequestDto
     public LoginRequestDtoValidator()
     {
         RuleFor(request => request.Username)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("USERNAME_REQUIRED")
             .WithMessage("Username is required.")
@@ -17,6 +18,7 @@ public sealed class LoginRequestDtoValidator : AbstractValidator<LoginRequestDto
             .OverridePropertyName("username");
 
         RuleFor(request => request.Password)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("PASSWORD_REQUIRED")
             .WithMessage("Password is required.")
