@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vscode
+.DS_Store
+**/bin/
+**/obj/
+
+**/.env
+**/.env.*
+
+*.user
+*.suo
+*.log

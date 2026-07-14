@@ -1,4 +1,5 @@
 using Api.Dtos.Responses;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Api.Mappers;
@@ -20,6 +21,19 @@ public static class ValidationErrorMapper
             .ToArray();
     }
 
+    public static IReadOnlyCollection<ApiValidationErrorDto> FromValidationFailures(
+        IEnumerable<ValidationFailure> validationFailures)
+    {
+        return validationFailures
+            .Select(error => new ApiValidationErrorDto
+            {
+                Field = NormalizeField(error.PropertyName),
+                Code = error.ErrorCode,
+                Message = error.ErrorMessage
+            })
+            .ToArray();
+    }
+
     private static string NormalizeField(string field)
     {
         if (string.IsNullOrWhiteSpace(field))
@@ -27,6 +41,13 @@ public static class ValidationErrorMapper
             return "request";
         }
 
-        return char.ToLowerInvariant(field[0]) + field[1..];
+        var normalizedField = field.Trim();
+
+        if (normalizedField.StartsWith("$.", StringComparison.Ordinal))
+        {
+            normalizedField = normalizedField[2..];
+        }
+
+        return char.ToLowerInvariant(normalizedField[0]) + normalizedField[1..];
     }
 }
