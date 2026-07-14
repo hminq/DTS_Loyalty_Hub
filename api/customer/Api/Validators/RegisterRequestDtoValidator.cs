@@ -9,6 +9,8 @@ public sealed class RegisterRequestDtoValidator : AbstractValidator<RegisterRequ
     
     public RegisterRequestDtoValidator()
     {
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
         RuleFor(request => request.Username)
             .NotEmpty()
             .WithErrorCode("USERNAME_REQUIRED")

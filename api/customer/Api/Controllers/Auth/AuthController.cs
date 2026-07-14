@@ -83,6 +83,8 @@ public sealed class AuthController : ControllerBase
         {
             Data = result.ToResponseDto()
         });
+
+        // TODO: Publish UserRegisteredEvent 
     }
 
 }
