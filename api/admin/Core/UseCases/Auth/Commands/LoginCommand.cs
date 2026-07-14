@@ -3,4 +3,8 @@ using MediatR;
 
 namespace Core.UseCases.Auth.Commands;
 
-public sealed record LoginCommand(string Username, string Password) : IRequest<LoginResult>;
+public sealed record LoginCommand(
+    string Username,
+    string Password,
+    string? IpAddress,
+    string? UserAgent) : IRequest<LoginResult>;

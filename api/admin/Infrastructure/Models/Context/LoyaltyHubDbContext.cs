@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Infrastructure.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Models.Context;
 
@@ -17,6 +14,8 @@ public partial class LoyaltyHubDbContext : DbContext
     public virtual DbSet<ActionUsage> ActionUsages { get; set; }
 
     public virtual DbSet<Admin> Admins { get; set; }
+
+    public virtual DbSet<AdminSession> AdminSessions { get; set; }
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
@@ -149,6 +148,43 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasOne(d => d.User).WithOne(p => p.Admin)
                 .HasForeignKey<Admin>(d => d.UserId)
                 .HasConstraintName("fk_admin_user");
+        });
+
+        modelBuilder.Entity<AdminSession>(entity =>
+        {
+            entity.HasKey(e => e.AdminSessionId).HasName("admin_sessions_pkey");
+
+            entity.ToTable("admin_sessions");
+
+            entity.HasIndex(e => new { e.AdminSessionId, e.AccessTokenJti, e.AdminId }, "ix_admin_sessions_session_jti_admin");
+
+            entity.HasIndex(e => e.UserId, "ix_admin_sessions_user");
+
+            entity.HasIndex(e => e.AccessTokenJti, "uq_admin_sessions_access_token_jti").IsUnique();
+
+            entity.HasIndex(e => e.AdminId, "uq_admin_sessions_one_active_per_admin")
+                .IsUnique()
+                .HasFilter("(revoked_at IS NULL)");
+
+            entity.Property(e => e.AdminSessionId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("admin_session_id");
+            entity.Property(e => e.AccessTokenJti).HasColumnName("access_token_jti");
+            entity.Property(e => e.AdminId).HasColumnName("admin_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.RevokedAt).HasColumnName("revoked_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Admin).WithMany()
+                .HasForeignKey(d => d.AdminId)
+                .HasConstraintName("fk_admin_sessions_admin");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("fk_admin_sessions_user");
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
