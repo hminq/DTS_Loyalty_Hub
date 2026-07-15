@@ -1,7 +1,7 @@
 using Core.Abstractions;
 using Infrastructure.Auth;
 using Infrastructure.Implementations;
-using Infrastructure.Models.Context;
+using Persistence.Models.Context;
 using Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,9 +29,12 @@ public static class DependencyInjection
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<ITierRepository, TierRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        
         return services;
     }
 }

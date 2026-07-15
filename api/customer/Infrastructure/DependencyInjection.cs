@@ -1,7 +1,7 @@
 using Core.Abstractions;
 using Infrastructure.Implementations;
 using Infrastructure.Auth;
-using Infrastructure.Models.Context;
+using Persistence.Models.Context;
 using Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

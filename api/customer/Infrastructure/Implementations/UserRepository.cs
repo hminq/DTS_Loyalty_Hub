@@ -2,8 +2,8 @@ using Core.Entities.Constants;
 using Core.Abstractions;
 using Core.Exceptions;
 using Core.UseCases.Auth.Models;
-using Infrastructure.Models;
-using Infrastructure.Models.Context;
+using Persistence.Models;
+using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 

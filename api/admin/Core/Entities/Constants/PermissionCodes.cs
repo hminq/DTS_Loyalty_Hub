@@ -21,7 +21,10 @@ public static class PermissionCodes
         CustomerUsers.Create,
         CustomerUsers.Update,
         CustomerUsers.Disable,
-        CustomerUsers.ResetPassword
+        CustomerUsers.ResetPassword,
+        Tiers.View,
+        Tiers.Create,
+        AuditLogs.View
     ];
 
     public static IReadOnlySet<string> All => DefinedCodes;
@@ -82,5 +85,16 @@ public static class PermissionCodes
     private static string Normalize(string code)
     {
         return code.Trim().ToLowerInvariant();
+    }
+
+    public static class Tiers
+    {
+        public const string View = "tier.view";
+        public const string Create = "tier.create";
+    }
+
+    public static class AuditLogs
+    {
+        public const string View = "audit_log.view";
     }
 }

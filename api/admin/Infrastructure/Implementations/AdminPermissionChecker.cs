@@ -1,6 +1,6 @@
 using Core.Abstractions;
 using Core.Entities.Constants;
-using Infrastructure.Models.Context;
+using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Implementations;

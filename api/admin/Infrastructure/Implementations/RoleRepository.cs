@@ -2,11 +2,11 @@ using Core.Abstractions;
 using Core.Exceptions;
 using Core.UseCases.Common;
 using Core.UseCases.Roles.Results;
-using Infrastructure.Models.Context;
+using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using DomainRole = Core.Entities.Role;
-using PersistenceRole = Infrastructure.Models.Role;
-using PersistenceRolePermission = Infrastructure.Models.RolePermission;
+using PersistenceRole = Persistence.Models.Role;
+using PersistenceRolePermission = Persistence.Models.RolePermission;
 
 namespace Infrastructure.Implementations;
 
