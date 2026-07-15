@@ -29,4 +29,18 @@ public static class UserMapper
             }
         };
     }
+    public static PointTransactionResponseDto ToResponseDto(this Core.UseCases.Customers.Queries.GetPointTransactions.PointTransactionResult result)
+    {
+        return new PointTransactionResponseDto
+        {
+            Id = result.Id,
+            TransactionType = result.TransactionType,
+            Amount = result.Amount,
+            BalanceBefore = result.BalanceBefore,
+            BalanceAfter = result.BalanceAfter,
+            CreatedAt = result.CreatedAt,
+            SourceEventId = result.SourceEventId,
+            CampaignSessionId = result.CampaignSessionId
+        };
+    }
 }
