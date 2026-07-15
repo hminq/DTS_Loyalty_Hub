@@ -13,7 +13,6 @@ COPY api/customer/ api/customer/
 
 RUN dotnet publish api/customer/Api/Api.csproj \
     --configuration Release \
-    --no-restore \
     --output /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
