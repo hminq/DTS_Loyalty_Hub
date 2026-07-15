@@ -3,8 +3,8 @@ using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.AdminUsers.Results;
 using Core.UseCases.Common;
-using Infrastructure.Models;
-using Infrastructure.Models.Context;
+using Persistence.Models;
+using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Implementations;

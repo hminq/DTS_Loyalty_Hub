@@ -1,7 +1,7 @@
 using Core.Entities.Constants;
 using Core.Abstractions;
 using Core.UseCases.Auth.Models;
-using Infrastructure.Models.Context;
+using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Implementations;
