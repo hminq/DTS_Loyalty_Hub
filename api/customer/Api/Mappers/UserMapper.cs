@@ -39,7 +39,8 @@ public static class UserMapper
             BalanceBefore = result.BalanceBefore,
             BalanceAfter = result.BalanceAfter,
             CreatedAt = result.CreatedAt,
-            SourceEventId = result.SourceEventId
+            SourceEventId = result.SourceEventId,
+            CampaignSessionId = result.CampaignSessionId
         };
     }
 }

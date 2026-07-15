@@ -35,7 +35,8 @@ public sealed class PointTransactionRepository : IPointTransactionRepository
                 x.BalanceBefore,
                 x.BalanceAfter,
                 x.CreatedAt,
-                x.SourceEventId
+                x.SourceEventId,
+                x.CampaignSessionId
             ))
             .ToListAsync(ct);
 

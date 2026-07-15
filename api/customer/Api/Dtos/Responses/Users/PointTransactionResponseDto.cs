@@ -9,4 +9,5 @@ public class PointTransactionResponseDto
     public decimal BalanceAfter { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? SourceEventId { get; set; }
+    public Guid? CampaignSessionId { get; set; }
 }

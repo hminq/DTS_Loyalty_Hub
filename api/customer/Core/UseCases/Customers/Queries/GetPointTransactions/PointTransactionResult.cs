@@ -7,5 +7,6 @@ public record PointTransactionResult(
     decimal BalanceBefore,
     decimal BalanceAfter,
     DateTime CreatedAt,
-    string? SourceEventId
+    string? SourceEventId,
+    Guid? CampaignSessionId
 );
