@@ -17,6 +17,18 @@ public sealed class GetPointTransactionsQueryHandler : IRequestHandler<GetPointT
         GetPointTransactionsQuery request,
         CancellationToken ct)
     {
-        return await _repository.GetPagedByCustomerIdAsync(request.CustomerId, request.PageIndex, request.PageSize, ct);
+        var pageIndex = request.PageIndex < 1 ? 1 : request.PageIndex;
+        var pageSize = request.PageSize < 1 || request.PageSize > 100 ? 20 : request.PageSize;
+
+        return await _repository.GetPagedByCustomerIdAsync(
+            request.CustomerId, 
+            pageIndex, 
+            pageSize, 
+            request.TransactionType,
+            request.FromDate,
+            request.ToDate,
+            request.MinAmount,
+            request.MaxAmount,
+            ct);
     }
 }

@@ -1,7 +1,9 @@
 using Api.Authentication;
+using Api.Dtos.Requests.Users;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.Users;
 using Api.Mappers;
+using Core.UseCases.Customers.Queries.GetPointTransactions;
 using Core.UseCases.Customers.Queries.GetProfileAndWallet;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -43,15 +45,19 @@ public sealed class UserController : CustomerControllerBase
     }
 
     [HttpGet("transactions")]
-    public async Task<ActionResult<ApiResponseDto<PagedResponseDto<PointTransactionResponseDto>>>> GetTransactions(
-        [FromQuery] int page = 1, 
-        [FromQuery] int pageSize = 20,
+    public async Task<ActionResult<ApiResponseDto<IEnumerable<PointTransactionResponseDto>>>> GetTransactions(
+        [FromQuery] PointTransactionFilterDto filter,
         CancellationToken ct = default)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-        var query = new Core.UseCases.Customers.Queries.GetPointTransactions.GetPointTransactionsQuery(CurrentCustomer.CustomerId, page, pageSize);
+        var query = new GetPointTransactionsQuery(
+            CurrentCustomer.CustomerId, 
+            filter.Page, 
+            filter.PageSize,
+            filter.TransactionType,
+            filter.FromDate,
+            filter.ToDate,
+            filter.MinAmount,
+            filter.MaxAmount);
         var result = await _sender.Send(query, ct);
 
         if (result is null)
@@ -61,14 +67,15 @@ public sealed class UserController : CustomerControllerBase
                 "Invalid or missing customer ID claim."));
         }
 
-        return Ok(new ApiResponseDto<PagedResponseDto<PointTransactionResponseDto>>
+        return Ok(new ApiResponseDto<IEnumerable<PointTransactionResponseDto>>
         {
-            Data = new PagedResponseDto<PointTransactionResponseDto>
+            Data = result.Items.Select(x => x.ToResponseDto()),
+            Meta = new ApiMetaDto
             {
-                Items = result.Items.Select(x => x.ToResponseDto()),
-                TotalCount = result.TotalCount,
-                PageIndex = page,
-                PageSize = pageSize
+                TotalItems = result.TotalCount,
+                Page = result.PageIndex,
+                PageSize = result.PageSize,
+                TotalPages = result.PageSize > 0 ? (int)Math.Ceiling(result.TotalCount / (double)result.PageSize) : 0
             }
         });
     }

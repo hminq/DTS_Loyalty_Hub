@@ -16,11 +16,44 @@ public sealed class PointTransactionRepository : IPointTransactionRepository
     }
 
     public async Task<PagedResult<PointTransactionResult>> GetPagedByCustomerIdAsync(
-        Guid customerId, int pageIndex, int pageSize, CancellationToken ct)
+        Guid customerId, 
+        int pageIndex, 
+        int pageSize, 
+        string? transactionType,
+        DateTime? fromDate,
+        DateTime? toDate,
+        decimal? minAmount,
+        decimal? maxAmount,
+        CancellationToken ct)
     {
         var query = _dbContext.PointTransactions
             .AsNoTracking()
             .Where(x => x.CustomerId == customerId);
+
+        if (!string.IsNullOrWhiteSpace(transactionType))
+        {
+            query = query.Where(x => x.TransactionType == transactionType);
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt <= toDate.Value);
+        }
+
+        if (minAmount.HasValue)
+        {
+            query = query.Where(x => x.Amount >= minAmount.Value);
+        }
+
+        if (maxAmount.HasValue)
+        {
+            query = query.Where(x => x.Amount <= maxAmount.Value);
+        }
 
         var totalCount = await query.CountAsync(ct);
 
@@ -40,6 +73,6 @@ public sealed class PointTransactionRepository : IPointTransactionRepository
             ))
             .ToListAsync(ct);
 
-        return new PagedResult<PointTransactionResult>(items, totalCount);
+        return new PagedResult<PointTransactionResult>(items, totalCount, pageIndex, pageSize);
     }
 }
