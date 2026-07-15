@@ -1,6 +1,6 @@
 using Core.Abstractions;
 using Core.UseCases.Permissions.Results;
-using Infrastructure.Models.Context;
+using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Implementations;

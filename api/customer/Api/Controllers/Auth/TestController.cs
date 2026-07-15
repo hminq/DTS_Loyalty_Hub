@@ -1,4 +1,4 @@
-﻿using Infrastructure.Models.Context;
+﻿using Persistence.Models.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -84,7 +84,7 @@ namespace Api.Controllers
                 return Conflict(new { error = "phone already exists" });
 
             // create user entity
-            var user = new Infrastructure.Models.User
+            var user = new Persistence.Models.User
             {
                 Username = req.Username,
                 Email = req.Email,
