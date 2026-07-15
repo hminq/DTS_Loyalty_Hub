@@ -3,3 +3,5 @@
 .vs
 AGENTS.md
 docs
+.env
+docker-compose.prod.yml
