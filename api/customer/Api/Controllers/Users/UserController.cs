@@ -45,11 +45,11 @@ public sealed class UserController : CustomerControllerBase
     [HttpGet("transactions")]
     public async Task<ActionResult<ApiResponseDto<PagedResponseDto<PointTransactionResponseDto>>>> GetTransactions(
         [FromQuery] int page = 1, 
-        [FromQuery] int pageSize = 10,
+        [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 10;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
         var query = new Core.UseCases.Customers.Queries.GetPointTransactions.GetPointTransactionsQuery(CurrentCustomer.CustomerId, page, pageSize);
         var result = await _sender.Send(query, ct);
