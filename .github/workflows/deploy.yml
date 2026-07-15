@@ -16,4 +16,5 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deployment placeholder
-        run: echo "hello."
+        run: echo "hello. loyalty hub"
+
