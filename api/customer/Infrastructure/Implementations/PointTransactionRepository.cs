@@ -32,7 +32,8 @@ public sealed class PointTransactionRepository : IPointTransactionRepository
 
         if (!string.IsNullOrWhiteSpace(transactionType))
         {
-            query = query.Where(x => x.TransactionType == transactionType);
+            var typeStr = transactionType.Trim().ToUpper();
+            query = query.Where(x => x.TransactionType.ToUpper() == typeStr);
         }
 
         if (fromDate.HasValue)
