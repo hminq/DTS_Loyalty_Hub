@@ -15,6 +15,8 @@ using Infrastructure.Options;
 var currentDirectory = Directory.GetCurrentDirectory();
 var envPath = Path.Combine(currentDirectory, ".env");
 
+System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
 if (!File.Exists(envPath))
 {
     envPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", ".env"));
@@ -48,6 +50,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
