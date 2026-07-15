@@ -41,4 +41,35 @@ public sealed class UserController : CustomerControllerBase
             Data = result.ToResponseDto()
         });
     }
+
+    [HttpGet("transactions")]
+    public async Task<ActionResult<ApiResponseDto<PagedResponseDto<PointTransactionResponseDto>>>> GetTransactions(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 10;
+
+        var query = new Core.UseCases.Customers.Queries.GetPointTransactions.GetPointTransactionsQuery(CurrentCustomer.CustomerId, page, pageSize);
+        var result = await _sender.Send(query, ct);
+
+        if (result is null)
+        {
+            return Unauthorized(ApiErrorResponseDto.Create(
+                "UNAUTHORIZED",
+                "Invalid or missing customer ID claim."));
+        }
+
+        return Ok(new ApiResponseDto<PagedResponseDto<PointTransactionResponseDto>>
+        {
+            Data = new PagedResponseDto<PointTransactionResponseDto>
+            {
+                Items = result.Items.Select(x => x.ToResponseDto()),
+                TotalCount = result.TotalCount,
+                PageIndex = page,
+                PageSize = pageSize
+            }
+        });
+    }
 }

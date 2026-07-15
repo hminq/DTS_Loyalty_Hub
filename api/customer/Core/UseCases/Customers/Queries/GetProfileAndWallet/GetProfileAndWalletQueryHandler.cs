@@ -7,7 +7,8 @@ public sealed class GetProfileAndWalletQueryHandler : IRequestHandler<GetProfile
 {
     private readonly ICustomerRepository _customerRepository;
 
-    public GetProfileAndWalletQueryHandler(ICustomerRepository customerRepository)
+    public GetProfileAndWalletQueryHandler(
+        ICustomerRepository customerRepository)
     {
         _customerRepository = customerRepository;
     }
