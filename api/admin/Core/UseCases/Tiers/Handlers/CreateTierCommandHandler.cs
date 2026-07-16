@@ -16,16 +16,16 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
 
     private readonly ITierRepository _tierRepository;
     private readonly IAuditLogRepository _auditLogRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    
 
     public CreateTierCommandHandler(
         ITierRepository tierRepository,
-        IAuditLogRepository auditLogRepository,
-        IUnitOfWork unitOfWork)
+        IAuditLogRepository auditLogRepository
+        )
     {
         _tierRepository = tierRepository;
         _auditLogRepository = auditLogRepository;
-        _unitOfWork = unitOfWork;
+        
     }
 
     public async Task<TierResult> Handle(CreateTierCommand request, CancellationToken ct)
@@ -37,35 +37,31 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         ValidateTierName(tier, existingTiers);
         ValidatePriorityPointsOrder(tier, existingTiers);
 
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(ct);
-        try
-        {
-            var createdTier = await _tierRepository.CreateAsync(tier, ct);
+        var createdTier = _tierRepository.Add(tier);
 
-            await _auditLogRepository.CreateAsync(
-                new AuditLogEntry(request.ActorUserId, AuditLogCreateAction, AuditLogEntityType,
-                    createdTier.TierConfigId, null, JsonSerializer.Serialize(new
-                    {
-                        tierConfigId = createdTier.TierConfigId,
-                        name = createdTier.Name,
-                        pointsRequired = createdTier.PointsRequired,
-                        cycleMonth = createdTier.CycleMonth,
-                        priority = createdTier.Priority,
-                        createdAt = createdTier.CreatedAt
-                    }), null),
-                ct);
-
-            await _unitOfWork.CommitAsync(ct);
+        _auditLogWriter.Add(
+            new AuditLogEntry(
+                request.ActorUserId,
+                AuditLogCreateAction,
+                AuditEntityTypes.TierConfig,
+                createdTier.TierConfigId,
+                null,                       
+                JsonSerializer.Serialize(new
+                {
+                    tierConfigId = createdTier.TierConfigId,
+                    name = createdTier.Name,
+                    pointsRequired = createdTier.PointsRequired,
+                    cycleMonth = createdTier.CycleMonth,
+                    priority = createdTier.Priority,
+                    createdAt = createdTier.CreatedAt
+                }),                          
+                null));
 
             return new TierResult(createdTier.TierConfigId, createdTier.Name,
                 createdTier.PointsRequired, createdTier.CycleMonth, createdTier.Priority);
-        }
-        catch
-        {
-            await _unitOfWork.RollbackAsync(ct);
-            throw;
-        }
     }
+        
+    
 
 
     private static void ValidatePriorityPointsOrder(
