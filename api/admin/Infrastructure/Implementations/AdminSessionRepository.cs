@@ -68,6 +68,7 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         Guid adminSessionId,
         Guid accessTokenJti,
         Guid adminId,
+        Guid userId,
         CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
@@ -78,6 +79,7 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
                 session.AdminSessionId == adminSessionId &&
                 session.AccessTokenJti == accessTokenJti &&
                 session.AdminId == adminId &&
+                session.UserId == userId &&
                 session.RevokedAt == null &&
                 session.ExpiresAt > now,
                 ct);
