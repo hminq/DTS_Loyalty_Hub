@@ -2,6 +2,8 @@ using Core.Abstractions;
 using Core.UseCases.Common;
 using Core.UseCases.VoucherDefinitions.Results;
 using Microsoft.EntityFrameworkCore;
+using DomainVoucherDefinition = Core.Entities.VoucherDefinition;
+using PersistenceVoucherDefinition = Persistence.Models.VoucherDefinition;
 using Persistence.Models.Context;
 
 namespace Infrastructure.Implementations;
@@ -13,6 +15,45 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
     public VoucherDefinitionRepository(LoyaltyHubDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    public Task<bool> ExistsByCodeAsync(string code, CancellationToken ct = default)
+    {
+        var normalizedCode = code.Trim();
+
+        return _dbContext.VoucherDefinitions
+            .AsNoTracking()
+            .AnyAsync(voucherDefinition => voucherDefinition.Code == normalizedCode, ct);
+    }
+
+    public Task<VoucherDefinitionResult?> GetByIdAsync(
+        Guid voucherDefinitionId,
+        CancellationToken ct = default)
+    {
+        return _dbContext.VoucherDefinitions
+            .AsNoTracking()
+            .Where(voucherDefinition =>
+                voucherDefinition.VoucherDefinitionId == voucherDefinitionId &&
+                voucherDefinition.DeletedAt == null)
+            .Select(voucherDefinition => new VoucherDefinitionResult(
+                voucherDefinition.VoucherDefinitionId,
+                voucherDefinition.Code,
+                voucherDefinition.Name,
+                voucherDefinition.Description,
+                voucherDefinition.BannerImageUrl,
+                voucherDefinition.RewardType,
+                voucherDefinition.RewardValue,
+                voucherDefinition.ValidityType,
+                voucherDefinition.ValidFrom,
+                voucherDefinition.ValidTo,
+                voucherDefinition.DurationDay,
+                voucherDefinition.GenerationType,
+                voucherDefinition.PublishType,
+                voucherDefinition.TotalStock,
+                voucherDefinition.RemainingStock,
+                voucherDefinition.CreatedAt,
+                voucherDefinition.DeletedAt))
+            .SingleOrDefaultAsync(ct);
     }
 
     public async Task<PagedResult<VoucherDefinitionResult>> GetPagedAsync(
@@ -55,6 +96,7 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
                 voucherDefinition.GenerationType,
                 voucherDefinition.PublishType,
                 voucherDefinition.TotalStock,
+                voucherDefinition.RemainingStock,
                 voucherDefinition.CreatedAt,
                 voucherDefinition.DeletedAt))
             .ToArrayAsync(ct);
@@ -64,5 +106,31 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
             page,
             pageSize,
             totalItems);
+    }
+
+    public DomainVoucherDefinition Add(DomainVoucherDefinition voucherDefinition)
+    {
+        _dbContext.VoucherDefinitions.Add(new PersistenceVoucherDefinition
+        {
+            VoucherDefinitionId = voucherDefinition.VoucherDefinitionId,
+            Code = voucherDefinition.Code,
+            Name = voucherDefinition.Name,
+            Description = voucherDefinition.Description,
+            BannerImageUrl = voucherDefinition.BannerImageUrl,
+            RewardType = voucherDefinition.RewardType,
+            RewardValue = voucherDefinition.RewardValue,
+            ValidityType = voucherDefinition.ValidityType,
+            ValidFrom = voucherDefinition.ValidFrom,
+            ValidTo = voucherDefinition.ValidTo,
+            DurationDay = voucherDefinition.DurationDay,
+            GenerationType = voucherDefinition.GenerationType,
+            PublishType = voucherDefinition.PublishType,
+            TotalStock = voucherDefinition.TotalStock,
+            RemainingStock = voucherDefinition.RemainingStock,
+            CreatedAt = voucherDefinition.CreatedAt,
+            DeletedAt = voucherDefinition.DeletedAt
+        });
+
+        return voucherDefinition;
     }
 }
