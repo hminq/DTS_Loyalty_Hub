@@ -12,16 +12,9 @@ using Api.Dtos.Responses;
 using Api.Mappers;
 using Infrastructure.Options;
 
-var currentDirectory = Directory.GetCurrentDirectory();
-var envPath = Path.Combine(currentDirectory, ".env");
+var envPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 
-System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
-if (!File.Exists(envPath))
-{
-    envPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", ".env"));
-}
-
+// Load local environment variables from the Customer API root directory.
 if (File.Exists(envPath))
 {
     DotNetEnv.Env.Load(envPath);
@@ -30,12 +23,17 @@ if (File.Exists(envPath))
 var builder = WebApplication.CreateBuilder(args);
 var jwtOptions = JwtOptions.FromConfiguration(builder.Configuration);
 
+// Register infrastructure services and discover all MediatR handlers from Core.
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssemblyContaining<LoginCommand>());
+
+// Configure controllers and the scoped accessor for the authenticated customer.
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentCustomerAccessor, CurrentCustomerAccessor>();
+
+// Return the shared API validation shape for model binding and FluentValidation errors.
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -46,6 +44,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>()
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+// Validate JWT issuer, audience, signature, and expiration for protected endpoints.
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -69,6 +68,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Handle exceptions first, then authenticate and authorize before dispatching controllers.
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
