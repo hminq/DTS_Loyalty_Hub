@@ -15,14 +15,9 @@ using Core.Entities.Constants;
 using Infrastructure.Options;
 using Microsoft.AspNetCore.Authorization;
 
-var currentDirectory = Directory.GetCurrentDirectory();
-var envPath = Path.Combine(currentDirectory, ".env");
+var envPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 
-if (!File.Exists(envPath))
-{
-    envPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", ".env"));
-}
-
+// Load local environment variables from the Admin API root directory.
 if (File.Exists(envPath))
 {
     DotNetEnv.Env.Load(envPath);
@@ -31,9 +26,12 @@ if (File.Exists(envPath))
 var builder = WebApplication.CreateBuilder(args);
 var jwtOptions = JwtOptions.FromConfiguration(builder.Configuration);
 
+// Register infrastructure services and discover all MediatR handlers from Core.
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssemblyContaining<LoginCommand>());
+
+// Configure controllers, validation responses, validators, and global exception mapping.
 builder.Services.AddControllers();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -44,6 +42,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+// Validate JWT issuer, audience, signature, and expiration for protected endpoints.
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -63,6 +62,7 @@ builder.Services
         };
     });
 
+// Resolve the active admin and enforce database-backed permission policies.
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddScoped<CurrentAdminContext>();
 builder.Services.AddScoped<ICurrentAdminContext>(serviceProvider =>
@@ -83,6 +83,7 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// Handle exceptions first, then authenticate and authorize before dispatching controllers.
 app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
 

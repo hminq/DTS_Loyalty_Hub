@@ -55,15 +55,16 @@ public class RegisterCommandHandlerTests
         _passwordVerifier.Setup(p => p.Hash(command.Password)).Returns("hashed-password");
 
         _userRepository
-            .Setup(r => r.CreateAsync(
+            .Setup(r => r.Add(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
                 It.Is<NewCustomerUser>(u =>
                     u.Username == command.Username &&
                     u.Email == command.Email &&
                     u.PasswordHash == "hashed-password" &&
                     u.FullName == command.FullName &&
-                    u.Phone == command.Phone),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(created);
+                    u.Phone == command.Phone)))
+            .Returns(created);
 
         _accessTokenService.Setup(t => t.CreateExpiresAt()).Returns(expiresAt);
         _accessTokenService
@@ -109,7 +110,7 @@ public class RegisterCommandHandlerTests
             r => r.ExistsByPhoneAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _userRepository.Verify(
-            r => r.CreateAsync(It.IsAny<NewCustomerUser>(), It.IsAny<CancellationToken>()),
+            r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()),
             Times.Never);
     }
 
@@ -135,7 +136,7 @@ public class RegisterCommandHandlerTests
             r => r.ExistsByPhoneAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _userRepository.Verify(
-            r => r.CreateAsync(It.IsAny<NewCustomerUser>(), It.IsAny<CancellationToken>()),
+            r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()),
             Times.Never);
     }
 
@@ -161,7 +162,7 @@ public class RegisterCommandHandlerTests
         ex.Which.ErrorType.Should().Be(DomainErrorType.Conflict);
 
         _userRepository.Verify(
-            r => r.CreateAsync(It.IsAny<NewCustomerUser>(), It.IsAny<CancellationToken>()),
+            r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()),
             Times.Never);
     }
 
@@ -186,8 +187,8 @@ public class RegisterCommandHandlerTests
 
         _passwordVerifier.Setup(p => p.Hash(command.Password)).Returns("hashed-password");
         _userRepository
-            .Setup(r => r.CreateAsync(It.IsAny<NewCustomerUser>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CreatedCustomerUser(Guid.NewGuid(), Guid.NewGuid()));
+            .Setup(r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()))
+            .Returns(new CreatedCustomerUser(Guid.NewGuid(), Guid.NewGuid()));
         _accessTokenService.Setup(t => t.CreateExpiresAt()).Returns(DateTime.UtcNow);
         _accessTokenService
             .Setup(t => t.CreateAccessToken(It.IsAny<CustomerTokenUser>(), It.IsAny<DateTime>()))
@@ -208,8 +209,8 @@ public class RegisterCommandHandlerTests
         _passwordVerifier.Setup(p => p.Hash("PlainTextPassword1")).Returns("hashed-value");
 
         _userRepository
-            .Setup(r => r.CreateAsync(It.IsAny<NewCustomerUser>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CreatedCustomerUser(Guid.NewGuid(), Guid.NewGuid()));
+            .Setup(r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()))
+            .Returns(new CreatedCustomerUser(Guid.NewGuid(), Guid.NewGuid()));
         _accessTokenService.Setup(t => t.CreateExpiresAt()).Returns(DateTime.UtcNow);
         _accessTokenService
             .Setup(t => t.CreateAccessToken(It.IsAny<CustomerTokenUser>(), It.IsAny<DateTime>()))
@@ -219,9 +220,10 @@ public class RegisterCommandHandlerTests
 
         _passwordVerifier.Verify(p => p.Hash("PlainTextPassword1"), Times.Once);
         _userRepository.Verify(
-            r => r.CreateAsync(
-                It.Is<NewCustomerUser>(u => u.PasswordHash == "hashed-value" && u.PasswordHash != command.Password),
-                It.IsAny<CancellationToken>()),
+            r => r.Add(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.Is<NewCustomerUser>(u => u.PasswordHash == "hashed-value" && u.PasswordHash != command.Password)),
             Times.Once);
     }
 }
