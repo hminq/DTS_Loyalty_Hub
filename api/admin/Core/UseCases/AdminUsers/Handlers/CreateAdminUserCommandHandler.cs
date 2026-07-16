@@ -11,20 +11,20 @@ namespace Core.UseCases.AdminUsers.Handlers;
 
 public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminUserCommand, AdminUserResult>
 {
-    private readonly IAdminUserRepository _adminUserRepository;
+    private readonly IRoleReader _roleReader;
     private readonly IUserRepository _userRepository;
     private readonly IAdminRepository _adminRepository;
     private readonly IAuditLogWriter _auditLogWriter;
     private readonly IPasswordHasher _passwordHasher;
 
     public CreateAdminUserCommandHandler(
-        IAdminUserRepository adminUserRepository,
+        IRoleReader roleReader,
         IUserRepository userRepository,
         IAdminRepository adminRepository,
         IPasswordHasher passwordHasher,
         IAuditLogWriter auditLogWriter)
     {
-        _adminUserRepository = adminUserRepository;
+        _roleReader = roleReader;
         _userRepository = userRepository;
         _adminRepository = adminRepository;
         _passwordHasher = passwordHasher;
@@ -103,7 +103,7 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
                 DomainErrorType.Validation);
         }
 
-        return await _adminUserRepository.GetRoleByIdAsync(roleId, ct)
+        return await _roleReader.GetDetailByIdAsync(roleId, ct)
             ?? throw new DomainException(
                 "ROLE_NOT_FOUND",
                 "Role does not exist.",

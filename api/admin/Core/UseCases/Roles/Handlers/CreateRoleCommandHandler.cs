@@ -13,11 +13,16 @@ namespace Core.UseCases.Roles.Handlers;
 public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, RoleResult>
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IPermissionRepository _permissionRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
-    public CreateRoleCommandHandler(IRoleRepository roleRepository, IAuditLogWriter auditLogWriter)
+    public CreateRoleCommandHandler(
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        IAuditLogWriter auditLogWriter)
     {
         _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
         _auditLogWriter = auditLogWriter;
     }
 
@@ -46,7 +51,7 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
                 DomainErrorType.Conflict);
         }
 
-        var existingPermissionIds = await _roleRepository.GetExistingPermissionIdsAsync(permissionIds, ct);
+        var existingPermissionIds = await _permissionRepository.GetExistingIdsAsync(permissionIds, ct);
         var missingPermissionIds = permissionIds
             .Where(permissionId => !existingPermissionIds.Contains(permissionId))
             .ToArray();

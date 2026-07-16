@@ -12,17 +12,20 @@ namespace Core.UseCases.AdminUsers.Handlers;
 public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminUserCommand, AdminUserResult>
 {
     private readonly IAdminUserRepository _adminUserRepository;
+    private readonly IRoleReader _roleReader;
     private readonly IUserRepository _userRepository;
     private readonly IAdminRepository _adminRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
     public UpdateAdminUserCommandHandler(
         IAdminUserRepository adminUserRepository,
+        IRoleReader roleReader,
         IUserRepository userRepository,
         IAdminRepository adminRepository,
         IAuditLogWriter auditLogWriter)
     {
         _adminUserRepository = adminUserRepository;
+        _roleReader = roleReader;
         _userRepository = userRepository;
         _adminRepository = adminRepository;
         _auditLogWriter = auditLogWriter;
@@ -56,7 +59,7 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
                 DomainErrorType.Validation);
         }
 
-        var role = await _adminUserRepository.GetRoleByIdAsync(request.RoleId, ct)
+        var role = await _roleReader.GetDetailByIdAsync(request.RoleId, ct)
             ?? throw new DomainException(
                 "ROLE_NOT_FOUND",
                 "Role does not exist.",
