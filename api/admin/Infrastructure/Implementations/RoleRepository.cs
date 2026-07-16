@@ -122,10 +122,8 @@ public sealed class RoleRepository : IRoleRepository
             .ToHashSetAsync(ct);
     }
 
-    public async Task<DomainRole> CreateAsync(DomainRole role, CancellationToken ct = default)
+    public DomainRole Add(DomainRole role)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
-
         var createdAt = role.CreatedAt;
 
         _dbContext.Roles.Add(new PersistenceRole
@@ -146,16 +144,11 @@ public sealed class RoleRepository : IRoleRepository
             });
         }
 
-        await _dbContext.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
-
         return role;
     }
 
     public async Task<DomainRole> UpdateAsync(DomainRole role, CancellationToken ct = default)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
-
         var persistedRole = await _dbContext.Roles
             .FirstOrDefaultAsync(persistedRole => persistedRole.RoleId == role.RoleId, ct);
 
@@ -186,16 +179,11 @@ public sealed class RoleRepository : IRoleRepository
             });
         }
 
-        await _dbContext.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
-
         return role;
     }
 
     public async Task DeleteAsync(Guid roleId, CancellationToken ct = default)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
-
         var role = await _dbContext.Roles
             .FirstOrDefaultAsync(role => role.RoleId == roleId, ct);
 
@@ -214,7 +202,5 @@ public sealed class RoleRepository : IRoleRepository
         _dbContext.RolePermissions.RemoveRange(rolePermissions);
         _dbContext.Roles.Remove(role);
 
-        await _dbContext.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
     }
 }

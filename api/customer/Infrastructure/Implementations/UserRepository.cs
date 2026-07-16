@@ -1,11 +1,9 @@
 using Core.Entities.Constants;
 using Core.Abstractions;
-using Core.Exceptions;
 using Core.UseCases.Auth.Models;
 using Persistence.Models;
 using Persistence.Models.Context;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Infrastructure.Implementations;
 
@@ -57,10 +55,12 @@ public sealed class UserRepository : IUserRepository
         return await _dbContext.Users.AsNoTracking().AnyAsync(u => u.PhoneNumber == phone, ct);
     }
 
-    public async Task<CreatedCustomerUser> CreateAsync(NewCustomerUser newUser, CancellationToken ct = default)
+    public CreatedCustomerUser Add(Guid userId, Guid customerId, NewCustomerUser newUser)
     {
+        var now = DateTime.UtcNow;
         var user = new User
         {
+            UserId = userId,
             Username = newUser.Username,
             Email = newUser.Email,
             PasswordHash = newUser.PasswordHash,
@@ -68,40 +68,24 @@ public sealed class UserRepository : IUserRepository
             PhoneNumber = newUser.Phone,
             UserType = UserTypes.Customer,
             Status = UserStatus.Enable,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         var customer = new Customer
         {
-            User = user,
+            CustomerId = customerId,
+            UserId = userId,
             TierId = null,
             CurrentTierPoint = 0,
             NextTierPoint = 0,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = now
         };
 
         _dbContext.Users.Add(user);
         _dbContext.Customers.Add(customer);
 
-        try
-        {
-            await _dbContext.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-        {
-            throw new DomainException(
-                "DUPLICATE_USER_DATA",
-                "Username, email or phone already exists.",
-                DomainErrorType.Conflict);
-        }
-
-        return new CreatedCustomerUser(user.UserId, customer.CustomerId);
-    }
-
-    private static bool IsUniqueViolation(DbUpdateException ex)
-    {
-        return ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
+        return new CreatedCustomerUser(userId, customerId);
     }
 
     private async Task<CustomerLoginUser?> ToCustomerLoginUserAsync(User? user, CancellationToken ct)
