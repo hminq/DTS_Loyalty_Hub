@@ -13,7 +13,6 @@ COPY worker/ worker/
 
 RUN dotnet publish worker/Scheduler/Scheduler.csproj \
     --configuration Release \
-    --no-restore \
     --output /app/publish
 
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime

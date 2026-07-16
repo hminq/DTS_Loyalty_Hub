@@ -1,8 +1,8 @@
 using Core.Abstractions;
 using Core.UseCases.Common;
 using Core.UseCases.Customers.Queries.GetPointTransactions;
-using Infrastructure.Models.Context;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Models.Context;
 
 namespace Infrastructure.Implementations;
 

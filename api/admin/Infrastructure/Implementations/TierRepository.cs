@@ -1,8 +1,9 @@
 using Core.Abstractions;
 using Core.Entities;
 using Core.UseCases.Tiers.Results;
-using Infrastructure.Models.Context;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Models;
+using Persistence.Models.Context;
 
 namespace Infrastructure.Implementations;
 
@@ -31,7 +32,7 @@ public sealed class TierRepository : ITierRepository
 
     public async Task<Tier> CreateAsync(Tier tier, CancellationToken ct = default)
     {
-        _dbContext.TiersConfigs.Add(new Models.TiersConfig
+        _dbContext.TiersConfigs.Add(new TiersConfig
         {
             TierConfigId = tier.TierConfigId,
             Name = tier.Name,

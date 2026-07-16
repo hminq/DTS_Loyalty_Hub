@@ -2,9 +2,9 @@ using Core.Abstractions;
 using Core.UseCases.AuditLogs;
 using Core.UseCases.AuditLogs.Results;
 using Core.UseCases.Common;
-using Infrastructure.Models;
-using Infrastructure.Models.Context;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Models;
+using Persistence.Models.Context;
 
 namespace Infrastructure.Implementations;
 
