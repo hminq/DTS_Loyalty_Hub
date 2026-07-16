@@ -46,11 +46,14 @@ builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>()
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+builder.Services.AddScoped<ApiJwtBearerEvents>();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;
+        options.EventsType = typeof(ApiJwtBearerEvents);
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
