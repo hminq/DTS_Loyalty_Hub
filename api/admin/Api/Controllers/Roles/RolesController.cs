@@ -9,6 +9,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Api.Controllers.Roles;
 
@@ -81,7 +82,7 @@ public sealed class RolesController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(), ct);
+        var result = await _sender.Send(request.ToCommand(GetActorUserId()), ct);
         var response = new ApiResponseDto<RoleResponseDto>
         {
             Data = result.ToResponseDto()
@@ -105,7 +106,7 @@ public sealed class RolesController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(roleId), ct);
+        var result = await _sender.Send(request.ToCommand(roleId, GetActorUserId()), ct);
 
         return Ok(new ApiResponseDto<RoleResponseDto>
         {
@@ -117,8 +118,14 @@ public sealed class RolesController : ControllerBase
     [Authorize(Policy = PermissionCodes.Roles.Delete)]
     public async Task<IActionResult> Delete(Guid roleId, CancellationToken ct)
     {
-        await _sender.Send(new DeleteRoleCommand(roleId), ct);
+        await _sender.Send(new DeleteRoleCommand(roleId, GetActorUserId()), ct);
 
         return NoContent();
+    }
+
+    private Guid? GetActorUserId()
+    {
+        var rawUserId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
     }
 }

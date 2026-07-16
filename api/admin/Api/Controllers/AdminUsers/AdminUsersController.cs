@@ -9,6 +9,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Api.Controllers.AdminUsers;
 
@@ -84,7 +85,7 @@ public sealed class AdminUsersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(), ct);
+        var result = await _sender.Send(request.ToCommand(GetActorUserId()), ct);
         var response = new ApiResponseDto<AdminUserResponseDto>
         {
             Data = result.ToResponseDto()
@@ -108,7 +109,7 @@ public sealed class AdminUsersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(adminId), ct);
+        var result = await _sender.Send(request.ToCommand(adminId, GetActorUserId()), ct);
 
         return Ok(new ApiResponseDto<AdminUserResponseDto>
         {
@@ -131,7 +132,7 @@ public sealed class AdminUsersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        await _sender.Send(request.ToCommand(adminId), ct);
+        await _sender.Send(request.ToCommand(adminId, GetActorUserId()), ct);
 
         return NoContent();
     }
@@ -140,8 +141,14 @@ public sealed class AdminUsersController : ControllerBase
     [Authorize(Policy = PermissionCodes.AdminUsers.RevokeSession)]
     public async Task<IActionResult> RevokeSession(Guid adminId, CancellationToken ct)
     {
-        await _sender.Send(new RevokeAdminSessionCommand(adminId), ct);
+        await _sender.Send(new RevokeAdminSessionCommand(adminId, GetActorUserId()), ct);
 
         return NoContent();
+    }
+
+    private Guid? GetActorUserId()
+    {
+        var rawUserId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
     }
 }
