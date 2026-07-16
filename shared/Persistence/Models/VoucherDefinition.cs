@@ -34,6 +34,7 @@ public partial class VoucherDefinition
     public int TotalStock { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     public virtual ICollection<CampaignVoucherOption> CampaignVoucherOptions { get; set; } = new List<CampaignVoucherOption>();
 

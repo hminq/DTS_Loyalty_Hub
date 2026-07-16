@@ -698,6 +698,7 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.DurationDay).HasColumnName("duration_day");
             entity.Property(e => e.GenerationType)
