@@ -73,8 +73,6 @@ jobs:
           script_stop: true
           script: |
             cd "${{ secrets.VPS_APP_DIR }}"
-            git fetch origin main
-            git reset --hard origin/main
-            IMAGE_TAG="${{ github.sha }}" docker compose -f docker-compose.yml pull admin-api customer-api consumer scheduler
-            IMAGE_TAG="${{ github.sha }}" docker compose -f docker-compose.yml up -d
+            IMAGE_TAG="${{ github.sha }}" docker compose pull admin-api customer-api consumer scheduler
+            IMAGE_TAG="${{ github.sha }}" docker compose up -d
             docker image prune -f
