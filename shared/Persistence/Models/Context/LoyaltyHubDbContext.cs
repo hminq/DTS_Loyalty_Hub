@@ -698,6 +698,7 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.DurationDay).HasColumnName("duration_day");
             entity.Property(e => e.GenerationType)
@@ -715,6 +716,9 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.RewardValue)
                 .HasPrecision(18, 2)
                 .HasColumnName("reward_value");
+            entity.Property(e => e.RemainingStock)
+                .HasDefaultValue(0)
+                .HasColumnName("remaining_stock");
             entity.Property(e => e.TotalStock).HasColumnName("total_stock");
             entity.Property(e => e.ValidFrom).HasColumnName("valid_from");
             entity.Property(e => e.ValidTo).HasColumnName("valid_to");

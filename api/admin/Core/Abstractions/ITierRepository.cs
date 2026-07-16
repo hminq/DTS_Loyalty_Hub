@@ -8,5 +8,5 @@ public interface ITierRepository
     Task<IReadOnlyCollection<TierResult>> GetListAsync(
         CancellationToken ct);
 
-    Task<Tier> CreateAsync(Tier tier, CancellationToken ct = default);
+    Tier Add(Tier tier);
 }

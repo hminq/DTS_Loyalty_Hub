@@ -23,11 +23,7 @@ public interface IRoleRepository
 
     Task<bool> HasAssignedAdminsAsync(Guid roleId, CancellationToken ct = default);
 
-    Task<IReadOnlySet<Guid>> GetExistingPermissionIdsAsync(
-        IReadOnlyCollection<Guid> permissionIds,
-        CancellationToken ct = default);
-
-    Task<Role> CreateAsync(Role role, CancellationToken ct = default);
+    Role Add(Role role);
 
     Task<Role> UpdateAsync(Role role, CancellationToken ct = default);
 

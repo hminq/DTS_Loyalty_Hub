@@ -24,7 +24,11 @@ public static class PermissionCodes
         CustomerUsers.ResetPassword,
         Tiers.View,
         Tiers.Create,
-        AuditLogs.View
+        AuditLogs.View,
+        VoucherDefinitions.View,
+        VoucherDefinitions.Create,
+        VoucherDefinitions.Update,
+        VoucherDefinitions.Delete,
     ];
 
     public static IReadOnlySet<string> All => DefinedCodes;
@@ -80,6 +84,14 @@ public static class PermissionCodes
         public const string Update = "customer_user.update";
         public const string Disable = "customer_user.disable";
         public const string ResetPassword = "customer_user.reset_password";
+    }
+
+    public static class VoucherDefinitions
+    {
+        public const string View = "voucher_definition.view";
+        public const string Create = "voucher_definition.create";
+        public const string Update = "voucher_definition.update";
+        public const string Delete = "voucher_definition.delete";
     }
 
     private static string Normalize(string code)

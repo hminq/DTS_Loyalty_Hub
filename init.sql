@@ -135,10 +135,15 @@ CREATE TABLE voucher_definitions (
     generation_type VARCHAR(50) NOT NULL,
     publish_type VARCHAR(50) NOT NULL,
     total_stock INTEGER NOT NULL DEFAULT 0,
+    remaining_stock INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
 
     CONSTRAINT uq_voucher_definitions_code UNIQUE (code),
     CONSTRAINT ck_voucher_definitions_total_stock CHECK (total_stock >= 0),
+    CONSTRAINT ck_voucher_definitions_remaining_stock CHECK (
+        remaining_stock >= 0 AND remaining_stock <= total_stock
+    ),
     CONSTRAINT ck_voucher_definitions_duration_day CHECK (duration_day IS NULL OR duration_day > 0),
     CONSTRAINT ck_voucher_definitions_valid_range CHECK (
         valid_from IS NULL OR valid_to IS NULL OR valid_from < valid_to
