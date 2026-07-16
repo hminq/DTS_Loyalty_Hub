@@ -1,7 +1,10 @@
-namespace Core.UseCases.VoucherDefinitions.Results;
+using Core.Abstractions;
+using Core.UseCases.VoucherDefinitions.Results;
+using MediatR;
 
-public sealed record VoucherDefinitionResult(
-    Guid VoucherDefinitionId,
+namespace Core.UseCases.VoucherDefinitions.Commands;
+
+public sealed record CreateVoucherDefinitionCommand(
     string? Code,
     string Name,
     string? Description,
@@ -15,6 +18,4 @@ public sealed record VoucherDefinitionResult(
     string GenerationType,
     string PublishType,
     int TotalStock,
-    int RemainingStock,
-    DateTime CreatedAt,
-    DateTime? DeletedAt);
+    Guid? ActorUserId) : IRequest<VoucherDefinitionResult>, ITransactionalRequest;

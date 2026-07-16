@@ -23,6 +23,7 @@ public class VoucherDefinition
         string generationType,
         string publishType,
         int totalStock,
+        int remainingStock,
         DateTime createdAt,
         DateTime? deletedAt)
     {
@@ -40,6 +41,7 @@ public class VoucherDefinition
         GenerationType = generationType;
         PublishType = publishType;
         TotalStock = totalStock;
+        RemainingStock = remainingStock;
         CreatedAt = createdAt;
         DeletedAt = deletedAt;
     }
@@ -71,6 +73,8 @@ public class VoucherDefinition
     public string PublishType { get; private set; }
 
     public int TotalStock { get; private set; }
+
+    public int RemainingStock { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
 
@@ -119,6 +123,7 @@ public class VoucherDefinition
             VoucherGenerationTypes.Normalize(generationType),
             VoucherPublishTypes.Normalize(publishType),
             totalStock,
+            totalStock,
             DateTime.UtcNow,
             null);
     }
@@ -138,6 +143,7 @@ public class VoucherDefinition
         string generationType,
         string publishType,
         int totalStock,
+        int remainingStock,
         DateTime createdAt,
         DateTime? deletedAt)
     {
@@ -159,6 +165,8 @@ public class VoucherDefinition
             publishType,
             totalStock);
 
+        ValidateRemainingStock(totalStock, remainingStock);
+
         return new VoucherDefinition(
             voucherDefinitionId,
             NormalizeOptional(code),
@@ -174,6 +182,7 @@ public class VoucherDefinition
             VoucherGenerationTypes.Normalize(generationType),
             VoucherPublishTypes.Normalize(publishType),
             totalStock,
+            remainingStock,
             createdAt,
             deletedAt);
     }
@@ -194,6 +203,7 @@ public class VoucherDefinition
         ValidateName(name);
         ValidateGenerationType(generationType);
         ValidatePublishType(publishType, code);
+        ValidateGenerationTypeForPublishType(generationType, publishType);
         ValidateRewardType(rewardType, rewardValue);
         ValidateValidityType(validityType, validFrom, validTo, durationDay);
         ValidateTotalStock(totalStock);
@@ -252,6 +262,30 @@ public class VoucherDefinition
         if (!string.IsNullOrWhiteSpace(code) && code.Trim().Length > MaxCodeLength)
         {
             throw ValidationError("VOUCHER_CODE_TOO_LONG", "Voucher code is too long.");
+        }
+    }
+
+    private static void ValidateGenerationTypeForPublishType(
+        string generationType,
+        string publishType)
+    {
+        var normalizedGenerationType = VoucherGenerationTypes.Normalize(generationType);
+        var normalizedPublishType = VoucherPublishTypes.Normalize(publishType);
+
+        if (normalizedPublishType == VoucherPublishTypes.Public &&
+            normalizedGenerationType != VoucherGenerationTypes.None)
+        {
+            throw ValidationError(
+                "VOUCHER_PUBLIC_GENERATION_TYPE_INVALID",
+                "Public vouchers must use NONE generation type.");
+        }
+
+        if (normalizedPublishType == VoucherPublishTypes.Private &&
+            normalizedGenerationType == VoucherGenerationTypes.None)
+        {
+            throw ValidationError(
+                "VOUCHER_PRIVATE_GENERATION_TYPE_INVALID",
+                "Private vouchers cannot use NONE generation type.");
         }
     }
 
@@ -325,6 +359,16 @@ public class VoucherDefinition
         if (totalStock < 0)
         {
             throw ValidationError("VOUCHER_TOTAL_STOCK_INVALID", "Total stock cannot be negative.");
+        }
+    }
+
+    private static void ValidateRemainingStock(int totalStock, int remainingStock)
+    {
+        if (remainingStock < 0 || remainingStock > totalStock)
+        {
+            throw ValidationError(
+                "VOUCHER_REMAINING_STOCK_INVALID",
+                "Remaining stock must be between zero and total stock.");
         }
     }
 
