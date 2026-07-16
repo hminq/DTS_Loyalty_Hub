@@ -111,17 +111,6 @@ public sealed class RoleRepository : IRoleRepository
             .AnyAsync(admin => admin.RoleId == roleId, ct);
     }
 
-    public async Task<IReadOnlySet<Guid>> GetExistingPermissionIdsAsync(
-        IReadOnlyCollection<Guid> permissionIds,
-        CancellationToken ct = default)
-    {
-        return await _dbContext.Permissions
-            .AsNoTracking()
-            .Where(permission => permissionIds.Contains(permission.PermissionId))
-            .Select(permission => permission.PermissionId)
-            .ToHashSetAsync(ct);
-    }
-
     public DomainRole Add(DomainRole role)
     {
         var createdAt = role.CreatedAt;

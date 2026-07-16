@@ -125,30 +125,4 @@ public sealed class AdminUserRepository : IAdminUserRepository
                 permissions));
     }
 
-    public async Task<AdminUserRoleResult?> GetRoleByIdAsync(
-        Guid roleId,
-        CancellationToken ct = default)
-    {
-        return await _dbContext.Roles
-            .AsNoTracking()
-            .Where(role => role.RoleId == roleId)
-            .Select(role => new AdminUserRoleResult(
-                role.RoleId,
-                role.Name,
-                role.RolePermissions
-                    .OrderBy(rolePermission => rolePermission.Permission.GroupSortOrder)
-                    .ThenBy(rolePermission => rolePermission.Permission.ActionSortOrder)
-                    .ThenBy(rolePermission => rolePermission.Permission.Code)
-                    .Select(rolePermission => new AdminUserPermissionResult(
-                        rolePermission.Permission.PermissionId,
-                        rolePermission.Permission.Code,
-                        rolePermission.Permission.Name,
-                        rolePermission.Permission.GroupCode,
-                        rolePermission.Permission.GroupName,
-                        rolePermission.Permission.GroupSortOrder,
-                        rolePermission.Permission.ActionSortOrder))
-                    .ToArray()))
-            .SingleOrDefaultAsync(ct);
-    }
-
 }

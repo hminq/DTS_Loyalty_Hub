@@ -15,6 +15,4 @@ public interface IAdminUserRepository
 
     Task<AdminUserResult?> GetByIdAsync(Guid adminId, CancellationToken ct = default);
 
-    Task<AdminUserRoleResult?> GetRoleByIdAsync(Guid roleId, CancellationToken ct = default);
-
 }
