@@ -1,3 +1,4 @@
+using Api.Authentication;
 using Api.Dtos.Requests.AdminUsers;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.AdminUsers;
@@ -9,7 +10,6 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace Api.Controllers.AdminUsers;
 
@@ -19,6 +19,7 @@ namespace Api.Controllers.AdminUsers;
 public sealed class AdminUsersController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<GetAdminUsersRequestDto> _getAdminUsersValidator;
     private readonly IValidator<CreateAdminUserRequestDto> _createAdminUserValidator;
     private readonly IValidator<UpdateAdminUserRequestDto> _updateAdminUserValidator;
@@ -26,12 +27,14 @@ public sealed class AdminUsersController : ControllerBase
 
     public AdminUsersController(
         ISender sender,
+        ICurrentAdminContext currentAdminContext,
         IValidator<GetAdminUsersRequestDto> getAdminUsersValidator,
         IValidator<CreateAdminUserRequestDto> createAdminUserValidator,
         IValidator<UpdateAdminUserRequestDto> updateAdminUserValidator,
         IValidator<UpdateAdminUserStatusRequestDto> updateAdminUserStatusValidator)
     {
         _sender = sender;
+        _currentAdminContext = currentAdminContext;
         _getAdminUsersValidator = getAdminUsersValidator;
         _createAdminUserValidator = createAdminUserValidator;
         _updateAdminUserValidator = updateAdminUserValidator;
@@ -85,7 +88,7 @@ public sealed class AdminUsersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(GetActorUserId()), ct);
+        var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);
         var response = new ApiResponseDto<AdminUserResponseDto>
         {
             Data = result.ToResponseDto()
@@ -109,7 +112,7 @@ public sealed class AdminUsersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(adminId, GetActorUserId()), ct);
+        var result = await _sender.Send(request.ToCommand(adminId, _currentAdminContext.UserId), ct);
 
         return Ok(new ApiResponseDto<AdminUserResponseDto>
         {
@@ -132,7 +135,7 @@ public sealed class AdminUsersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        await _sender.Send(request.ToCommand(adminId, GetActorUserId()), ct);
+        await _sender.Send(request.ToCommand(adminId, _currentAdminContext.UserId), ct);
 
         return NoContent();
     }
@@ -141,14 +144,9 @@ public sealed class AdminUsersController : ControllerBase
     [Authorize(Policy = PermissionCodes.AdminUsers.RevokeSession)]
     public async Task<IActionResult> RevokeSession(Guid adminId, CancellationToken ct)
     {
-        await _sender.Send(new RevokeAdminSessionCommand(adminId, GetActorUserId()), ct);
+        await _sender.Send(new RevokeAdminSessionCommand(adminId, _currentAdminContext.UserId), ct);
 
         return NoContent();
     }
 
-    private Guid? GetActorUserId()
-    {
-        var rawUserId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
-    }
 }

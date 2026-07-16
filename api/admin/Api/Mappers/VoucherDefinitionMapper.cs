@@ -2,6 +2,7 @@ using Api.Dtos.Requests.VoucherDefinitions;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.VoucherDefinitions;
 using Core.UseCases.Common;
+using Core.UseCases.VoucherDefinitions.Commands;
 using Core.UseCases.VoucherDefinitions.Queries;
 using Core.UseCases.VoucherDefinitions.Results;
 
@@ -9,6 +10,27 @@ namespace Api.Mappers;
 
 public static class VoucherDefinitionMapper
 {
+    public static CreateVoucherDefinitionCommand ToCommand(
+        this CreateVoucherDefinitionRequestDto request,
+        Guid? actorUserId)
+    {
+        return new CreateVoucherDefinitionCommand(
+            request.Code,
+            request.Name,
+            request.Description,
+            request.BannerImageUrl,
+            request.RewardType,
+            request.RewardValue,
+            request.ValidityType,
+            request.ValidFrom,
+            request.ValidTo,
+            request.DurationDay,
+            request.GenerationType,
+            request.PublishType,
+            request.TotalStock,
+            actorUserId);
+    }
+
     public static GetVoucherDefinitionsQuery ToQuery(this GetVoucherDefinitionsRequestDto request)
     {
         return new GetVoucherDefinitionsQuery(
@@ -35,6 +57,7 @@ public static class VoucherDefinitionMapper
             GenerationType = result.GenerationType,
             PublishType = result.PublishType,
             TotalStock = result.TotalStock,
+            RemainingStock = result.RemainingStock,
             CreatedAt = result.CreatedAt,
             DeletedAt = result.DeletedAt
         };

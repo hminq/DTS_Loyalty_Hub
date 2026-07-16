@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+using Api.Authentication;
 using Api.Dtos.Requests.Tiers;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.Tiers;
@@ -18,13 +18,16 @@ namespace Api.Controllers.Tiers;
 public sealed class TiersController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<CreateTierRequestDto> _createTierValidator;
 
     public TiersController(
         ISender sender,
+        ICurrentAdminContext currentAdminContext,
         IValidator<CreateTierRequestDto> createTierValidator)
     {
         _sender = sender;
+        _currentAdminContext = currentAdminContext;
         _createTierValidator = createTierValidator;
     }
 
@@ -55,7 +58,7 @@ public sealed class TiersController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(GetActorUserId()), ct);
+        var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);
         var response = new ApiResponseDto<TierResponseDto>
         {
             Data = result.ToResponseDto()
@@ -64,10 +67,4 @@ public sealed class TiersController : ControllerBase
         return Created($"/api/admin/tiers/{response.Data.TierConfigId}", response);
     }
 
-    private Guid? GetActorUserId()
-    {
-        var rawUserId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-
-        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
-    }
 }

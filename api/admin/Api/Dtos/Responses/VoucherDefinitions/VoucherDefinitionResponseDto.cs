@@ -30,6 +30,8 @@ public sealed class VoucherDefinitionResponseDto
 
     public int TotalStock { get; set; }
 
+    public int RemainingStock { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
