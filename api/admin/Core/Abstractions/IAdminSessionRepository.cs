@@ -15,4 +15,6 @@ public interface IAdminSessionRepository
         Guid accessTokenJti,
         Guid adminId,
         CancellationToken ct = default);
+
+    Task RevokeActiveSessionsAsync(Guid adminId, CancellationToken ct = default);
 }

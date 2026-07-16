@@ -6,8 +6,6 @@ namespace Core.Abstractions;
 
 public interface IAuditLogRepository
 {
-    Task CreateAsync(AuditLogEntry entry, CancellationToken ct = default);
-
     Task<PagedResult<AuditLogResult>> GetPagedAsync(
         int page,
         int pageSize,

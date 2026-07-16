@@ -14,5 +14,5 @@ public interface IUserRepository
 
     Task<bool> ExistsByPhoneAsync(string phone, CancellationToken ct);
 
-    Task<CreatedCustomerUser> CreateAsync(NewCustomerUser newUser, CancellationToken ct);
+    CreatedCustomerUser Add(Guid userId, Guid customerId, NewCustomerUser newUser);
 }
