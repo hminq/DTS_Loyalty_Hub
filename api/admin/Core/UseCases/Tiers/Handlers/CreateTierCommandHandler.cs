@@ -65,7 +65,6 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
             createdTier.CycleMonth,
             createdTier.Priority);
     }
-
     private static void ValidatePriorityPointsOrder(
         Tier tier,
         IReadOnlyCollection<TierResult> existingTiers)
@@ -95,7 +94,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         Tier tier,
         IReadOnlyCollection<TierResult> existingTiers)
     {
-        if (existingTiers.Any(existingTier => 
+        if (existingTiers.Any(existingTier =>
             existingTier.Name.Equals(tier.Name, StringComparison.OrdinalIgnoreCase)))
         {
             throw new DomainException(
