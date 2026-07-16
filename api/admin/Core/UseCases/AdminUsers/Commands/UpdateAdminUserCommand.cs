@@ -1,5 +1,6 @@
 using Core.UseCases.AdminUsers.Results;
 using MediatR;
+using Core.Abstractions;
 
 namespace Core.UseCases.AdminUsers.Commands;
 
@@ -8,4 +9,5 @@ public sealed record UpdateAdminUserCommand(
     string Email,
     string? FullName,
     string? PhoneNumber,
-    Guid RoleId) : IRequest<AdminUserResult>;
+    Guid RoleId,
+    Guid? ActorUserId) : IRequest<AdminUserResult>, ITransactionalRequest;

@@ -5,7 +5,7 @@ using Core.UseCases.AuditLogs.Results;
 using Core.UseCases.Common;
 using MediatR;
 
-namespace Core.UseCases.AuditLogs;
+namespace Core.UseCases.AuditLogs.Handlers;
 
 public sealed class GetAuditLogsQueryHandler
     : IRequestHandler<GetAuditLogsQuery, PagedResult<AuditLogResult>>

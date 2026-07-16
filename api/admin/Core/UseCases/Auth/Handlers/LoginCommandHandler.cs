@@ -6,7 +6,7 @@ using Core.UseCases.Auth.Models;
 using Core.UseCases.Auth.Results;
 using MediatR;
 
-namespace Core.UseCases.Auth;
+namespace Core.UseCases.Auth.Handlers;
 
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResult>
 {

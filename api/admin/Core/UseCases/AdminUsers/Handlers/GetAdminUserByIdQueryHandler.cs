@@ -4,7 +4,7 @@ using Core.UseCases.AdminUsers.Queries;
 using Core.UseCases.AdminUsers.Results;
 using MediatR;
 
-namespace Core.UseCases.AdminUsers;
+namespace Core.UseCases.AdminUsers.Handlers;
 
 public sealed class GetAdminUserByIdQueryHandler : IRequestHandler<GetAdminUserByIdQuery, AdminUserResult>
 {

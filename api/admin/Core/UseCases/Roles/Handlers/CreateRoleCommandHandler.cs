@@ -4,16 +4,21 @@ using Core.Exceptions;
 using Core.UseCases.Roles.Commands;
 using Core.UseCases.Roles.Results;
 using MediatR;
+using System.Text.Json;
+using Core.UseCases.AuditLogs;
+using Core.Entities.Constants;
 
-namespace Core.UseCases.Roles;
+namespace Core.UseCases.Roles.Handlers;
 
 public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, RoleResult>
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IAuditLogWriter _auditLogWriter;
 
-    public CreateRoleCommandHandler(IRoleRepository roleRepository)
+    public CreateRoleCommandHandler(IRoleRepository roleRepository, IAuditLogWriter auditLogWriter)
     {
         _roleRepository = roleRepository;
+        _auditLogWriter = auditLogWriter;
     }
 
     public async Task<RoleResult> Handle(CreateRoleCommand request, CancellationToken ct)
@@ -54,7 +59,11 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
                 DomainErrorType.Validation);
         }
 
-        var createdRole = await _roleRepository.CreateAsync(role, ct);
+        var createdRole = _roleRepository.Add(role);
+
+        _auditLogWriter.Add(new AuditLogEntry(
+            request.ActorUserId, "CREATE", AuditEntityTypes.Role, createdRole.RoleId, null,
+            JsonSerializer.Serialize(new { roleId = createdRole.RoleId, name = createdRole.Name, permissionIds = createdRole.PermissionIds }), null));
 
         return new RoleResult(
             createdRole.RoleId,

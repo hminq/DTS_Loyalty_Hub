@@ -3,7 +3,7 @@ using Core.UseCases.Permissions.Queries;
 using Core.UseCases.Permissions.Results;
 using MediatR;
 
-namespace Core.UseCases.Permissions;
+namespace Core.UseCases.Permissions.Handlers;
 
 public sealed class GetPermissionsQueryHandler
     : IRequestHandler<GetPermissionsQuery, IReadOnlyCollection<PermissionGroupResult>>

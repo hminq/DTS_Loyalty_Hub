@@ -3,7 +3,7 @@ using Core.UseCases.Tiers.Queries;
 using Core.UseCases.Tiers.Results;
 using MediatR;
 
-namespace Core.UseCases.Tiers;
+namespace Core.UseCases.Tiers.Handlers;
 
 public sealed class GetTierConfigsQueryHandler
     : IRequestHandler<GetTierConfigsQuery, IReadOnlyCollection<TierResult>>

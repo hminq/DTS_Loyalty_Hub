@@ -3,16 +3,21 @@ using Core.Exceptions;
 using Core.UseCases.Roles.Commands;
 using Core.UseCases.Roles.Results;
 using MediatR;
+using System.Text.Json;
+using Core.UseCases.AuditLogs;
+using Core.Entities.Constants;
 
-namespace Core.UseCases.Roles;
+namespace Core.UseCases.Roles.Handlers;
 
 public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, RoleResult>
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IAuditLogWriter _auditLogWriter;
 
-    public UpdateRoleCommandHandler(IRoleRepository roleRepository)
+    public UpdateRoleCommandHandler(IRoleRepository roleRepository, IAuditLogWriter auditLogWriter)
     {
         _roleRepository = roleRepository;
+        _auditLogWriter = auditLogWriter;
     }
 
     public async Task<RoleResult> Handle(UpdateRoleCommand request, CancellationToken ct)
@@ -47,6 +52,7 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
                 DomainErrorType.NotFound);
         }
 
+        var oldValue = JsonSerializer.Serialize(new { name = role.Name, permissionIds = role.PermissionIds });
         role.Rename(request.Name);
         role.ReplacePermissions(permissionIds);
 
@@ -72,6 +78,10 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         }
 
         var updatedRole = await _roleRepository.UpdateAsync(role, ct);
+
+        _auditLogWriter.Add(new AuditLogEntry(
+            request.ActorUserId, "UPDATE", AuditEntityTypes.Role, updatedRole.RoleId, oldValue,
+            JsonSerializer.Serialize(new { name = updatedRole.Name, permissionIds = updatedRole.PermissionIds }), null));
 
         return new RoleResult(
             updatedRole.RoleId,

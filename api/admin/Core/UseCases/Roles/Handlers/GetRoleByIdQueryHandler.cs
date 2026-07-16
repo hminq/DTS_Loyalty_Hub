@@ -4,7 +4,7 @@ using Core.UseCases.Roles.Queries;
 using Core.UseCases.Roles.Results;
 using MediatR;
 
-namespace Core.UseCases.Roles;
+namespace Core.UseCases.Roles.Handlers;
 
 public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, RoleResult>
 {

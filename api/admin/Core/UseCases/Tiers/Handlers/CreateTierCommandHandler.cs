@@ -1,28 +1,28 @@
 using System.Text.Json;
 using Core.Abstractions;
 using Core.Entities;
+using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.AuditLogs;
 using Core.UseCases.Tiers.Commands;
 using Core.UseCases.Tiers.Results;
 using MediatR;
 
-namespace Core.UseCases.Tiers;
+namespace Core.UseCases.Tiers.Handlers;
 
 public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand, TierResult>
 {
-    private const string AuditLogEntityType = "TierConfig";
     private const string AuditLogCreateAction = "CREATE";
 
     private readonly ITierRepository _tierRepository;
-    private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IAuditLogWriter _auditLogWriter;
 
     public CreateTierCommandHandler(
         ITierRepository tierRepository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogWriter auditLogWriter)
     {
         _tierRepository = tierRepository;
-        _auditLogRepository = auditLogRepository;
+        _auditLogWriter = auditLogWriter;
     }
 
     public async Task<TierResult> Handle(CreateTierCommand request, CancellationToken ct)
@@ -38,13 +38,13 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         ValidateTierName(tier, existingTiers);
         ValidatePriorityPointsOrder(tier, existingTiers);
 
-        var createdTier = await _tierRepository.CreateAsync(tier, ct);
+        var createdTier = _tierRepository.Add(tier);
 
-        await _auditLogRepository.CreateAsync(
+        _auditLogWriter.Add(
             new AuditLogEntry(
                 request.ActorUserId,
                 AuditLogCreateAction,
-                AuditLogEntityType,
+                AuditEntityTypes.TierConfig,
                 createdTier.TierConfigId,
                 null,                       
                 JsonSerializer.Serialize(new
@@ -56,8 +56,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
                     priority = createdTier.Priority,
                     createdAt = createdTier.CreatedAt
                 }),                          
-                null),                        
-            ct);
+                null));
 
         return new TierResult(
             createdTier.TierConfigId,

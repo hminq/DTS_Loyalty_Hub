@@ -1,23 +1,24 @@
 using Core.Abstractions;
 using Core.Exceptions;
+using Core.UseCases.AdminUsers.Queries;
+using Core.UseCases.AdminUsers.Results;
 using Core.UseCases.Common;
-using Core.UseCases.Roles.Queries;
-using Core.UseCases.Roles.Results;
 using MediatR;
 
-namespace Core.UseCases.Roles;
+namespace Core.UseCases.AdminUsers.Handlers;
 
-public sealed class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, PagedResult<RoleResult>>
+public sealed class GetAdminUsersQueryHandler
+    : IRequestHandler<GetAdminUsersQuery, PagedResult<AdminUserResult>>
 {
     private const int MaxPageSize = 100;
-    private readonly IRoleRepository _roleRepository;
+    private readonly IAdminUserRepository _adminUserRepository;
 
-    public GetRolesQueryHandler(IRoleRepository roleRepository)
+    public GetAdminUsersQueryHandler(IAdminUserRepository adminUserRepository)
     {
-        _roleRepository = roleRepository;
+        _adminUserRepository = adminUserRepository;
     }
 
-    public Task<PagedResult<RoleResult>> Handle(GetRolesQuery request, CancellationToken ct)
+    public Task<PagedResult<AdminUserResult>> Handle(GetAdminUsersQuery request, CancellationToken ct)
     {
         if (request.Page < 1)
         {
@@ -35,10 +36,12 @@ public sealed class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, PagedR
                 DomainErrorType.Validation);
         }
 
-        return _roleRepository.GetPagedAsync(
+        return _adminUserRepository.GetPagedAsync(
             request.Page,
             request.PageSize,
             request.Keyword,
+            request.Status,
+            request.RoleId,
             ct);
     }
 }

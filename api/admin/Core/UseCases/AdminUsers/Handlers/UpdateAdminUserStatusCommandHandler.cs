@@ -3,16 +3,28 @@ using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.AdminUsers.Commands;
 using MediatR;
+using System.Text.Json;
+using Core.UseCases.AuditLogs;
 
-namespace Core.UseCases.AdminUsers;
+namespace Core.UseCases.AdminUsers.Handlers;
 
 public sealed class UpdateAdminUserStatusCommandHandler : IRequestHandler<UpdateAdminUserStatusCommand>
 {
     private readonly IAdminUserRepository _adminUserRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IAdminSessionRepository _adminSessionRepository;
+    private readonly IAuditLogWriter _auditLogWriter;
 
-    public UpdateAdminUserStatusCommandHandler(IAdminUserRepository adminUserRepository)
+    public UpdateAdminUserStatusCommandHandler(
+        IAdminUserRepository adminUserRepository,
+        IUserRepository userRepository,
+        IAdminSessionRepository adminSessionRepository,
+        IAuditLogWriter auditLogWriter)
     {
         _adminUserRepository = adminUserRepository;
+        _userRepository = userRepository;
+        _adminSessionRepository = adminSessionRepository;
+        _auditLogWriter = auditLogWriter;
     }
 
     public async Task Handle(UpdateAdminUserStatusCommand request, CancellationToken ct)
@@ -45,6 +57,17 @@ public sealed class UpdateAdminUserStatusCommandHandler : IRequestHandler<Update
                 DomainErrorType.NotFound);
         }
 
-        await _adminUserRepository.UpdateStatusAsync(request.AdminId, normalizedStatus, ct);
+        await _userRepository.UpdateAdminStatusAsync(request.AdminId, normalizedStatus, ct);
+
+        // if status updated to Disable, also revoke the session
+        if (normalizedStatus == UserStatus.Disable)
+        {
+            await _adminSessionRepository.RevokeActiveSessionsAsync(request.AdminId, ct);
+        }
+
+        _auditLogWriter.Add(new AuditLogEntry(
+            request.ActorUserId, "UPDATE_STATUS", AuditEntityTypes.Admin, request.AdminId,
+            JsonSerializer.Serialize(new { status = existingAdmin.Status }),
+            JsonSerializer.Serialize(new { status = normalizedStatus }), null));
     }
 }
