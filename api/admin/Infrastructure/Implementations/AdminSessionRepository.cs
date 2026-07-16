@@ -21,8 +21,6 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         DateTime expiresAt,
         CancellationToken ct = default)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
-
         var now = DateTime.UtcNow;
         var activeSessions = await _dbContext.AdminSessions
             .Where(session =>
@@ -33,11 +31,6 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         foreach (var activeSession in activeSessions)
         {
             activeSession.RevokedAt = now;
-        }
-
-        if (activeSessions.Count > 0)
-        {
-            await _dbContext.SaveChangesAsync(ct);
         }
 
         var adminSession = new AdminSession
@@ -52,19 +45,30 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
 
         _dbContext.AdminSessions.Add(adminSession);
 
-        await _dbContext.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
-
         return new AdminLoginSession(
             adminSession.AdminSessionId,
             adminSession.AccessTokenJti,
             adminSession.ExpiresAt);
     }
 
+    public async Task RevokeActiveSessionsAsync(Guid adminId, CancellationToken ct = default)
+    {
+        var sessions = await _dbContext.AdminSessions
+            .Where(session => session.AdminId == adminId && session.RevokedAt == null)
+            .ToListAsync(ct);
+        var now = DateTime.UtcNow;
+
+        foreach (var session in sessions)
+        {
+            session.RevokedAt = now;
+        }
+    }
+
     public Task<bool> IsSessionActiveAsync(
         Guid adminSessionId,
         Guid accessTokenJti,
         Guid adminId,
+        Guid userId,
         CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
@@ -75,6 +79,7 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
                 session.AdminSessionId == adminSessionId &&
                 session.AccessTokenJti == accessTokenJti &&
                 session.AdminId == adminId &&
+                session.UserId == userId &&
                 session.RevokedAt == null &&
                 session.ExpiresAt > now,
                 ct);

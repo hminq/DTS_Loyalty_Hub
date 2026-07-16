@@ -1,3 +1,4 @@
+using Api.Authentication;
 using Api.Dtos.Requests.Roles;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.Roles;
@@ -18,17 +19,20 @@ namespace Api.Controllers.Roles;
 public sealed class RolesController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<GetRolesRequestDto> _getRolesValidator;
     private readonly IValidator<CreateRoleRequestDto> _createRoleValidator;
     private readonly IValidator<UpdateRoleRequestDto> _updateRoleValidator;
 
     public RolesController(
         ISender sender,
+        ICurrentAdminContext currentAdminContext,
         IValidator<GetRolesRequestDto> getRolesValidator,
         IValidator<CreateRoleRequestDto> createRoleValidator,
         IValidator<UpdateRoleRequestDto> updateRoleValidator)
     {
         _sender = sender;
+        _currentAdminContext = currentAdminContext;
         _getRolesValidator = getRolesValidator;
         _createRoleValidator = createRoleValidator;
         _updateRoleValidator = updateRoleValidator;
@@ -81,7 +85,7 @@ public sealed class RolesController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(), ct);
+        var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);
         var response = new ApiResponseDto<RoleResponseDto>
         {
             Data = result.ToResponseDto()
@@ -105,7 +109,7 @@ public sealed class RolesController : ControllerBase
                 ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
         }
 
-        var result = await _sender.Send(request.ToCommand(roleId), ct);
+        var result = await _sender.Send(request.ToCommand(roleId, _currentAdminContext.UserId), ct);
 
         return Ok(new ApiResponseDto<RoleResponseDto>
         {
@@ -117,8 +121,9 @@ public sealed class RolesController : ControllerBase
     [Authorize(Policy = PermissionCodes.Roles.Delete)]
     public async Task<IActionResult> Delete(Guid roleId, CancellationToken ct)
     {
-        await _sender.Send(new DeleteRoleCommand(roleId), ct);
+        await _sender.Send(new DeleteRoleCommand(roleId, _currentAdminContext.UserId), ct);
 
         return NoContent();
     }
+
 }

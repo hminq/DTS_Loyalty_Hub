@@ -1,9 +1,7 @@
 using Core.Abstractions;
-using Core.UseCases.AuditLogs;
 using Core.UseCases.AuditLogs.Results;
 using Core.UseCases.Common;
 using Microsoft.EntityFrameworkCore;
-using Persistence.Models;
 using Persistence.Models.Context;
 
 namespace Infrastructure.Implementations;
@@ -15,24 +13,6 @@ public sealed class AuditLogRepository : IAuditLogRepository
     public AuditLogRepository(LoyaltyHubDbContext dbContext)
     {
         _dbContext = dbContext;
-    }
-
-    public async Task CreateAsync(AuditLogEntry entry, CancellationToken ct = default)
-    {
-        _dbContext.AuditLogs.Add(new AuditLog
-        {
-            AuditLogId = Guid.NewGuid(),
-            ActorUserId = entry.ActorUserId,
-            Action = entry.Action,
-            EntityType = entry.EntityType,
-            EntityId = entry.EntityId,
-            OldValue = entry.OldValue,
-            NewValue = entry.NewValue,
-            Metadata = entry.Metadata ?? "{}", // cột metadata là jsonb NOT NULL default '{}'
-            CreatedAt = DateTime.UtcNow
-        });
-
-        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<PagedResult<AuditLogResult>> GetPagedAsync(

@@ -1,5 +1,6 @@
 using Api;
 using Api.Authorization;
+using Api.Authentication;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -63,6 +64,9 @@ builder.Services
     });
 
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<CurrentAdminContext>();
+builder.Services.AddScoped<ICurrentAdminContext>(serviceProvider =>
+    serviceProvider.GetRequiredService<CurrentAdminContext>());
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permissionCode in PermissionCodes.All)
