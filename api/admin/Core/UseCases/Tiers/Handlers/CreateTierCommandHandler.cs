@@ -15,24 +15,23 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
     private const string AuditLogCreateAction = "CREATE";
 
     private readonly ITierRepository _tierRepository;
-    private readonly IAuditLogWriter _auditLogWriter;
+    private readonly IAuditLogRepository _auditLogRepository;
+    
 
     public CreateTierCommandHandler(
         ITierRepository tierRepository,
-        IAuditLogWriter auditLogWriter)
+        IAuditLogRepository auditLogRepository
+        )
     {
         _tierRepository = tierRepository;
-        _auditLogWriter = auditLogWriter;
+        _auditLogRepository = auditLogRepository;
+        
     }
 
     public async Task<TierResult> Handle(CreateTierCommand request, CancellationToken ct)
     {
-        var tier = Tier.Create(
-            request.Name,
-            request.PointsRequired,
-            request.CycleMonth,
-            request.Priority);
 
+        var tier = Tier.Create(request.Name, request.PointsRequired, request.CycleMonth, request.Priority);
         var existingTiers = await _tierRepository.GetListAsync(ct);
 
         ValidateTierName(tier, existingTiers);
@@ -58,13 +57,12 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
                 }),                          
                 null));
 
-        return new TierResult(
-            createdTier.TierConfigId,
-            createdTier.Name,
-            createdTier.PointsRequired,
-            createdTier.CycleMonth,
-            createdTier.Priority);
+            return new TierResult(createdTier.TierConfigId, createdTier.Name,
+                createdTier.PointsRequired, createdTier.CycleMonth, createdTier.Priority);
     }
+        
+    
+
 
     private static void ValidatePriorityPointsOrder(
         Tier tier,
@@ -95,7 +93,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         Tier tier,
         IReadOnlyCollection<TierResult> existingTiers)
     {
-        if (existingTiers.Any(existingTier => 
+        if (existingTiers.Any(existingTier =>
             existingTier.Name.Equals(tier.Name, StringComparison.OrdinalIgnoreCase)))
         {
             throw new DomainException(
