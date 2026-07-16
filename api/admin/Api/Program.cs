@@ -13,6 +13,7 @@ using Api.Mappers;
 using Core.Entities.Constants;
 using Infrastructure.Options;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 
 var currentDirectory = Directory.GetCurrentDirectory();
 var envPath = Path.Combine(currentDirectory, ".env");
@@ -42,6 +43,34 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Loyalty Hub Admin API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -81,6 +110,12 @@ var app = builder.Build();
 
 app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

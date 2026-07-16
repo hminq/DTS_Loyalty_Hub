@@ -24,7 +24,12 @@ public static class PermissionCodes
         CustomerUsers.ResetPassword,
         Tiers.View,
         Tiers.Create,
-        AuditLogs.View
+        AuditLogs.View,
+        Notifications.ViewEventTypes,
+        Notifications.ViewTemplates,
+        Notifications.CreateTemplate,
+        Notifications.UpdateTemplate,
+        Notifications.ViewLogs
     ];
 
     public static IReadOnlySet<string> All => DefinedCodes;
@@ -96,5 +101,14 @@ public static class PermissionCodes
     public static class AuditLogs
     {
         public const string View = "audit_log.view";
+    }
+
+    public static class Notifications
+    {
+        public const string ViewEventTypes = "notification.view_event_types";
+        public const string ViewTemplates = "notification.view_templates";
+        public const string CreateTemplate = "notification.create_template";
+        public const string UpdateTemplate = "notification.update_template";
+        public const string ViewLogs = "notification.view_logs";
     }
 }
