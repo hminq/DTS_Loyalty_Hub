@@ -1,3 +1,6 @@
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 using Core.Abstractions;
 using Infrastructure.Auth;
 using Infrastructure.Implementations;
@@ -20,12 +23,17 @@ public static class DependencyInjection
     {
         var databaseOptions = DatabaseOptions.FromConfiguration(configuration);
         var jwtOptions = JwtOptions.FromConfiguration(configuration);
+        var s3Options = S3Options.FromConfiguration(configuration);
 
         services.AddDbContext<LoyaltyHubDbContext>(options =>
             options.UseNpgsql(databaseOptions.ConnectionString));
 
         services.AddSingleton(databaseOptions);
         services.AddSingleton(jwtOptions);
+        services.AddSingleton(s3Options);
+        services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+            new BasicAWSCredentials(s3Options.AccessKeyId, s3Options.SecretAccessKey),
+            RegionEndpoint.GetBySystemName(s3Options.Region)));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IAdminSessionRepository, AdminSessionRepository>();
@@ -44,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
         services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
         services.AddScoped<IAuditLogWriter, AuditLogWriter>();
+        services.AddScoped<IBannerStorage, S3BannerStorage>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
         
         return services;
