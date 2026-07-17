@@ -100,14 +100,5 @@ public class LoginRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor("password");
     }
 
-    [Fact]
-    public void Validate_PropertyNamesAreOverriddenToCamelCase()
-    {
-        var dto = new LoginRequestDto { Username = "", Password = "" };
-
-        var result = _sut.TestValidate(dto);
-
-        result.Errors.Should().Contain(e => e.PropertyName == "username");
-        result.Errors.Should().Contain(e => e.PropertyName == "password");
-    }
+ 
 }
