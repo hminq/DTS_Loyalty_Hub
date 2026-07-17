@@ -57,4 +57,56 @@ public sealed class GetAuditLogsRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor("fromDate")
             .WithErrorCode("AUDIT_LOG_DATE_RANGE_INVALID");
     }
+
+    [Fact]
+    public void Validate_FromDateEqualsToDate_HasNoError()
+    {
+        // Boundary: rule chỉ reject khi FromDate > ToDate, bằng nhau phải hợp lệ
+        var sameDate = new DateTime(2026, 1, 15);
+        var request = new GetAuditLogsRequestDto { FromDate = sameDate, ToDate = sameDate };
+
+        var result = _sut.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor("fromDate");
+    }
+
+    [Theory]
+    [InlineData(1, 1)]     // Page min boundary, PageSize min boundary
+    [InlineData(1, 100)]   // PageSize max boundary
+    public void Validate_PagingAtBoundary_HasNoError(int page, int pageSize)
+    {
+        var request = new GetAuditLogsRequestDto { Page = page, PageSize = pageSize };
+
+        var result = _sut.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor("page");
+        result.ShouldNotHaveValidationErrorFor("pageSize");
+    }
+
+    [Fact]
+    public void Validate_EntityTypeAndActionAtMaxLength_HasNoError()
+    {
+        // Boundary: đúng 100/50 ký tự phải hợp lệ, không bị off-by-one reject nhầm
+        var request = new GetAuditLogsRequestDto
+        {
+            EntityType = new string('a', 100),
+            Action = new string('a', 50)
+        };
+
+        var result = _sut.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor("entityType");
+        result.ShouldNotHaveValidationErrorFor("action");
+    }
+
+    [Fact]
+    public void Validate_OnlyFromDateProvided_HasNoDateRangeError()
+    {
+        // Chỉ có 1 trong 2 mốc thời gian -> điều kiện so sánh khoảng ngày không áp dụng
+        var request = new GetAuditLogsRequestDto { FromDate = new DateTime(2026, 1, 1), ToDate = null };
+
+        var result = _sut.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor("fromDate");
+    }
 }
