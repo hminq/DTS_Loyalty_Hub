@@ -15,26 +15,24 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
     private const string AuditLogCreateAction = "CREATE";
 
     private readonly ITierRepository _tierRepository;
-    
-
     private readonly IAuditLogWriter _auditLogWriter;
-    
 
     public CreateTierCommandHandler(
         ITierRepository tierRepository,
-        
-        IAuditLogWriter auditLogWriter
-        )
+        IAuditLogWriter auditLogWriter)
     {
         _tierRepository = tierRepository;
-        
         _auditLogWriter = auditLogWriter;
     }
 
     public async Task<TierResult> Handle(CreateTierCommand request, CancellationToken ct)
     {
+        var tier = Tier.Create(
+            request.Name,
+            request.PointsRequired,
+            request.CycleMonth,
+            request.Priority);
 
-        var tier = Tier.Create(request.Name, request.PointsRequired, request.CycleMonth, request.Priority);
         var existingTiers = await _tierRepository.GetListAsync(ct);
 
         ValidateTierName(tier, existingTiers);
@@ -60,13 +58,13 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
                 }),                          
                 null));
 
-            return new TierResult(createdTier.TierConfigId, createdTier.Name,
-                createdTier.PointsRequired, createdTier.CycleMonth, createdTier.Priority);
+        return new TierResult(
+            createdTier.TierConfigId,
+            createdTier.Name,
+            createdTier.PointsRequired,
+            createdTier.CycleMonth,
+            createdTier.Priority);
     }
-        
-    
-
-
     private static void ValidatePriorityPointsOrder(
         Tier tier,
         IReadOnlyCollection<TierResult> existingTiers)
