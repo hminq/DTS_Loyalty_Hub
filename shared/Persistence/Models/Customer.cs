@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Persistence.Models;
@@ -30,4 +30,6 @@ public partial class Customer
     public virtual User User { get; set; } = null!;
 
     public virtual ICollection<VoucherRedemption> VoucherRedemptions { get; set; } = new List<VoucherRedemption>();
+
+    public virtual ICollection<NotificationLog> NotificationLogs { get; set; } = new List<NotificationLog>();
 }
