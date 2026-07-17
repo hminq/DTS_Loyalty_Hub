@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Models.Context;
 
@@ -50,6 +50,12 @@ public partial class LoyaltyHubDbContext : DbContext
     public virtual DbSet<VoucherPool> VoucherPools { get; set; }
 
     public virtual DbSet<VoucherRedemption> VoucherRedemptions { get; set; }
+
+    public virtual DbSet<NotificationEventType> NotificationEventTypes { get; set; }
+
+    public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+
+    public virtual DbSet<NotificationLog> NotificationLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -813,6 +819,114 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasOne(d => d.VoucherPool).WithMany(p => p.VoucherRedemptions)
                 .HasForeignKey(d => d.VoucherPoolId)
                 .HasConstraintName("fk_voucher_redemptions_pool");
+        });
+
+        modelBuilder.Entity<NotificationEventType>(entity =>
+        {
+            entity.HasKey(e => e.NotificationEventTypeId).HasName("notification_event_type_pkey");
+            entity.ToTable("notification_event_type");
+            entity.HasIndex(e => e.EventTypeCode, "uq_notification_event_type_code").IsUnique();
+
+            entity.Property(e => e.NotificationEventTypeId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("notification_event_type_id");
+            entity.Property(e => e.EventTypeCode)
+                .HasMaxLength(100)
+                .HasColumnName("event_type_code");
+            entity.Property(e => e.DisplayName)
+                .HasMaxLength(255)
+                .HasColumnName("display_name");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.AvailableVariables)
+                .HasDefaultValueSql("'[]'::jsonb")
+                .HasColumnType("jsonb")
+                .HasColumnName("available_variables");
+        });
+
+        modelBuilder.Entity<NotificationTemplate>(entity =>
+        {
+            entity.HasKey(e => e.TemplateId).HasName("notification_template_pkey");
+            entity.ToTable("notification_template");
+            entity.HasIndex(e => new { e.NotificationEventTypeId, e.Channel, e.Language, e.IsActive }, "idx_notif_template_lookup");
+
+            entity.Property(e => e.TemplateId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("template_id");
+            entity.Property(e => e.NotificationEventTypeId).HasColumnName("notification_event_type_id");
+            entity.Property(e => e.Channel)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("'PUSH'::character varying")
+                .HasColumnName("channel");
+            entity.Property(e => e.Language)
+                .HasMaxLength(10)
+                .HasDefaultValueSql("'vi'::character varying")
+                .HasColumnName("language");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+            entity.Property(e => e.TitleTemplate).HasColumnName("title_template");
+            entity.Property(e => e.BodyTemplate).HasColumnName("body_template");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.NotificationEventType).WithMany(p => p.NotificationTemplates)
+                .HasForeignKey(d => d.NotificationEventTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_notification_template_event_type");
+        });
+
+        modelBuilder.Entity<NotificationLog>(entity =>
+        {
+            entity.HasKey(e => e.LogId).HasName("notification_log_pkey");
+            entity.ToTable("notification_log");
+            entity.HasIndex(e => new { e.CustomerId, e.CreatedAt }, "idx_notif_log_customer");
+
+            entity.Property(e => e.LogId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("log_id");
+            entity.Property(e => e.TemplateId).HasColumnName("template_id");
+            entity.Property(e => e.EventTypeCode)
+                .HasMaxLength(100)
+                .HasColumnName("event_type_code");
+            entity.Property(e => e.Channel)
+                .HasMaxLength(50)
+                .HasColumnName("channel");
+            entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+            entity.Property(e => e.RenderedTitle).HasColumnName("rendered_title");
+            entity.Property(e => e.RenderedBody).HasColumnName("rendered_body");
+            entity.Property(e => e.VariablesSnapshot)
+                .HasColumnType("jsonb")
+                .HasColumnName("variables_snapshot");
+            entity.Property(e => e.SourceRefType)
+                .HasMaxLength(100)
+                .HasColumnName("source_ref_type");
+            entity.Property(e => e.SourceRefId).HasColumnName("source_ref_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("'PENDING'::character varying")
+                .HasColumnName("status");
+            entity.Property(e => e.SentAt).HasColumnName("sent_at");
+            entity.Property(e => e.ReadAt).HasColumnName("read_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.NotificationLogs)
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_notification_log_customer");
+
+            entity.HasOne(d => d.Template).WithMany(p => p.NotificationLogs)
+                .HasForeignKey(d => d.TemplateId)
+                .HasConstraintName("fk_notification_log_template");
         });
 
         OnModelCreatingPartial(modelBuilder);

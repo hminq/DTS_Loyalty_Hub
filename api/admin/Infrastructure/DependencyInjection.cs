@@ -40,6 +40,9 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<INotificationEventTypeRepository, NotificationEventTypeRepository>();
+        services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
+        services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
         services.AddScoped<IAuditLogWriter, AuditLogWriter>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
         
