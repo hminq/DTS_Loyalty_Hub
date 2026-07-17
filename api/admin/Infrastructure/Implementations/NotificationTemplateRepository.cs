@@ -148,16 +148,21 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
         var persistedTemplate = await _dbContext.NotificationTemplates
             .FirstOrDefaultAsync(t => t.TemplateId == template.TemplateId, ct);
 
-        if (persistedTemplate != null)
+        if (persistedTemplate == null)
         {
-            persistedTemplate.NotificationEventTypeId = template.NotificationEventTypeId;
-            persistedTemplate.Channel = template.Channel;
-            persistedTemplate.Language = template.Language;
-            persistedTemplate.Name = template.Name;
-            persistedTemplate.TitleTemplate = template.TitleTemplate;
-            persistedTemplate.BodyTemplate = template.BodyTemplate;
-            persistedTemplate.IsActive = template.IsActive;
-            persistedTemplate.UpdatedAt = template.UpdatedAt;
+            throw new Core.Exceptions.DomainException(
+                "TEMPLATE_NOT_FOUND",
+                "Notification template does not exist.",
+                Core.Exceptions.DomainErrorType.NotFound);
         }
+
+        persistedTemplate.NotificationEventTypeId = template.NotificationEventTypeId;
+        persistedTemplate.Channel = template.Channel;
+        persistedTemplate.Language = template.Language;
+        persistedTemplate.Name = template.Name;
+        persistedTemplate.TitleTemplate = template.TitleTemplate;
+        persistedTemplate.BodyTemplate = template.BodyTemplate;
+        persistedTemplate.IsActive = template.IsActive;
+        persistedTemplate.UpdatedAt = template.UpdatedAt;
     }
 }

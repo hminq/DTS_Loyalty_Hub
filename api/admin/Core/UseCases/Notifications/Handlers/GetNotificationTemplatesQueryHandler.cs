@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using Core.UseCases.Common;
 
-namespace Core.UseCases.Notifications;
+namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class GetNotificationTemplatesQueryHandler : IRequestHandler<GetNotificationTemplatesQuery, PagedResult<NotificationTemplateResult>>
 {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Core.UseCases.Notifications;
+namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class GetEventTypesQueryHandler : IRequestHandler<GetEventTypesQuery, IReadOnlyCollection<NotificationEventTypeResult>>
 {

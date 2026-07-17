@@ -71,9 +71,6 @@ public sealed class NotificationTemplatesController : ControllerBase
     {
         var result = await _sender.Send(new GetNotificationTemplateByIdQuery(id), ct);
 
-        if (result == null)
-            return NotFound();
-
         return Ok(new ApiResponseDto<NotificationTemplateResult>
         {
             Data = result

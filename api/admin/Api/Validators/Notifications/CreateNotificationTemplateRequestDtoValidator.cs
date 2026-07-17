@@ -44,12 +44,18 @@ public sealed class CreateNotificationTemplateRequestDtoValidator : AbstractVali
             .NotEmpty()
             .WithErrorCode("TITLE_TEMPLATE_REQUIRED")
             .WithMessage("Title template is required.")
+            .MaximumLength(1000)
+            .WithErrorCode("TITLE_TEMPLATE_TOO_LONG")
+            .WithMessage("Title template cannot exceed 1000 characters.")
             .OverridePropertyName("titleTemplate");
 
         RuleFor(x => x.BodyTemplate)
             .NotEmpty()
             .WithErrorCode("BODY_TEMPLATE_REQUIRED")
             .WithMessage("Body template is required.")
+            .MaximumLength(5000)
+            .WithErrorCode("BODY_TEMPLATE_TOO_LONG")
+            .WithMessage("Body template cannot exceed 5000 characters.")
             .OverridePropertyName("bodyTemplate");
     }
 }

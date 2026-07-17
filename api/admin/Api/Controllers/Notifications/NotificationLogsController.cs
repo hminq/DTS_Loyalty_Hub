@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Api.Dtos.Requests.Notifications;
 using Api.Dtos.Responses;
+using Api.Mappers;
 using Core.Entities.Constants;
 using Core.UseCases.Common;
 using Core.UseCases.Notifications.Queries;
 using Core.UseCases.Notifications.Results;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,13 +31,18 @@ public sealed class NotificationLogsController : ControllerBase
     [HttpGet]
     [Authorize(Policy = PermissionCodes.Notifications.ViewLogs)]
     public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationLogResult>>>> GetPaged(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] Guid? customerId = null,
-        [FromQuery] string? eventTypeCode = null,
+        [FromQuery] GetNotificationLogsRequestDto request,
+        [FromServices] IValidator<GetNotificationLogsRequestDto> validator,
         CancellationToken ct = default)
     {
-        var result = await _sender.Send(new GetNotificationLogsQuery(page, pageSize, customerId, eventTypeCode), ct);
+        var validationResult = await validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
+            return BadRequest(ApiErrorResponseDto.Validation(errors));
+        }
+
+        var result = await _sender.Send(new GetNotificationLogsQuery(request.Page, request.PageSize, request.CustomerId, request.EventTypeCode), ct);
 
         return Ok(new ApiResponseDto<IReadOnlyCollection<NotificationLogResult>>
         {

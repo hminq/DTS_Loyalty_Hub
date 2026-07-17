@@ -1,13 +1,16 @@
-using Api.Dtos.Responses;
-using Core.Entities.Constants;
-using Core.UseCases.Notifications.Queries;
-using Core.UseCases.Notifications.Results;
-using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Api.Dtos.Requests.Notifications;
+using Api.Dtos.Responses;
+using Api.Mappers;
+using Core.Entities.Constants;
+using Core.UseCases.Notifications.Queries;
+using Core.UseCases.Notifications.Results;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.Notifications;
 
@@ -25,9 +28,19 @@ public sealed class NotificationEventTypesController : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = PermissionCodes.Notifications.ViewEventTypes)]
-    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationEventTypeResult>>>> GetList([FromQuery] string? searchKeyword, CancellationToken ct)
+    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationEventTypeResult>>>> GetList(
+        [FromQuery] GetEventTypesRequestDto request,
+        [FromServices] IValidator<GetEventTypesRequestDto> validator,
+        CancellationToken ct)
     {
-        var result = await _sender.Send(new GetEventTypesQuery(searchKeyword), ct);
+        var validationResult = await validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
+            return BadRequest(ApiErrorResponseDto.Validation(errors));
+        }
+
+        var result = await _sender.Send(new GetEventTypesQuery(request.SearchKeyword), ct);
 
         return Ok(new ApiResponseDto<IReadOnlyCollection<NotificationEventTypeResult>>
         {

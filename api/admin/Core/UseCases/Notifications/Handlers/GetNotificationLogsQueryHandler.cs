@@ -6,7 +6,7 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Core.UseCases.Notifications;
+namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class GetNotificationLogsQueryHandler : IRequestHandler<GetNotificationLogsQuery, PagedResult<NotificationLogResult>>
 {

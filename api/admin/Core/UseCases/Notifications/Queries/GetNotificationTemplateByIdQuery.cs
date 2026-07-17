@@ -4,4 +4,4 @@ using System;
 
 namespace Core.UseCases.Notifications.Queries;
 
-public record GetNotificationTemplateByIdQuery(Guid TemplateId) : IRequest<NotificationTemplateResult?>;
+public record GetNotificationTemplateByIdQuery(Guid TemplateId) : IRequest<NotificationTemplateResult>;
