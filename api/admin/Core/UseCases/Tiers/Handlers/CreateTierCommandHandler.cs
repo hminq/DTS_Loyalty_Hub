@@ -15,17 +15,20 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
     private const string AuditLogCreateAction = "CREATE";
 
     private readonly ITierRepository _tierRepository;
-    private readonly IAuditLogRepository _auditLogRepository;
+    
+
+    private readonly IAuditLogWriter _auditLogWriter;
     
 
     public CreateTierCommandHandler(
         ITierRepository tierRepository,
-        IAuditLogRepository auditLogRepository
+        
+        IAuditLogWriter auditLogWriter
         )
     {
         _tierRepository = tierRepository;
-        _auditLogRepository = auditLogRepository;
         
+        _auditLogWriter = auditLogWriter;
     }
 
     public async Task<TierResult> Handle(CreateTierCommand request, CancellationToken ct)
