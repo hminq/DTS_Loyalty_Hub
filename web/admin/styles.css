@@ -1,0 +1,288 @@
+:root {
+  color: #17201b;
+  font-family: "DM Sans", sans-serif;
+  background: #f5f6f2;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(380px, 0.9fr) minmax(480px, 1.1fr);
+}
+
+.brand-panel {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  padding: 48px clamp(40px, 6vw, 92px);
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  color: #f7fff8;
+  background: #173d2b;
+}
+
+.brand-panel::before,
+.brand-panel::after {
+  position: absolute;
+  border-radius: 999px;
+  content: "";
+}
+
+.brand-panel::before {
+  width: 420px;
+  height: 420px;
+  right: -210px;
+  top: -120px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  box-shadow: 0 0 0 72px rgb(255 255 255 / 4%);
+}
+
+.brand-panel::after {
+  width: 230px;
+  height: 230px;
+  left: -130px;
+  bottom: 30px;
+  background: #d5f159;
+  opacity: 0.12;
+}
+
+.brand,
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.brand-mark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  color: #173d2b;
+  background: #d5f159;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+  max-width: 540px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: #7f9a89;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.brand-content .eyebrow {
+  color: #d5f159;
+}
+
+.brand-content h1 {
+  max-width: 500px;
+  margin: 0;
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.brand-content > p:last-child {
+  max-width: 460px;
+  margin: 28px 0 0;
+  color: #bcd0c3;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.brand-footer {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #83a08d;
+  font-size: 13px;
+}
+
+.form-panel {
+  display: grid;
+  min-height: 100vh;
+  padding: 48px 28px;
+  place-items: center;
+}
+
+.login-card {
+  width: min(100%, 420px);
+}
+
+.mobile-brand {
+  display: none;
+  margin-bottom: 48px;
+}
+
+.login-card header h2 {
+  margin: 0;
+  font-size: 36px;
+  letter-spacing: -0.04em;
+}
+
+.login-card header > p:last-child {
+  margin: 12px 0 36px;
+  color: #738078;
+  line-height: 1.6;
+}
+
+form > label,
+.password-heading label {
+  color: #2f3933;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  height: 52px;
+  margin: 9px 0 22px;
+  padding: 0 16px;
+  border: 1px solid #d8ddd9;
+  border-radius: 12px;
+  outline: none;
+  color: #17201b;
+  background: #fff;
+  transition: border-color 160ms, box-shadow 160ms;
+}
+
+input::placeholder {
+  color: #a4ada7;
+}
+
+input:focus {
+  border-color: #3d7858;
+  box-shadow: 0 0 0 4px rgb(61 120 88 / 12%);
+}
+
+.password-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.password-heading a {
+  color: #397254;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 68px;
+}
+
+.password-field button {
+  position: absolute;
+  top: 9px;
+  right: 8px;
+  height: 52px;
+  border: 0;
+  color: #397254;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.remember-option {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  gap: 9px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.remember-option input {
+  width: 17px;
+  height: 17px;
+  accent-color: #2f674a;
+}
+
+.submit-button {
+  width: 100%;
+  height: 52px;
+  margin-top: 28px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: #22533a;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 160ms, transform 160ms;
+}
+
+.submit-button:hover {
+  background: #173d2b;
+}
+
+.submit-button:active {
+  transform: translateY(1px);
+}
+
+.demo-message {
+  min-height: 20px;
+  margin: 12px 0 0;
+  color: #758178;
+  font-size: 13px;
+  text-align: center;
+}
+
+.support-text {
+  margin: 40px 0 0;
+  color: #89938d;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .login-page {
+    display: block;
+  }
+
+  .brand-panel {
+    display: none;
+  }
+
+  .form-panel {
+    padding: 36px 22px;
+  }
+
+  .mobile-brand {
+    display: flex;
+  }
+}
