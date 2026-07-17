@@ -24,6 +24,6 @@ public sealed class UploadBannerCommandHandler
             request.UploadType,
             ct);
 
-        return new UploadBannerResult(uploaded.Key, uploaded.Url);
+        return new UploadBannerResult(uploaded.Key);
     }
 }

@@ -19,9 +19,7 @@ public sealed class UploadBannerCommandHandlerTests
                 BannerFileTypes.Png,
                 BannerUploadTypes.CampaignBanner,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new BannerUploadResult(
-                "campaigns/banners/id.png",
-                "https://cdn.example.com/campaigns/banners/id.png"));
+            .ReturnsAsync(new BannerUploadResult("campaigns/banners/id.png"));
 
         var handler = new UploadBannerCommandHandler(storage.Object);
         var result = await handler.Handle(new UploadBannerCommand(
@@ -30,7 +28,6 @@ public sealed class UploadBannerCommandHandlerTests
             BannerUploadTypes.CampaignBanner), CancellationToken.None);
 
         result.Key.Should().Be("campaigns/banners/id.png");
-        result.Url.Should().Be("https://cdn.example.com/campaigns/banners/id.png");
         storage.VerifyAll();
     }
 }

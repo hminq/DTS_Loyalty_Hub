@@ -45,7 +45,7 @@ public sealed class S3BannerStorage : IBannerStorage
             ContentType = contentType
         }, ct);
 
-        return new BannerUploadResult(key, $"{_options.PublicBaseUrl}/{key}");
+        return new BannerUploadResult(key);
     }
 
 }

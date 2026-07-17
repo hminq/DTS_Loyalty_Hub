@@ -1,3 +1,3 @@
 namespace Api.Dtos.Responses.Uploads;
 
-public sealed record UploadBannerResponseDto(string Key, string Url);
+public sealed record UploadBannerResponseDto(string Key);

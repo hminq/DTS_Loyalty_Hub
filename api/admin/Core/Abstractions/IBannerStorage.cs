@@ -9,4 +9,4 @@ public interface IBannerStorage
         CancellationToken ct);
 }
 
-public sealed record BannerUploadResult(string Key, string Url);
+public sealed record BannerUploadResult(string Key);

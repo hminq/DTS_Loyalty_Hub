@@ -45,7 +45,7 @@ public sealed class UploadsController : ControllerBase
 
         return Ok(new ApiResponseDto<UploadBannerResponseDto>
         {
-            Data = new UploadBannerResponseDto(result.Key, result.Url)
+            Data = new UploadBannerResponseDto(result.Key)
         });
     }
 }
