@@ -76,7 +76,7 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
                 x.UpdatedAt))
             .ToListAsync(ct);
 
-        return new PagedResult<NotificationTemplateResult>(items, total, page, pageSize);
+        return new PagedResult<NotificationTemplateResult>(items, page, pageSize, total);
     }
 
     public async Task<NotificationTemplateResult?> GetByIdAsync(Guid templateId, CancellationToken ct = default)
@@ -123,7 +123,7 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
             model.UpdatedAt);
     }
 
-    public async Task<DomainNotificationTemplate> CreateAsync(DomainNotificationTemplate template, CancellationToken ct = default)
+    public DomainNotificationTemplate Add(DomainNotificationTemplate template)
     {
         _dbContext.NotificationTemplates.Add(new PersistenceNotificationTemplate
         {
@@ -140,7 +140,6 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
             UpdatedAt = template.UpdatedAt
         });
 
-        await _dbContext.SaveChangesAsync(ct);
         return template;
     }
 
@@ -159,8 +158,6 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
             persistedTemplate.BodyTemplate = template.BodyTemplate;
             persistedTemplate.IsActive = template.IsActive;
             persistedTemplate.UpdatedAt = template.UpdatedAt;
-
-            await _dbContext.SaveChangesAsync(ct);
         }
     }
 }

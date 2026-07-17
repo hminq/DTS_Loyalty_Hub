@@ -38,4 +38,18 @@ public sealed class NotificationEventTypeRepository : INotificationEventTypeRepo
     {
         return await _dbContext.NotificationEventTypes.AnyAsync(x => x.NotificationEventTypeId == id, ct);
     }
+
+    public async Task<NotificationEventTypeResult?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _dbContext.NotificationEventTypes
+            .AsNoTracking()
+            .Where(x => x.NotificationEventTypeId == id)
+            .Select(x => new NotificationEventTypeResult(
+                x.NotificationEventTypeId,
+                x.EventTypeCode,
+                x.DisplayName,
+                x.Description,
+                x.AvailableVariables))
+            .FirstOrDefaultAsync(ct);
+    }
 }

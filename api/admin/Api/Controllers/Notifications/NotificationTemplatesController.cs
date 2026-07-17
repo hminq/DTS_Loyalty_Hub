@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;
+using Api.Authentication;
+using Api.Dtos.Requests.Notifications;
 using Api.Dtos.Responses;
+using Api.Mappers;
 using Core.Entities.Constants;
 using Core.UseCases.Notifications.Commands;
 using Core.UseCases.Notifications.Queries;
 using Core.UseCases.Notifications.Results;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,26 +23,32 @@ namespace Api.Controllers.Notifications;
 public sealed class NotificationTemplatesController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ICurrentAdminContext _currentAdminContext;
 
-    public NotificationTemplatesController(ISender sender)
+    public NotificationTemplatesController(
+        ISender sender,
+        ICurrentAdminContext currentAdminContext)
     {
         _sender = sender;
+        _currentAdminContext = currentAdminContext;
     }
 
     [HttpGet]
     [Authorize(Policy = PermissionCodes.Notifications.ViewTemplates)]
     public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationTemplateResult>>>> GetPaged(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? keyword = null,
-        [FromQuery] string? eventTypeCode = null,
-        [FromQuery] string? channel = null,
-        [FromQuery] string? language = null,
-        [FromQuery] bool? isActive = null,
+        [FromQuery] GetNotificationTemplatesRequestDto request,
+        [FromServices] IValidator<GetNotificationTemplatesRequestDto> validator,
         CancellationToken ct = default)
     {
+        var validationResult = await validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
+            return BadRequest(ApiErrorResponseDto.Validation(errors));
+        }
+
         var result = await _sender.Send(new GetNotificationTemplatesQuery(
-            page, pageSize, keyword, eventTypeCode, channel, language, isActive), ct);
+            request.Page, request.PageSize, request.Keyword, request.EventTypeCode, request.Channel, request.Language, request.IsActive), ct);
 
         return Ok(new ApiResponseDto<IReadOnlyCollection<NotificationTemplateResult>>
         {
@@ -74,11 +83,18 @@ public sealed class NotificationTemplatesController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PermissionCodes.Notifications.CreateTemplate)]
     public async Task<ActionResult<ApiResponseDto<NotificationTemplateResult>>> Create(
-        [FromBody] CreateNotificationTemplateCommand request,
+        [FromBody] CreateNotificationTemplateRequestDto request,
+        [FromServices] IValidator<CreateNotificationTemplateRequestDto> validator,
         CancellationToken ct)
     {
-        var actorId = GetActorUserId() ?? Guid.Empty;
-        var command = request with { ActorUserId = actorId };
+        var validationResult = await validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
+            return BadRequest(ApiErrorResponseDto.Validation(errors));
+        }
+
+        var command = request.ToCommand(_currentAdminContext.UserId);
 
         var result = await _sender.Send(command, ct);
 
@@ -92,11 +108,18 @@ public sealed class NotificationTemplatesController : ControllerBase
     [Authorize(Policy = PermissionCodes.Notifications.UpdateTemplate)]
     public async Task<ActionResult<ApiResponseDto<NotificationTemplateResult>>> Update(
         [FromRoute] Guid id,
-        [FromBody] UpdateNotificationTemplateCommand request,
+        [FromBody] UpdateNotificationTemplateRequestDto request,
+        [FromServices] IValidator<UpdateNotificationTemplateRequestDto> validator,
         CancellationToken ct)
     {
-        var actorId = GetActorUserId() ?? Guid.Empty;
-        var command = request with { TemplateId = id, ActorUserId = actorId };
+        var validationResult = await validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
+            return BadRequest(ApiErrorResponseDto.Validation(errors));
+        }
+
+        var command = request.ToCommand(id, _currentAdminContext.UserId);
 
         var result = await _sender.Send(command, ct);
 
@@ -112,8 +135,7 @@ public sealed class NotificationTemplatesController : ControllerBase
         [FromRoute] Guid id,
         CancellationToken ct)
     {
-        var actorId = GetActorUserId() ?? Guid.Empty;
-        var command = new ToggleTemplateStatusCommand(id, actorId);
+        var command = new ToggleTemplateStatusCommand(id, _currentAdminContext.UserId);
 
         var result = await _sender.Send(command, ct);
 
@@ -121,11 +143,5 @@ public sealed class NotificationTemplatesController : ControllerBase
         {
             Data = result
         });
-    }
-
-    private Guid? GetActorUserId()
-    {
-        var rawUserId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
     }
 }

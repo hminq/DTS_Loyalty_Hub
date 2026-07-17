@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Core.Abstractions;
+using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.AuditLogs;
 using Core.UseCases.Notifications.Commands;
@@ -9,22 +10,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using System;
 
-namespace Core.UseCases.Notifications;
+namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<UpdateNotificationTemplateCommand, NotificationTemplateResult>
 {
-    private const string AuditLogEntityType = "NotificationTemplate";
     private const string AuditLogUpdateAction = "UPDATE";
 
     private readonly INotificationTemplateRepository _templateRepository;
-    private readonly IAuditLogRepository _auditLogRepository;
+    private readonly INotificationEventTypeRepository _eventTypeRepository;
+    private readonly IAuditLogWriter _auditLogWriter;
 
     public UpdateNotificationTemplateCommandHandler(
         INotificationTemplateRepository templateRepository,
-        IAuditLogRepository auditLogRepository)
+        INotificationEventTypeRepository eventTypeRepository,
+        IAuditLogWriter auditLogWriter)
     {
         _templateRepository = templateRepository;
-        _auditLogRepository = auditLogRepository;
+        _eventTypeRepository = eventTypeRepository;
+        _auditLogWriter = auditLogWriter;
     }
 
     public async Task<NotificationTemplateResult> Handle(UpdateNotificationTemplateCommand request, CancellationToken ct)
@@ -35,6 +38,15 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
             throw new DomainException(
                 "TEMPLATE_NOT_FOUND",
                 "Notification template does not exist.",
+                DomainErrorType.NotFound);
+        }
+        
+        var eventType = await _eventTypeRepository.GetByIdAsync(request.NotificationEventTypeId, ct);
+        if (eventType == null)
+        {
+            throw new DomainException(
+                "EVENT_TYPE_NOT_FOUND",
+                "Notification event type does not exist.",
                 DomainErrorType.NotFound);
         }
 
@@ -60,31 +72,37 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
 
         await _templateRepository.UpdateAsync(template, ct);
 
-        await _auditLogRepository.CreateAsync(
-            new AuditLogEntry(
-                request.ActorUserId,
-                AuditLogUpdateAction,
-                AuditLogEntityType,
-                template.TemplateId,
-                oldState,
-                JsonSerializer.Serialize(new
-                {
-                    notificationEventTypeId = template.NotificationEventTypeId,
-                    channel = template.Channel,
-                    language = template.Language,
-                    name = template.Name,
-                    titleTemplate = template.TitleTemplate,
-                    bodyTemplate = template.BodyTemplate,
-                    isActive = template.IsActive
-                }),
-                null),
-            ct);
+        _auditLogWriter.Add(new AuditLogEntry(
+            request.ActorUserId,
+            AuditLogUpdateAction,
+            AuditEntityTypes.NotificationTemplate,
+            template.TemplateId,
+            oldState,
+            JsonSerializer.Serialize(new
+            {
+                notificationEventTypeId = template.NotificationEventTypeId,
+                channel = template.Channel,
+                language = template.Language,
+                name = template.Name,
+                titleTemplate = template.TitleTemplate,
+                bodyTemplate = template.BodyTemplate,
+                isActive = template.IsActive
+            }),
+            null));
 
-        var result = await _templateRepository.GetByIdAsync(template.TemplateId, ct);
-        if (result == null)
-        {
-             throw new InvalidOperationException("Failed to retrieve updated template.");
-        }
-        return result;
+        return new NotificationTemplateResult(
+            template.TemplateId,
+            template.NotificationEventTypeId,
+            eventType.EventTypeCode,
+            eventType.DisplayName,
+            template.Channel,
+            template.Language,
+            template.Name,
+            template.TitleTemplate,
+            template.BodyTemplate,
+            template.IsActive,
+            template.CreatedBy,
+            template.CreatedAt,
+            template.UpdatedAt);
     }
 }
