@@ -20,7 +20,7 @@ public static class AdminUserMapper
             request.RoleId);
     }
 
-    public static CreateAdminUserCommand ToCommand(this CreateAdminUserRequestDto request)
+    public static CreateAdminUserCommand ToCommand(this CreateAdminUserRequestDto request, Guid? actorUserId)
     {
         return new CreateAdminUserCommand(
             request.Username!.Trim(),
@@ -28,28 +28,33 @@ public static class AdminUserMapper
             request.Password!,
             request.FullName,
             request.PhoneNumber,
-            request.RoleId);
+            request.RoleId,
+            actorUserId);
     }
 
     public static UpdateAdminUserCommand ToCommand(
         this UpdateAdminUserRequestDto request,
-        Guid adminId)
+        Guid adminId,
+        Guid? actorUserId)
     {
         return new UpdateAdminUserCommand(
             adminId,
             request.Email!.Trim(),
             request.FullName,
             request.PhoneNumber,
-            request.RoleId);
+            request.RoleId,
+            actorUserId);
     }
 
     public static UpdateAdminUserStatusCommand ToCommand(
         this UpdateAdminUserStatusRequestDto request,
-        Guid adminId)
+        Guid adminId,
+        Guid? actorUserId)
     {
         return new UpdateAdminUserStatusCommand(
             adminId,
-            request.Status!.Trim());
+            request.Status!.Trim(),
+            actorUserId);
     }
 
     public static ApiResponseDto<IReadOnlyCollection<AdminUserListItemResponseDto>> ToPagedResponseDto(

@@ -6,6 +6,8 @@ using Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Infrastructure.Behaviors;
+using MediatR;
 
 namespace Infrastructure;
 
@@ -28,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IPointTransactionRepository, PointTransactionRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 
         return services;
     }

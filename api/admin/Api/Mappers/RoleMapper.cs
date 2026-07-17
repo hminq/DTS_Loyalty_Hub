@@ -18,19 +18,21 @@ public static class RoleMapper
             request.Keyword);
     }
 
-    public static CreateRoleCommand ToCommand(this CreateRoleRequestDto request)
+    public static CreateRoleCommand ToCommand(this CreateRoleRequestDto request, Guid? actorUserId)
     {
         return new CreateRoleCommand(
             request.Name,
-            request.PermissionIds);
+            request.PermissionIds,
+            actorUserId);
     }
 
-    public static UpdateRoleCommand ToCommand(this UpdateRoleRequestDto request, Guid roleId)
+    public static UpdateRoleCommand ToCommand(this UpdateRoleRequestDto request, Guid roleId, Guid? actorUserId)
     {
         return new UpdateRoleCommand(
             roleId,
             request.Name,
-            request.PermissionIds);
+            request.PermissionIds,
+            actorUserId);
     }
 
     public static RoleResponseDto ToResponseDto(this RoleResult result)

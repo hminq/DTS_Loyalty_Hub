@@ -30,7 +30,7 @@ public sealed class TierRepository : ITierRepository
         .ToListAsync(ct);
     }
 
-    public async Task<Tier> CreateAsync(Tier tier, CancellationToken ct = default)
+    public Tier Add(Tier tier)
     {
         _dbContext.TiersConfigs.Add(new TiersConfig
         {
@@ -41,8 +41,6 @@ public sealed class TierRepository : ITierRepository
             Priority = tier.Priority,
             CreatedAt = tier.CreatedAt
         });
-
-        await _dbContext.SaveChangesAsync(ct);
 
         return tier;
     }

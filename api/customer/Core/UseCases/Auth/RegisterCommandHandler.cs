@@ -51,14 +51,17 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
 
         var passwordHash = _passwordVerifier.Hash(request.Password);
 
-        var created = await _userRepository.CreateAsync(
+        var userId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var created = _userRepository.Add(
+            userId,
+            customerId,
             new NewCustomerUser(
                 request.Username,
                 request.Email,
                 passwordHash,
                 request.FullName,
-                request.Phone),
-            ct);
+                request.Phone));
 
         var expiresAt = _accessTokenService.CreateExpiresAt();
 
