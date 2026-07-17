@@ -30,6 +30,7 @@ public static class PermissionCodes
         Notifications.CreateTemplate,
         Notifications.UpdateTemplate,
         Notifications.ViewLogs,
+        Media.Upload,
         VoucherDefinitions.View,
         VoucherDefinitions.Create,
         VoucherDefinitions.Update,
@@ -122,5 +123,10 @@ public static class PermissionCodes
         public const string CreateTemplate = "notification.create_template";
         public const string UpdateTemplate = "notification.update_template";
         public const string ViewLogs = "notification.view_logs";
+    }
+
+    public static class Media
+    {
+        public const string Upload = "media.upload";
     }
 }

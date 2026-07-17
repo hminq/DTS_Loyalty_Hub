@@ -2,6 +2,7 @@ using Api.Dtos.Requests.Uploads;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.Uploads;
 using Api.Mappers;
+using Core.Entities.Constants;
 using Core.UseCases.Uploads.Commands;
 using FluentValidation;
 using MediatR;
@@ -26,6 +27,7 @@ public sealed class UploadsController : ControllerBase
 
     [HttpPost("banners")]
     [Consumes("multipart/form-data")]
+    [Authorize(Policy = PermissionCodes.Media.Upload)]
     public async Task<ActionResult<ApiResponseDto<UploadBannerResponseDto>>> UploadBanner(
         [FromForm] UploadBannerRequestDto request,
         CancellationToken ct)
