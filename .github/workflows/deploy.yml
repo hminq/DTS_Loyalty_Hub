@@ -14,9 +14,29 @@ env:
   SCHEDULER_IMAGE: hminq/dts-loyalty-scheduler
 
 jobs:
+  test:
+    name: Run automated tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test admin API
+        run: dotnet test api/admin/Api-Admin.sln --configuration Release --disable-build-servers
+
+      - name: Test customer API
+        run: dotnet test api/customer/Api-Customer.sln --configuration Release --disable-build-servers
+
   build-and-deploy:
     name: Build images and deploy
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Checkout
