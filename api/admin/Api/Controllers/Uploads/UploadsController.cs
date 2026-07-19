@@ -18,11 +18,16 @@ public sealed class UploadsController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IValidator<UploadBannerRequestDto> _validator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
-    public UploadsController(ISender sender, IValidator<UploadBannerRequestDto> validator)
+    public UploadsController(
+        ISender sender,
+        IValidator<UploadBannerRequestDto> validator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _validator = validator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpPost("banners")]
@@ -35,8 +40,7 @@ public sealed class UploadsController : ControllerBase
         var validationResult = await _validator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         await using var content = request.File!.OpenReadStream();

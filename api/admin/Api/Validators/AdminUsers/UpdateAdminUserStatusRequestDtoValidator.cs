@@ -13,12 +13,10 @@ public sealed class UpdateAdminUserStatusRequestDtoValidator
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("STATUS_REQUIRED")
-            .WithMessage("Status is required.")
             .Must(status => status is not null &&
                 (string.Equals(status.Trim(), UserStatus.Enable, StringComparison.OrdinalIgnoreCase) ||
                  string.Equals(status.Trim(), UserStatus.Disable, StringComparison.OrdinalIgnoreCase)))
             .WithErrorCode("STATUS_INVALID")
-            .WithMessage("Status is invalid.")
             .OverridePropertyName("status");
     }
 }

@@ -29,7 +29,6 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         {
             throw new DomainException(
                 "USERNAME_ALREADY_EXISTS",
-                "Username is already taken.",
                 DomainErrorType.Conflict);
         }
 
@@ -37,7 +36,6 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         {
             throw new DomainException(
                 "EMAIL_ALREADY_EXISTS",
-                "Email is already registered.",
                 DomainErrorType.Conflict);
         }
 
@@ -45,7 +43,6 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         {
             throw new DomainException(
                 "PHONE_ALREADY_EXISTS",
-                "Phone number is already registered.",
                 DomainErrorType.Conflict);
         }
 
@@ -74,7 +71,6 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
 
         return new RegisterResult(
             accessToken.Value,
-            "Bearer",
             accessToken.ExpiresAt,
             new CustomerRegisterResult(
                 created.UserId,

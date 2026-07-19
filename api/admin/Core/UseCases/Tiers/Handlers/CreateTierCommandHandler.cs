@@ -73,7 +73,6 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         {
             throw new DomainException(
                 "TIER_PRIORITY_ALREADY_EXISTS",
-                "A tier with this priority already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -84,8 +83,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         if (hasInvalidPointsOrder)
         {
             throw new DomainException(
-                "TIER_POINTS_REQUIRED_INVALID",
-                "Points required of a higher priority tier must be greater than points required of a lower priority tier.",
+                "TIER_POINTS_ORDER_INVALID",
                 DomainErrorType.Validation);
         }
     }
@@ -99,7 +97,6 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         {
             throw new DomainException(
                 "TIER_NAME_ALREADY_EXISTS",
-                "A tier with this name already exists.",
                 DomainErrorType.Conflict);
         }
     }

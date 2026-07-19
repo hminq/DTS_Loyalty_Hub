@@ -38,7 +38,6 @@ public sealed class CreateNotificationTemplateCommandHandler : IRequestHandler<C
         {
             throw new DomainException(
                 "EVENT_TYPE_NOT_FOUND",
-                "Notification event type does not exist.",
                 DomainErrorType.NotFound);
         }
 

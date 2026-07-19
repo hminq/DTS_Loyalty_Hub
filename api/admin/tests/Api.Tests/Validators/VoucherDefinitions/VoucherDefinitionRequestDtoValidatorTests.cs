@@ -127,9 +127,9 @@ public sealed class VoucherDefinitionRequestDtoValidatorTests
         var result = _createValidator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor("validFrom")
-            .WithErrorCode("VOUCHER_FIXED_VALIDITY_REQUIRED");
+            .WithErrorCode("VOUCHER_FIXED_VALID_FROM_REQUIRED");
         result.ShouldHaveValidationErrorFor("validTo")
-            .WithErrorCode("VOUCHER_FIXED_VALIDITY_REQUIRED");
+            .WithErrorCode("VOUCHER_FIXED_VALID_TO_REQUIRED");
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class VoucherDefinitionRequestDtoValidatorTests
         var result = _createValidator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor("durationDay")
-            .WithErrorCode("VOUCHER_DYNAMIC_VALIDITY_REQUIRED");
+            .WithErrorCode("VOUCHER_DYNAMIC_DURATION_DAY_REQUIRED");
     }
 
     [Fact]

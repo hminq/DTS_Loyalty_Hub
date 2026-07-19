@@ -50,7 +50,6 @@ public sealed class CreateVoucherDefinitionCommandHandler
         {
             throw new DomainException(
                 "VOUCHER_CODE_ALREADY_EXISTS",
-                "Voucher code already exists.",
                 DomainErrorType.Conflict);
         }
 

@@ -26,7 +26,6 @@ public sealed class GetVoucherDefinitionsQueryHandler
         {
             throw new DomainException(
                 "PAGE_INVALID",
-                "Page must be greater than or equal to 1.",
                 DomainErrorType.Validation);
         }
 
@@ -34,7 +33,6 @@ public sealed class GetVoucherDefinitionsQueryHandler
         {
             throw new DomainException(
                 "PAGE_SIZE_INVALID",
-                $"Page size must be between 1 and {MaxPageSize}.",
                 DomainErrorType.Validation);
         }
 

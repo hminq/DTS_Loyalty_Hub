@@ -30,7 +30,7 @@ public sealed class AdminRepository : IAdminRepository
     public async Task UpdateRoleAsync(Guid adminId, Guid roleId, CancellationToken ct = default)
     {
         var admin = await _dbContext.Admins.SingleOrDefaultAsync(x => x.AdminId == adminId, ct)
-            ?? throw new DomainException("ADMIN_USER_NOT_FOUND", "Admin user does not exist.", DomainErrorType.NotFound);
+            ?? throw new DomainException("ADMIN_USER_NOT_FOUND", DomainErrorType.NotFound);
 
         admin.RoleId = roleId;
     }

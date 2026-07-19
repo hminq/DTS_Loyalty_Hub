@@ -11,20 +11,16 @@ public sealed class UpdateAdminUserRequestDtoValidator : AbstractValidator<Updat
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("EMAIL_REQUIRED")
-            .WithMessage("Email is required.")
             .EmailAddress()
             .WithErrorCode("EMAIL_INVALID")
-            .WithMessage("Email is invalid.")
             .MaximumLength(50)
             .WithErrorCode("EMAIL_TOO_LONG")
-            .WithMessage("Email must be 50 characters or fewer.")
             .OverridePropertyName("email");
 
         RuleFor(request => request.FullName)
             .Cascade(CascadeMode.Stop)
             .MaximumLength(50)
             .WithErrorCode("FULL_NAME_TOO_LONG")
-            .WithMessage("Full name must be 50 characters or fewer.")
             .When(request => request.FullName is not null)
             .OverridePropertyName("fullName");
 
@@ -32,7 +28,6 @@ public sealed class UpdateAdminUserRequestDtoValidator : AbstractValidator<Updat
             .Cascade(CascadeMode.Stop)
             .MaximumLength(15)
             .WithErrorCode("PHONE_NUMBER_TOO_LONG")
-            .WithMessage("Phone number must be 15 characters or fewer.")
             .When(request => request.PhoneNumber is not null)
             .OverridePropertyName("phoneNumber");
 
@@ -40,7 +35,6 @@ public sealed class UpdateAdminUserRequestDtoValidator : AbstractValidator<Updat
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("ROLE_ID_REQUIRED")
-            .WithMessage("Role id is required.")
             .OverridePropertyName("roleId");
     }
 }

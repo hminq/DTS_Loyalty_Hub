@@ -21,7 +21,6 @@ public sealed class GetAdminUserByIdQueryHandler : IRequestHandler<GetAdminUserB
         {
             throw new DomainException(
                 "ADMIN_ID_REQUIRED",
-                "Admin id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -31,7 +30,6 @@ public sealed class GetAdminUserByIdQueryHandler : IRequestHandler<GetAdminUserB
         {
             throw new DomainException(
                 "ADMIN_USER_NOT_FOUND",
-                "Admin user does not exist.",
                 DomainErrorType.NotFound);
         }
 

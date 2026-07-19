@@ -31,7 +31,6 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         {
             throw new DomainException(
                 "ROLE_ID_REQUIRED",
-                "Role id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -43,7 +42,6 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         {
             throw new DomainException(
                 "ROLE_PERMISSION_DUPLICATED",
-                "Role permission ids must be unique.",
                 DomainErrorType.Validation);
         }
 
@@ -53,7 +51,6 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         {
             throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.NotFound);
         }
 
@@ -65,7 +62,6 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         {
             throw new DomainException(
                 "ROLE_NAME_ALREADY_EXISTS",
-                "Role name already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -78,7 +74,6 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         {
             throw new DomainException(
                 "ROLE_PERMISSION_NOT_FOUND",
-                "One or more permissions do not exist.",
                 DomainErrorType.Validation);
         }
 

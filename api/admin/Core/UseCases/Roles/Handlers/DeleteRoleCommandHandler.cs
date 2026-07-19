@@ -25,7 +25,6 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
         {
             throw new DomainException(
                 "ROLE_ID_REQUIRED",
-                "Role id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -35,7 +34,6 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
         {
             throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.NotFound);
         }
 
@@ -43,7 +41,6 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
         {
             throw new DomainException(
                 "ROLE_HAS_ASSIGNED_ADMINS",
-                "Role cannot be deleted because it is assigned to one or more admins.",
                 DomainErrorType.Conflict);
         }
 

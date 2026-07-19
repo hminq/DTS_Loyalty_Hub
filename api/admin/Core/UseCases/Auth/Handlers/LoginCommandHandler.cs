@@ -37,7 +37,6 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         {
             throw new DomainException(
                 "INVALID_CREDENTIALS",
-                "Username or password is incorrect.",
                 DomainErrorType.Unauthorized);
         }
 
@@ -52,7 +51,6 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
 
         return new LoginResult(
             accessToken.Value,
-            "Bearer",
             accessToken.ExpiresAt,
             new AdminLoginResult(
                 user.UserId,

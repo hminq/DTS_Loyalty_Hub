@@ -152,7 +152,6 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
         {
             throw new Core.Exceptions.DomainException(
                 "TEMPLATE_NOT_FOUND",
-                "Notification template does not exist.",
                 Core.Exceptions.DomainErrorType.NotFound);
         }
 

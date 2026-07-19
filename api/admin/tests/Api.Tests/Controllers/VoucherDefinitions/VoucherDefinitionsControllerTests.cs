@@ -3,6 +3,8 @@ using Api.Controllers.VoucherDefinitions;
 using Api.Dtos.Requests.VoucherDefinitions;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.VoucherDefinitions;
+using Api.Localization;
+using Api.Mappers;
 using Core.Entities.Constants;
 using Core.UseCases.Common;
 using Core.UseCases.VoucherDefinitions.Commands;
@@ -13,6 +15,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace Api.Tests.Controllers.VoucherDefinitions;
@@ -172,7 +175,18 @@ public sealed class VoucherDefinitionsControllerTests
         _sender.Object,
         _adminContext.Object,
         _getValidator.Object,
-        _createValidator.Object);
+        _createValidator.Object,
+        CreateValidationErrorMapper());
+
+    private static ValidationErrorMapper CreateValidationErrorMapper()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
+        services.AddScoped<ApiMessageResolver>();
+        services.AddScoped<ValidationErrorMapper>();
+        return services.BuildServiceProvider().GetRequiredService<ValidationErrorMapper>();
+    }
 
     private static void SetupValid<T>(Mock<IValidator<T>> validator)
         where T : class

@@ -24,6 +24,7 @@ public sealed class AdminUsersController : ControllerBase
     private readonly IValidator<CreateAdminUserRequestDto> _createAdminUserValidator;
     private readonly IValidator<UpdateAdminUserRequestDto> _updateAdminUserValidator;
     private readonly IValidator<UpdateAdminUserStatusRequestDto> _updateAdminUserStatusValidator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public AdminUsersController(
         ISender sender,
@@ -31,7 +32,8 @@ public sealed class AdminUsersController : ControllerBase
         IValidator<GetAdminUsersRequestDto> getAdminUsersValidator,
         IValidator<CreateAdminUserRequestDto> createAdminUserValidator,
         IValidator<UpdateAdminUserRequestDto> updateAdminUserValidator,
-        IValidator<UpdateAdminUserStatusRequestDto> updateAdminUserStatusValidator)
+        IValidator<UpdateAdminUserStatusRequestDto> updateAdminUserStatusValidator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
@@ -39,6 +41,7 @@ public sealed class AdminUsersController : ControllerBase
         _createAdminUserValidator = createAdminUserValidator;
         _updateAdminUserValidator = updateAdminUserValidator;
         _updateAdminUserStatusValidator = updateAdminUserStatusValidator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -51,8 +54,7 @@ public sealed class AdminUsersController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToQuery(), ct);
@@ -84,8 +86,7 @@ public sealed class AdminUsersController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);
@@ -108,8 +109,7 @@ public sealed class AdminUsersController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToCommand(adminId, _currentAdminContext.UserId), ct);
@@ -131,8 +131,7 @@ public sealed class AdminUsersController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         await _sender.Send(request.ToCommand(adminId, _currentAdminContext.UserId), ct);

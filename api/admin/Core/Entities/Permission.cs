@@ -80,7 +80,7 @@ public class Permission
     {
         if (permissionId == Guid.Empty)
         {
-            throw ValidationError("PERMISSION_ID_REQUIRED", "Permission id is required.");
+            throw ValidationError("PERMISSION_ID_REQUIRED");
         }
 
         Validate(code, name, groupCode, groupName, groupSortOrder, actionSortOrder);
@@ -102,12 +102,12 @@ public class Permission
         int groupSortOrder,
         int actionSortOrder)
     {
-        ValidateName(name, "PERMISSION_NAME_REQUIRED", "Permission name is required.");
-        ValidateLength(name, MaxNameLength, "PERMISSION_NAME_TOO_LONG", "Permission name is too long.");
-        ValidateName(groupName, "PERMISSION_GROUP_NAME_REQUIRED", "Permission group name is required.");
-        ValidateLength(groupName, MaxGroupNameLength, "PERMISSION_GROUP_NAME_TOO_LONG", "Permission group name is too long.");
-        ValidateSortOrder(groupSortOrder, "PERMISSION_GROUP_SORT_ORDER_INVALID", "Permission group sort order must be zero or greater.");
-        ValidateSortOrder(actionSortOrder, "PERMISSION_ACTION_SORT_ORDER_INVALID", "Permission action sort order must be zero or greater.");
+        ValidateName(name, "PERMISSION_NAME_REQUIRED");
+        ValidateLength(name, MaxNameLength, "PERMISSION_NAME_TOO_LONG");
+        ValidateName(groupName, "PERMISSION_GROUP_NAME_REQUIRED");
+        ValidateLength(groupName, MaxGroupNameLength, "PERMISSION_GROUP_NAME_TOO_LONG");
+        ValidateSortOrder(groupSortOrder, "PERMISSION_GROUP_SORT_ORDER_INVALID");
+        ValidateSortOrder(actionSortOrder, "PERMISSION_ACTION_SORT_ORDER_INVALID");
 
         Name = name.Trim();
         GroupName = groupName.Trim();
@@ -123,25 +123,23 @@ public class Permission
         int groupSortOrder,
         int actionSortOrder)
     {
-        ValidateCode(code, "PERMISSION_CODE_REQUIRED", "Permission code is required.");
-        ValidateLength(code, MaxCodeLength, "PERMISSION_CODE_TOO_LONG", "Permission code is too long.");
-        ValidateCode(groupCode, "PERMISSION_GROUP_CODE_REQUIRED", "Permission group code is required.");
-        ValidateLength(groupCode, MaxGroupCodeLength, "PERMISSION_GROUP_CODE_TOO_LONG", "Permission group code is too long.");
-        ValidateName(name, "PERMISSION_NAME_REQUIRED", "Permission name is required.");
-        ValidateLength(name, MaxNameLength, "PERMISSION_NAME_TOO_LONG", "Permission name is too long.");
-        ValidateName(groupName, "PERMISSION_GROUP_NAME_REQUIRED", "Permission group name is required.");
-        ValidateLength(groupName, MaxGroupNameLength, "PERMISSION_GROUP_NAME_TOO_LONG", "Permission group name is too long.");
-        ValidateSortOrder(groupSortOrder, "PERMISSION_GROUP_SORT_ORDER_INVALID", "Permission group sort order must be zero or greater.");
-        ValidateSortOrder(actionSortOrder, "PERMISSION_ACTION_SORT_ORDER_INVALID", "Permission action sort order must be zero or greater.");
+        ValidateCode(code, "PERMISSION_CODE_REQUIRED");
+        ValidateLength(code, MaxCodeLength, "PERMISSION_CODE_TOO_LONG");
+        ValidateCode(groupCode, "PERMISSION_GROUP_CODE_REQUIRED");
+        ValidateLength(groupCode, MaxGroupCodeLength, "PERMISSION_GROUP_CODE_TOO_LONG");
+        ValidateName(name, "PERMISSION_NAME_REQUIRED");
+        ValidateLength(name, MaxNameLength, "PERMISSION_NAME_TOO_LONG");
+        ValidateName(groupName, "PERMISSION_GROUP_NAME_REQUIRED");
+        ValidateLength(groupName, MaxGroupNameLength, "PERMISSION_GROUP_NAME_TOO_LONG");
+        ValidateSortOrder(groupSortOrder, "PERMISSION_GROUP_SORT_ORDER_INVALID");
+        ValidateSortOrder(actionSortOrder, "PERMISSION_ACTION_SORT_ORDER_INVALID");
 
         var normalizedCode = NormalizeCode(code);
         var normalizedGroupCode = NormalizeCode(groupCode);
 
         if (!normalizedCode.StartsWith($"{normalizedGroupCode}.", StringComparison.Ordinal))
         {
-            throw ValidationError(
-                "PERMISSION_CODE_GROUP_MISMATCH",
-                "Permission code must start with its group code.");
+            throw ValidationError("PERMISSION_CODE_GROUP_MISMATCH");
         }
     }
 
@@ -151,26 +149,22 @@ public class Permission
 
         if (!PermissionCodes.IsDefined(normalizedCode))
         {
-            throw ValidationError(
-                "PERMISSION_CODE_NOT_DEFINED",
-                "Permission code must be defined in PermissionCodes.");
+            throw ValidationError("PERMISSION_CODE_NOT_DEFINED");
         }
 
         var expectedGroupCode = PermissionCodes.GetGroupCode(normalizedCode);
 
         if (!normalizedCode.StartsWith($"{expectedGroupCode}.", StringComparison.Ordinal))
         {
-            throw ValidationError(
-                "PERMISSION_CODE_GROUP_INVALID",
-                "Permission code must include a valid group code.");
+            throw ValidationError("PERMISSION_CODE_GROUP_INVALID");
         }
     }
 
-    private static void ValidateCode(string value, string errorCode, string message)
+    private static void ValidateCode(string value, string errorCode)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw ValidationError(errorCode, message);
+            throw ValidationError(errorCode);
         }
 
         var normalizedValue = NormalizeCode(value);
@@ -181,33 +175,31 @@ public class Permission
                 character != '_' &&
                 character != '.'))
         {
-            throw ValidationError(
-                "PERMISSION_CODE_FORMAT_INVALID",
-                "Permission code can only contain lowercase letters, numbers, underscore, and dot.");
+            throw ValidationError("PERMISSION_CODE_FORMAT_INVALID");
         }
     }
 
-    private static void ValidateName(string value, string errorCode, string message)
+    private static void ValidateName(string value, string errorCode)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw ValidationError(errorCode, message);
+            throw ValidationError(errorCode);
         }
     }
 
-    private static void ValidateLength(string value, int maxLength, string errorCode, string message)
+    private static void ValidateLength(string value, int maxLength, string errorCode)
     {
         if (value.Trim().Length > maxLength)
         {
-            throw ValidationError(errorCode, message);
+            throw ValidationError(errorCode);
         }
     }
 
-    private static void ValidateSortOrder(int value, string errorCode, string message)
+    private static void ValidateSortOrder(int value, string errorCode)
     {
         if (value < 0)
         {
-            throw ValidationError(errorCode, message);
+            throw ValidationError(errorCode);
         }
     }
 
@@ -216,8 +208,8 @@ public class Permission
         return value.Trim().ToLowerInvariant();
     }
 
-    private static DomainException ValidationError(string errorCode, string message)
+    private static DomainException ValidationError(string errorCode)
     {
-        return new DomainException(errorCode, message, DomainErrorType.Validation);
+        return new DomainException(errorCode, DomainErrorType.Validation);
     }
 }

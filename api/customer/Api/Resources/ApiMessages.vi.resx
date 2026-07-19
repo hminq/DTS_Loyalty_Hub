@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="INTERNAL_SERVER_ERROR" xml:space="preserve"><value>Đã xảy ra lỗi không mong muốn.</value></data>
+  <data name="VALIDATION_ERROR" xml:space="preserve"><value>Dữ liệu yêu cầu không hợp lệ.</value></data>
+  <data name="INVALID_CREDENTIALS" xml:space="preserve"><value>Tên đăng nhập hoặc mật khẩu không chính xác.</value></data>
+  <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email đã được đăng ký.</value></data>
+  <data name="PHONE_ALREADY_EXISTS" xml:space="preserve"><value>Số điện thoại đã được đăng ký.</value></data>
+  <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Tên đăng nhập đã được sử dụng.</value></data>
+  <data name="REQUEST_BODY_INVALID" xml:space="preserve"><value>Nội dung yêu cầu không hợp lệ.</value></data>
+  <data name="VALUE_INVALID" xml:space="preserve"><value>Giá trị trong yêu cầu không hợp lệ.</value></data>
+  <data name="EMAIL_INVALID_FORMAT" xml:space="preserve"><value>Định dạng email không hợp lệ.</value></data>
+  <data name="EMAIL_INVALID_LENGTH" xml:space="preserve"><value>Email phải từ {MinLength} đến {MaxLength} ký tự.</value></data>
+  <data name="EMAIL_REQUIRED" xml:space="preserve"><value>Email là bắt buộc.</value></data>
+  <data name="FULLNAME_INVALID_LENGTH" xml:space="preserve"><value>Họ tên phải từ {MinLength} đến {MaxLength} ký tự.</value></data>
+  <data name="FULLNAME_REQUIRED" xml:space="preserve"><value>Họ tên là bắt buộc.</value></data>
+  <data name="PASSWORD_MISSING_DIGIT" xml:space="preserve"><value>Mật khẩu phải chứa ít nhất một chữ số.</value></data>
+  <data name="PASSWORD_MISSING_UPPERCASE" xml:space="preserve"><value>Mật khẩu phải chứa ít nhất một chữ cái viết hoa.</value></data>
+  <data name="PASSWORD_REQUIRED" xml:space="preserve"><value>Mật khẩu là bắt buộc.</value></data>
+  <data name="PASSWORD_TOO_LONG" xml:space="preserve"><value>Mật khẩu không được vượt quá {MaxLength} ký tự.</value></data>
+  <data name="PASSWORD_TOO_SHORT" xml:space="preserve"><value>Mật khẩu phải có ít nhất {MinLength} ký tự.</value></data>
+  <data name="PHONE_INVALID_FORMAT" xml:space="preserve"><value>Định dạng số điện thoại không hợp lệ.</value></data>
+  <data name="PHONE_REQUIRED" xml:space="preserve"><value>Số điện thoại là bắt buộc.</value></data>
+  <data name="USERNAME_INVALID_LENGTH" xml:space="preserve"><value>Tên đăng nhập phải từ {MinLength} đến {MaxLength} ký tự.</value></data>
+  <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Tên đăng nhập là bắt buộc.</value></data>
+  <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Tên đăng nhập không được vượt quá {MaxLength} ký tự.</value></data>
+  <data name="UNAUTHORIZED" xml:space="preserve"><value>Token khách hàng không hợp lệ hoặc bị thiếu.</value></data>
+</root>

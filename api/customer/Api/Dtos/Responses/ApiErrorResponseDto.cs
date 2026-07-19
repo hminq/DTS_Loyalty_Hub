@@ -16,14 +16,16 @@ public sealed class ApiErrorResponseDto
         };
     }
 
-    public static ApiErrorResponseDto Validation(IReadOnlyCollection<ApiValidationErrorDto> details)
+    public static ApiErrorResponseDto Validation(
+        IReadOnlyCollection<ApiValidationErrorDto> details,
+        string message)
     {
         return new ApiErrorResponseDto
         {
             Error = new ApiErrorDto
             {
                 Code = "VALIDATION_ERROR",
-                Message = "Request validation failed.",
+                Message = message,
                 Details = details
             }
         };

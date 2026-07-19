@@ -10,7 +10,6 @@ public sealed class GetEventTypesRequestDtoValidator : AbstractValidator<GetEven
         RuleFor(request => request.SearchKeyword)
             .MaximumLength(100)
             .WithErrorCode("SEARCH_KEYWORD_TOO_LONG")
-            .WithMessage("Search keyword cannot exceed 100 characters.")
             .When(x => !string.IsNullOrEmpty(x.SearchKeyword))
             .OverridePropertyName("searchKeyword");
     }

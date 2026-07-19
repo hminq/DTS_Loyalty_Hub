@@ -149,7 +149,7 @@ public class VoucherDefinition
     {
         if (voucherDefinitionId == Guid.Empty)
         {
-            throw ValidationError("VOUCHER_DEFINITION_ID_REQUIRED", "Voucher definition id is required.");
+            throw ValidationError("VOUCHER_DEFINITION_ID_REQUIRED");
         }
 
         Validate(
@@ -213,12 +213,12 @@ public class VoucherDefinition
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw ValidationError("VOUCHER_DEFINITION_NAME_REQUIRED", "Voucher definition name is required.");
+            throw ValidationError("VOUCHER_DEFINITION_NAME_REQUIRED");
         }
 
         if (name.Trim().Length > MaxNameLength)
         {
-            throw ValidationError("VOUCHER_DEFINITION_NAME_TOO_LONG", "Voucher definition name is too long.");
+            throw ValidationError("VOUCHER_DEFINITION_NAME_TOO_LONG");
         }
     }
 
@@ -226,12 +226,12 @@ public class VoucherDefinition
     {
         if (string.IsNullOrWhiteSpace(generationType))
         {
-            throw ValidationError("VOUCHER_GENERATION_TYPE_REQUIRED", "Voucher generation type is required.");
+            throw ValidationError("VOUCHER_GENERATION_TYPE_REQUIRED");
         }
 
         if (!VoucherGenerationTypes.IsDefined(generationType))
         {
-            throw ValidationError("VOUCHER_GENERATION_TYPE_INVALID", "Voucher generation type is invalid.");
+            throw ValidationError("VOUCHER_GENERATION_TYPE_INVALID");
         }
     }
 
@@ -239,29 +239,29 @@ public class VoucherDefinition
     {
         if (string.IsNullOrWhiteSpace(publishType))
         {
-            throw ValidationError("VOUCHER_PUBLISH_TYPE_REQUIRED", "Voucher publish type is required.");
+            throw ValidationError("VOUCHER_PUBLISH_TYPE_REQUIRED");
         }
 
         if (!VoucherPublishTypes.IsDefined(publishType))
         {
-            throw ValidationError("VOUCHER_PUBLISH_TYPE_INVALID", "Voucher publish type is invalid.");
+            throw ValidationError("VOUCHER_PUBLISH_TYPE_INVALID");
         }
 
         var normalizedPublishType = VoucherPublishTypes.Normalize(publishType);
 
         if (normalizedPublishType == VoucherPublishTypes.Public && string.IsNullOrWhiteSpace(code))
         {
-            throw ValidationError("VOUCHER_CODE_REQUIRED", "Voucher code is required for public vouchers.");
+            throw ValidationError("VOUCHER_CODE_REQUIRED");
         }
 
         if (normalizedPublishType == VoucherPublishTypes.Private && !string.IsNullOrWhiteSpace(code))
         {
-            throw ValidationError("VOUCHER_CODE_MUST_BE_EMPTY", "Voucher code must be empty for private vouchers.");
+            throw ValidationError("VOUCHER_CODE_MUST_BE_EMPTY");
         }
 
         if (!string.IsNullOrWhiteSpace(code) && code.Trim().Length > MaxCodeLength)
         {
-            throw ValidationError("VOUCHER_CODE_TOO_LONG", "Voucher code is too long.");
+            throw ValidationError("VOUCHER_CODE_TOO_LONG");
         }
     }
 
@@ -275,17 +275,13 @@ public class VoucherDefinition
         if (normalizedPublishType == VoucherPublishTypes.Public &&
             normalizedGenerationType != VoucherGenerationTypes.None)
         {
-            throw ValidationError(
-                "VOUCHER_PUBLIC_GENERATION_TYPE_INVALID",
-                "Public vouchers must use NONE generation type.");
+            throw ValidationError("VOUCHER_PUBLIC_GENERATION_TYPE_INVALID");
         }
 
         if (normalizedPublishType == VoucherPublishTypes.Private &&
             normalizedGenerationType == VoucherGenerationTypes.None)
         {
-            throw ValidationError(
-                "VOUCHER_PRIVATE_GENERATION_TYPE_INVALID",
-                "Private vouchers cannot use NONE generation type.");
+            throw ValidationError("VOUCHER_PRIVATE_GENERATION_TYPE_INVALID");
         }
     }
 
@@ -293,19 +289,19 @@ public class VoucherDefinition
     {
         if (string.IsNullOrWhiteSpace(rewardType))
         {
-            throw ValidationError("VOUCHER_REWARD_TYPE_REQUIRED", "Voucher reward type is required.");
+            throw ValidationError("VOUCHER_REWARD_TYPE_REQUIRED");
         }
 
         if (!VoucherRewardTypes.IsDefined(rewardType))
         {
-            throw ValidationError("VOUCHER_REWARD_TYPE_INVALID", "Voucher reward type is invalid.");
+            throw ValidationError("VOUCHER_REWARD_TYPE_INVALID");
         }
 
         var normalizedRewardType = VoucherRewardTypes.Normalize(rewardType);
 
         if (normalizedRewardType == VoucherRewardTypes.Gift && rewardValue.HasValue)
         {
-            throw ValidationError("VOUCHER_REWARD_VALUE_MUST_BE_EMPTY", "Reward value must be empty for gift vouchers.");
+            throw ValidationError("VOUCHER_REWARD_VALUE_MUST_BE_EMPTY");
         }
     }
 
@@ -317,12 +313,12 @@ public class VoucherDefinition
     {
         if (string.IsNullOrWhiteSpace(validityType))
         {
-            throw ValidationError("VOUCHER_VALIDITY_TYPE_REQUIRED", "Voucher validity type is required.");
+            throw ValidationError("VOUCHER_VALIDITY_TYPE_REQUIRED");
         }
 
         if (!VoucherValidityTypes.IsDefined(validityType))
         {
-            throw ValidationError("VOUCHER_VALIDITY_TYPE_INVALID", "Voucher validity type is invalid.");
+            throw ValidationError("VOUCHER_VALIDITY_TYPE_INVALID");
         }
 
         var normalizedValidityType = VoucherValidityTypes.Normalize(validityType);
@@ -331,12 +327,12 @@ public class VoucherDefinition
         {
             if (!validFrom.HasValue || !validTo.HasValue)
             {
-                throw ValidationError("VOUCHER_FIXED_VALIDITY_REQUIRED", "Valid from and valid to are required for fixed validity.");
+                throw ValidationError("VOUCHER_FIXED_VALIDITY_REQUIRED");
             }
 
             if (validFrom.Value >= validTo.Value)
             {
-                throw ValidationError("VOUCHER_VALIDITY_RANGE_INVALID", "Valid from must be earlier than valid to.");
+                throw ValidationError("VOUCHER_VALIDITY_RANGE_INVALID");
             }
         }
 
@@ -344,12 +340,12 @@ public class VoucherDefinition
         {
             if (!validFrom.HasValue || !durationDay.HasValue)
             {
-                throw ValidationError("VOUCHER_DYNAMIC_VALIDITY_REQUIRED", "Valid from and duration day are required for dynamic validity.");
+                throw ValidationError("VOUCHER_DYNAMIC_VALIDITY_REQUIRED");
             }
 
             if (durationDay.Value <= 0)
             {
-                throw ValidationError("VOUCHER_DURATION_DAY_INVALID", "Duration day must be greater than zero.");
+                throw ValidationError("VOUCHER_DURATION_DAY_INVALID");
             }
         }
     }
@@ -358,7 +354,7 @@ public class VoucherDefinition
     {
         if (totalStock < 0)
         {
-            throw ValidationError("VOUCHER_TOTAL_STOCK_INVALID", "Total stock cannot be negative.");
+            throw ValidationError("VOUCHER_TOTAL_STOCK_INVALID");
         }
     }
 
@@ -366,9 +362,7 @@ public class VoucherDefinition
     {
         if (remainingStock < 0 || remainingStock > totalStock)
         {
-            throw ValidationError(
-                "VOUCHER_REMAINING_STOCK_INVALID",
-                "Remaining stock must be between zero and total stock.");
+            throw ValidationError("VOUCHER_REMAINING_STOCK_INVALID");
         }
     }
 
@@ -377,8 +371,8 @@ public class VoucherDefinition
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private static DomainException ValidationError(string errorCode, string message)
+    private static DomainException ValidationError(string errorCode)
     {
-        return new DomainException(errorCode, message, DomainErrorType.Validation);
+        return new DomainException(errorCode, DomainErrorType.Validation);
     }
 }

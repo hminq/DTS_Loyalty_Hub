@@ -24,7 +24,6 @@ public sealed class GetAuditLogsQueryHandler
         {
             throw new DomainException(
                 "PAGE_INVALID",
-                "Page must be greater than or equal to 1.",
                 DomainErrorType.Validation);
         }
 
@@ -32,7 +31,6 @@ public sealed class GetAuditLogsQueryHandler
         {
             throw new DomainException(
                 "PAGE_SIZE_INVALID",
-                $"Page size must be between 1 and {MaxPageSize}.",
                 DomainErrorType.Validation);
         }
 
@@ -40,7 +38,6 @@ public sealed class GetAuditLogsQueryHandler
         {
             throw new DomainException(
                 "AUDIT_LOG_DATE_RANGE_INVALID",
-                "From date must be earlier than or equal to to date.",
                 DomainErrorType.Validation);
         }
 

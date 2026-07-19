@@ -1,5 +1,6 @@
 using Api.Dtos.Requests.Auth;
 using Api.Dtos.Responses.Auth;
+using Api.Constants;
 using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Results;
 
@@ -19,7 +20,7 @@ public static class AuthMapper
         return new LoginResponseDto
         {
             AccessToken = result.AccessToken,
-            TokenType = result.TokenType,
+            TokenType = AuthTokenTypes.Bearer,
             ExpiresAt = result.ExpiresAt,
             Customer = new CustomerLoginResponseDto
             {
@@ -46,7 +47,7 @@ public static class AuthMapper
         return new RegisterResponseDto
         {
             AccessToken = result.AccessToken,
-            TokenType = result.TokenType,
+            TokenType = AuthTokenTypes.Bearer,
             ExpiresAt = result.ExpiresAt,
             Customer = new CustomerRegisterResponseDto
             {

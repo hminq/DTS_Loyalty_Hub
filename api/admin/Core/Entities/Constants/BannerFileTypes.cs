@@ -34,7 +34,6 @@ public static class BannerFileTypes
 
         throw new DomainException(
             "BANNER_FILE_TYPE_INVALID",
-            "Banner file must be JPEG, PNG, or WebP.",
             DomainErrorType.Validation);
     }
 }

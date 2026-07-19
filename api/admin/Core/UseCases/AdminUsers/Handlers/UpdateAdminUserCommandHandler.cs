@@ -37,7 +37,6 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
         {
             throw new DomainException(
                 "ADMIN_ID_REQUIRED",
-                "Admin id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -47,7 +46,6 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
         {
             throw new DomainException(
                 "ADMIN_USER_NOT_FOUND",
-                "Admin user does not exist.",
                 DomainErrorType.NotFound);
         }
 
@@ -55,14 +53,12 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
         {
             throw new DomainException(
                 "ROLE_ID_REQUIRED",
-                "Role id is required.",
                 DomainErrorType.Validation);
         }
 
         var role = await _roleReader.GetDetailByIdAsync(request.RoleId, ct)
             ?? throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.Validation);
 
         var email = request.Email.Trim();
@@ -72,7 +68,6 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
         {
             throw new DomainException(
                 "EMAIL_ALREADY_EXISTS",
-                "Email already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -81,7 +76,6 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
         {
             throw new DomainException(
                 "PHONE_NUMBER_ALREADY_EXISTS",
-                "Phone number already exists.",
                 DomainErrorType.Conflict);
         }
 

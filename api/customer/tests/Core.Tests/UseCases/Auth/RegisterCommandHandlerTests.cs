@@ -79,7 +79,6 @@ public class RegisterCommandHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.AccessToken.Should().Be("fake-jwt-token");
-        result.TokenType.Should().Be("Bearer");
         result.ExpiresAt.Should().Be(expiresAt);
         result.Customer.UserId.Should().Be(created.UserId);
         result.Customer.CustomerId.Should().Be(created.CustomerId);

@@ -129,24 +129,24 @@ public class NotificationTemplate
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw ValidationError("TEMPLATE_NAME_REQUIRED", "Template name is required.");
+            throw ValidationError("TEMPLATE_NAME_REQUIRED");
 
         var length = name.Trim().Length;
         if (length < MinNameLength || length > MaxNameLength)
-            throw ValidationError("TEMPLATE_NAME_LENGTH_INVALID", $"Template name must be between {MinNameLength} and {MaxNameLength} characters.");
+            throw ValidationError("TEMPLATE_NAME_LENGTH_INVALID");
     }
 
     private static void ValidateTemplateContent(string title, string body)
     {
         if (string.IsNullOrWhiteSpace(title))
-            throw ValidationError("TEMPLATE_TITLE_REQUIRED", "Title template is required.");
+            throw ValidationError("TEMPLATE_TITLE_REQUIRED");
             
         if (string.IsNullOrWhiteSpace(body))
-            throw ValidationError("TEMPLATE_BODY_REQUIRED", "Body template is required.");
+            throw ValidationError("TEMPLATE_BODY_REQUIRED");
     }
 
-    private static DomainException ValidationError(string errorCode, string message)
+    private static DomainException ValidationError(string errorCode)
     {
-        return new DomainException(errorCode, message, DomainErrorType.Validation);
+        return new DomainException(errorCode, DomainErrorType.Validation);
     }
 }

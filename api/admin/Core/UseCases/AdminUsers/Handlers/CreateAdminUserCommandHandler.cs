@@ -43,7 +43,6 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
         {
             throw new DomainException(
                 "USERNAME_ALREADY_EXISTS",
-                "Username already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -51,7 +50,6 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
         {
             throw new DomainException(
                 "EMAIL_ALREADY_EXISTS",
-                "Email already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -59,7 +57,6 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
         {
             throw new DomainException(
                 "PHONE_NUMBER_ALREADY_EXISTS",
-                "Phone number already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -99,14 +96,12 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
         {
             throw new DomainException(
                 "ROLE_ID_REQUIRED",
-                "Role id is required.",
                 DomainErrorType.Validation);
         }
 
         return await _roleReader.GetDetailByIdAsync(roleId, ct)
             ?? throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.Validation);
     }
 

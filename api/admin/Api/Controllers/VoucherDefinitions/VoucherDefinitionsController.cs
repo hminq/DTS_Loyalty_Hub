@@ -21,17 +21,20 @@ public sealed class VoucherDefinitionsController : ControllerBase
     private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<GetVoucherDefinitionsRequestDto> _getVoucherDefinitionsValidator;
     private readonly IValidator<CreateVoucherDefinitionRequestDto> _createVoucherDefinitionValidator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public VoucherDefinitionsController(
         ISender sender,
         ICurrentAdminContext currentAdminContext,
         IValidator<GetVoucherDefinitionsRequestDto> getVoucherDefinitionsValidator,
-        IValidator<CreateVoucherDefinitionRequestDto> createVoucherDefinitionValidator)
+        IValidator<CreateVoucherDefinitionRequestDto> createVoucherDefinitionValidator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _getVoucherDefinitionsValidator = getVoucherDefinitionsValidator;
         _createVoucherDefinitionValidator = createVoucherDefinitionValidator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -44,8 +47,7 @@ public sealed class VoucherDefinitionsController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToQuery(), ct);
@@ -79,8 +81,7 @@ public sealed class VoucherDefinitionsController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);

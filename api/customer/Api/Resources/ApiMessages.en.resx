@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="INTERNAL_SERVER_ERROR" xml:space="preserve"><value>An unexpected error occurred.</value></data>
+  <data name="VALIDATION_ERROR" xml:space="preserve"><value>Request validation failed.</value></data>
+  <data name="INVALID_CREDENTIALS" xml:space="preserve"><value>Username or password is incorrect.</value></data>
+  <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email is already registered.</value></data>
+  <data name="PHONE_ALREADY_EXISTS" xml:space="preserve"><value>Phone number is already registered.</value></data>
+  <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Username is already taken.</value></data>
+  <data name="REQUEST_BODY_INVALID" xml:space="preserve"><value>Request body is invalid.</value></data>
+  <data name="VALUE_INVALID" xml:space="preserve"><value>Request value is invalid.</value></data>
+  <data name="EMAIL_INVALID_FORMAT" xml:space="preserve"><value>Email format is invalid.</value></data>
+  <data name="EMAIL_INVALID_LENGTH" xml:space="preserve"><value>Email must be between {MinLength} and {MaxLength} characters.</value></data>
+  <data name="EMAIL_REQUIRED" xml:space="preserve"><value>Email is required.</value></data>
+  <data name="FULLNAME_INVALID_LENGTH" xml:space="preserve"><value>Full name must be between {MinLength} and {MaxLength} characters.</value></data>
+  <data name="FULLNAME_REQUIRED" xml:space="preserve"><value>Full name is required.</value></data>
+  <data name="PASSWORD_MISSING_DIGIT" xml:space="preserve"><value>Password must contain at least one digit.</value></data>
+  <data name="PASSWORD_MISSING_UPPERCASE" xml:space="preserve"><value>Password must contain at least one uppercase letter.</value></data>
+  <data name="PASSWORD_REQUIRED" xml:space="preserve"><value>Password is required.</value></data>
+  <data name="PASSWORD_TOO_LONG" xml:space="preserve"><value>Password must be {MaxLength} characters or fewer.</value></data>
+  <data name="PASSWORD_TOO_SHORT" xml:space="preserve"><value>Password must be at least {MinLength} characters.</value></data>
+  <data name="PHONE_INVALID_FORMAT" xml:space="preserve"><value>Phone format is invalid.</value></data>
+  <data name="PHONE_REQUIRED" xml:space="preserve"><value>Phone is required.</value></data>
+  <data name="USERNAME_INVALID_LENGTH" xml:space="preserve"><value>Username must be between {MinLength} and {MaxLength} characters.</value></data>
+  <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Username is required.</value></data>
+  <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Username must be {MaxLength} characters or fewer.</value></data>
+  <data name="UNAUTHORIZED" xml:space="preserve"><value>Invalid or missing customer token.</value></data>
+</root>

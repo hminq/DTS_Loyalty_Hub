@@ -23,7 +23,6 @@ public sealed class GetNotificationTemplateByIdQueryHandler : IRequestHandler<Ge
         {
             throw new Core.Exceptions.DomainException(
                 "TEMPLATE_NOT_FOUND",
-                "Notification template does not exist.",
                 Core.Exceptions.DomainErrorType.NotFound);
         }
         return template;

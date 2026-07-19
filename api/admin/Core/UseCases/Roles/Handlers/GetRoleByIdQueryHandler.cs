@@ -21,7 +21,6 @@ public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, 
         {
             throw new DomainException(
                 "ROLE_ID_REQUIRED",
-                "Role id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -31,7 +30,6 @@ public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, 
         {
             throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.NotFound);
         }
 

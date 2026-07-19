@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="INTERNAL_SERVER_ERROR" xml:space="preserve"><value>Đã xảy ra lỗi không mong muốn.</value></data>
+  <data name="VALIDATION_ERROR" xml:space="preserve"><value>Dữ liệu yêu cầu không hợp lệ.</value></data>
+  <data name="INVALID_CREDENTIALS" xml:space="preserve"><value>Tên đăng nhập hoặc mật khẩu không chính xác.</value></data>
+  <data name="ADMIN_ID_REQUIRED" xml:space="preserve"><value>Id quản trị viên là bắt buộc.</value></data>
+  <data name="ADMIN_STATUS_INVALID" xml:space="preserve"><value>Trạng thái quản trị viên không hợp lệ.</value></data>
+  <data name="ADMIN_USER_NOT_FOUND" xml:space="preserve"><value>Tài khoản quản trị viên không tồn tại.</value></data>
+  <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email đã tồn tại.</value></data>
+  <data name="PHONE_NUMBER_ALREADY_EXISTS" xml:space="preserve"><value>Số điện thoại đã tồn tại.</value></data>
+  <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Tên đăng nhập đã tồn tại.</value></data>
+  <data name="ROLE_ID_REQUIRED" xml:space="preserve"><value>Id vai trò là bắt buộc.</value></data>
+  <data name="ROLE_NOT_FOUND" xml:space="preserve"><value>Vai trò không tồn tại.</value></data>
+  <data name="ROLE_NAME_ALREADY_EXISTS" xml:space="preserve"><value>Tên vai trò đã tồn tại.</value></data>
+  <data name="ROLE_PERMISSION_ALREADY_GRANTED" xml:space="preserve"><value>Vai trò đã có quyền này.</value></data>
+  <data name="ROLE_PERMISSION_DUPLICATED" xml:space="preserve"><value>Danh sách id quyền không được trùng lặp.</value></data>
+  <data name="ROLE_PERMISSION_NOT_FOUND" xml:space="preserve"><value>Quyền không tồn tại.</value></data>
+  <data name="ROLE_PERMISSION_NOT_GRANTED" xml:space="preserve"><value>Vai trò chưa được cấp quyền này.</value></data>
+  <data name="ROLE_HAS_ASSIGNED_ADMINS" xml:space="preserve"><value>Không thể xóa vai trò vì đang được gán cho một hoặc nhiều quản trị viên.</value></data>
+  <data name="PAGE_INVALID" xml:space="preserve"><value>Trang phải lớn hơn hoặc bằng 1.</value></data>
+  <data name="AUDIT_LOG_DATE_RANGE_INVALID" xml:space="preserve"><value>Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.</value></data>
+  <data name="EVENT_TYPE_NOT_FOUND" xml:space="preserve"><value>Loại sự kiện thông báo không tồn tại.</value></data>
+  <data name="TEMPLATE_NOT_FOUND" xml:space="preserve"><value>Mẫu thông báo không tồn tại.</value></data>
+  <data name="TIER_NAME_ALREADY_EXISTS" xml:space="preserve"><value>Hạng thành viên với tên này đã tồn tại.</value></data>
+  <data name="TIER_POINTS_REQUIRED_INVALID" xml:space="preserve"><value>Điểm yêu cầu không được âm.</value></data>
+  <data name="TIER_POINTS_ORDER_INVALID" xml:space="preserve"><value>Điểm yêu cầu của hạng ưu tiên cao hơn phải lớn hơn hạng ưu tiên thấp hơn.</value></data>
+  <data name="TIER_PRIORITY_ALREADY_EXISTS" xml:space="preserve"><value>Hạng thành viên với độ ưu tiên này đã tồn tại.</value></data>
+  <data name="VOUCHER_CODE_ALREADY_EXISTS" xml:space="preserve"><value>Mã voucher đã tồn tại.</value></data>
+  <data name="VOUCHER_DEFINITION_ID_REQUIRED" xml:space="preserve"><value>Id định nghĩa voucher là bắt buộc.</value></data>
+  <data name="VOUCHER_DEFINITION_NOT_FOUND" xml:space="preserve"><value>Định nghĩa voucher không tồn tại.</value></data>
+  <data name="BANNER_FILE_TYPE_INVALID" xml:space="preserve"><value>Ảnh banner phải có định dạng JPEG, PNG hoặc WebP.</value></data>
+  <data name="REQUEST_BODY_INVALID" xml:space="preserve"><value>Nội dung yêu cầu không hợp lệ.</value></data>
+  <data name="VALUE_INVALID" xml:space="preserve"><value>Giá trị trong yêu cầu không hợp lệ.</value></data>
+  <data name="ACTION_TOO_LONG" xml:space="preserve"><value>Hành động không được vượt quá 50 ký tự.</value></data>
+  <data name="BANNER_FILE_REQUIRED" xml:space="preserve"><value>Tệp banner là bắt buộc.</value></data>
+  <data name="BANNER_FILE_SIZE_INVALID" xml:space="preserve"><value>Kích thước tệp banner vượt quá giới hạn của loại ảnh.</value></data>
+  <data name="BANNER_UPLOAD_TYPE_INVALID" xml:space="preserve"><value>Loại banner phải là CAMPAIGN_BANNER hoặc VOUCHER_DEFINITION_BANNER.</value></data>
+  <data name="BODY_TEMPLATE_REQUIRED" xml:space="preserve"><value>Nội dung mẫu là bắt buộc.</value></data>
+  <data name="BODY_TEMPLATE_TOO_LONG" xml:space="preserve"><value>Nội dung mẫu không được vượt quá 5000 ký tự.</value></data>
+  <data name="CHANNEL_REQUIRED" xml:space="preserve"><value>Kênh thông báo là bắt buộc.</value></data>
+  <data name="CHANNEL_TOO_LONG" xml:space="preserve"><value>Kênh thông báo không được vượt quá 50 ký tự.</value></data>
+  <data name="EMAIL_INVALID" xml:space="preserve"><value>Email không hợp lệ.</value></data>
+  <data name="EMAIL_REQUIRED" xml:space="preserve"><value>Email là bắt buộc.</value></data>
+  <data name="EMAIL_TOO_LONG" xml:space="preserve"><value>Email không được vượt quá 50 ký tự.</value></data>
+  <data name="ENTITY_TYPE_TOO_LONG" xml:space="preserve"><value>Loại thực thể không được vượt quá 100 ký tự.</value></data>
+  <data name="EVENT_TYPE_CODE_TOO_LONG" xml:space="preserve"><value>Mã loại sự kiện không được vượt quá 50 ký tự.</value></data>
+  <data name="FULL_NAME_TOO_LONG" xml:space="preserve"><value>Họ tên không được vượt quá 50 ký tự.</value></data>
+  <data name="KEYWORD_TOO_LONG" xml:space="preserve"><value>Từ khóa không được vượt quá 100 ký tự.</value></data>
+  <data name="LANGUAGE_REQUIRED" xml:space="preserve"><value>Ngôn ngữ là bắt buộc.</value></data>
+  <data name="LANGUAGE_TOO_LONG" xml:space="preserve"><value>Ngôn ngữ không được vượt quá 10 ký tự.</value></data>
+  <data name="NAME_REQUIRED" xml:space="preserve"><value>Tên là bắt buộc.</value></data>
+  <data name="NAME_TOO_LONG" xml:space="preserve"><value>Tên không được vượt quá 200 ký tự.</value></data>
+  <data name="NOTIFICATION_EVENT_TYPE_ID_REQUIRED" xml:space="preserve"><value>Id loại sự kiện thông báo là bắt buộc.</value></data>
+  <data name="PAGE_SIZE_INVALID" xml:space="preserve"><value>Kích thước trang phải từ 1 đến 100.</value></data>
+  <data name="PASSWORD_REQUIRED" xml:space="preserve"><value>Mật khẩu là bắt buộc.</value></data>
+  <data name="PASSWORD_TOO_LONG" xml:space="preserve"><value>Mật khẩu không được vượt quá {MaxLength} ký tự.</value></data>
+  <data name="PASSWORD_TOO_SHORT" xml:space="preserve"><value>Mật khẩu phải có ít nhất {MinLength} ký tự.</value></data>
+  <data name="PERMISSION_ID_REQUIRED" xml:space="preserve"><value>Id quyền là bắt buộc.</value></data>
+  <data name="PHONE_NUMBER_TOO_LONG" xml:space="preserve"><value>Số điện thoại không được vượt quá 15 ký tự.</value></data>
+  <data name="ROLE_NAME_REQUIRED" xml:space="preserve"><value>Tên vai trò là bắt buộc.</value></data>
+  <data name="ROLE_NAME_TOO_LONG" xml:space="preserve"><value>Tên vai trò không được vượt quá 100 ký tự.</value></data>
+  <data name="ROLE_PERMISSION_IDS_REQUIRED" xml:space="preserve"><value>Danh sách id quyền là bắt buộc.</value></data>
+  <data name="SEARCH_KEYWORD_TOO_LONG" xml:space="preserve"><value>Từ khóa tìm kiếm không được vượt quá 100 ký tự.</value></data>
+  <data name="STATUS_INVALID" xml:space="preserve"><value>Trạng thái không hợp lệ.</value></data>
+  <data name="STATUS_REQUIRED" xml:space="preserve"><value>Trạng thái là bắt buộc.</value></data>
+  <data name="STATUS_TOO_LONG" xml:space="preserve"><value>Trạng thái không được vượt quá 25 ký tự.</value></data>
+  <data name="TIER_CYCLE_MONTH_INVALID" xml:space="preserve"><value>Tháng chu kỳ phải từ 1 đến 12.</value></data>
+  <data name="TIER_NAME_LENGTH_INVALID" xml:space="preserve"><value>Tên hạng thành viên phải từ 3 đến 49 ký tự.</value></data>
+  <data name="TIER_NAME_REQUIRED" xml:space="preserve"><value>Tên hạng thành viên là bắt buộc.</value></data>
+  <data name="TIER_PRIORITY_INVALID" xml:space="preserve"><value>Độ ưu tiên phải lớn hơn 0.</value></data>
+  <data name="TITLE_TEMPLATE_REQUIRED" xml:space="preserve"><value>Tiêu đề mẫu là bắt buộc.</value></data>
+  <data name="TITLE_TEMPLATE_TOO_LONG" xml:space="preserve"><value>Tiêu đề mẫu không được vượt quá 1000 ký tự.</value></data>
+  <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Tên đăng nhập là bắt buộc.</value></data>
+  <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Tên đăng nhập không được vượt quá {MaxLength} ký tự.</value></data>
+  <data name="VOUCHER_CODE_MUST_BE_EMPTY" xml:space="preserve"><value>Mã voucher phải để trống đối với voucher riêng tư.</value></data>
+  <data name="VOUCHER_CODE_REQUIRED" xml:space="preserve"><value>Mã voucher là bắt buộc đối với voucher công khai.</value></data>
+  <data name="VOUCHER_CODE_TOO_LONG" xml:space="preserve"><value>Mã voucher không được vượt quá 200 ký tự.</value></data>
+  <data name="VOUCHER_DEFINITION_NAME_REQUIRED" xml:space="preserve"><value>Tên định nghĩa voucher là bắt buộc.</value></data>
+  <data name="VOUCHER_DEFINITION_NAME_TOO_LONG" xml:space="preserve"><value>Tên định nghĩa voucher không được vượt quá 200 ký tự.</value></data>
+  <data name="VOUCHER_DURATION_DAY_INVALID" xml:space="preserve"><value>Số ngày hiệu lực phải lớn hơn 0.</value></data>
+  <data name="VOUCHER_DYNAMIC_DURATION_DAY_REQUIRED" xml:space="preserve"><value>Số ngày hiệu lực là bắt buộc đối với hiệu lực động.</value></data>
+  <data name="VOUCHER_DYNAMIC_VALID_FROM_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu là bắt buộc đối với hiệu lực động.</value></data>
+  <data name="VOUCHER_FIXED_VALID_FROM_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu là bắt buộc đối với hiệu lực cố định.</value></data>
+  <data name="VOUCHER_FIXED_VALID_TO_REQUIRED" xml:space="preserve"><value>Thời điểm kết thúc là bắt buộc đối với hiệu lực cố định.</value></data>
+  <data name="VOUCHER_GENERATION_TYPE_INVALID" xml:space="preserve"><value>Loại tạo voucher không hợp lệ.</value></data>
+  <data name="VOUCHER_GENERATION_TYPE_REQUIRED" xml:space="preserve"><value>Loại tạo voucher là bắt buộc.</value></data>
+  <data name="VOUCHER_PRIVATE_GENERATION_TYPE_INVALID" xml:space="preserve"><value>Voucher riêng tư không thể dùng loại tạo NONE.</value></data>
+  <data name="VOUCHER_PUBLIC_GENERATION_TYPE_INVALID" xml:space="preserve"><value>Voucher công khai phải dùng loại tạo NONE.</value></data>
+  <data name="VOUCHER_PUBLISH_TYPE_INVALID" xml:space="preserve"><value>Loại phát hành voucher không hợp lệ.</value></data>
+  <data name="VOUCHER_PUBLISH_TYPE_REQUIRED" xml:space="preserve"><value>Loại phát hành voucher là bắt buộc.</value></data>
+  <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Loại phần thưởng voucher không hợp lệ.</value></data>
+  <data name="VOUCHER_REWARD_TYPE_REQUIRED" xml:space="preserve"><value>Loại phần thưởng voucher là bắt buộc.</value></data>
+  <data name="VOUCHER_REWARD_VALUE_MUST_BE_EMPTY" xml:space="preserve"><value>Giá trị phần thưởng phải để trống đối với voucher quà tặng.</value></data>
+  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Tổng tồn kho không được âm.</value></data>
+  <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Thời điểm bắt đầu phải trước thời điểm kết thúc.</value></data>
+  <data name="VOUCHER_VALIDITY_TYPE_INVALID" xml:space="preserve"><value>Loại hiệu lực voucher không hợp lệ.</value></data>
+  <data name="VOUCHER_VALIDITY_TYPE_REQUIRED" xml:space="preserve"><value>Loại hiệu lực voucher là bắt buộc.</value></data>
+  <data name="PERMISSION_REQUIRED" xml:space="preserve"><value>Quyền là bắt buộc.</value></data>
+  <data name="PERMISSION_CODE_REQUIRED" xml:space="preserve"><value>Mã quyền là bắt buộc.</value></data>
+  <data name="PERMISSION_CODE_TOO_LONG" xml:space="preserve"><value>Mã quyền quá dài.</value></data>
+  <data name="PERMISSION_CODE_FORMAT_INVALID" xml:space="preserve"><value>Mã quyền chỉ được chứa chữ thường, chữ số, dấu gạch dưới và dấu chấm.</value></data>
+  <data name="PERMISSION_CODE_GROUP_INVALID" xml:space="preserve"><value>Mã quyền phải chứa mã nhóm hợp lệ.</value></data>
+  <data name="PERMISSION_CODE_GROUP_MISMATCH" xml:space="preserve"><value>Mã quyền phải bắt đầu bằng mã nhóm tương ứng.</value></data>
+  <data name="PERMISSION_CODE_NOT_DEFINED" xml:space="preserve"><value>Mã quyền phải được định nghĩa trong PermissionCodes.</value></data>
+  <data name="PERMISSION_GROUP_CODE_REQUIRED" xml:space="preserve"><value>Mã nhóm quyền là bắt buộc.</value></data>
+  <data name="PERMISSION_GROUP_CODE_TOO_LONG" xml:space="preserve"><value>Mã nhóm quyền quá dài.</value></data>
+  <data name="PERMISSION_GROUP_NAME_REQUIRED" xml:space="preserve"><value>Tên nhóm quyền là bắt buộc.</value></data>
+  <data name="PERMISSION_GROUP_NAME_TOO_LONG" xml:space="preserve"><value>Tên nhóm quyền quá dài.</value></data>
+  <data name="PERMISSION_GROUP_SORT_ORDER_INVALID" xml:space="preserve"><value>Thứ tự nhóm quyền phải lớn hơn hoặc bằng 0.</value></data>
+  <data name="PERMISSION_ACTION_SORT_ORDER_INVALID" xml:space="preserve"><value>Thứ tự hành động quyền phải lớn hơn hoặc bằng 0.</value></data>
+  <data name="PERMISSION_NAME_REQUIRED" xml:space="preserve"><value>Tên quyền là bắt buộc.</value></data>
+  <data name="PERMISSION_NAME_TOO_LONG" xml:space="preserve"><value>Tên quyền quá dài.</value></data>
+  <data name="TEMPLATE_NAME_REQUIRED" xml:space="preserve"><value>Tên mẫu là bắt buộc.</value></data>
+  <data name="TEMPLATE_NAME_LENGTH_INVALID" xml:space="preserve"><value>Tên mẫu phải từ 3 đến 255 ký tự.</value></data>
+  <data name="TEMPLATE_TITLE_REQUIRED" xml:space="preserve"><value>Tiêu đề mẫu là bắt buộc.</value></data>
+  <data name="TEMPLATE_BODY_REQUIRED" xml:space="preserve"><value>Nội dung mẫu là bắt buộc.</value></data>
+  <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và kết thúc là bắt buộc đối với hiệu lực cố định.</value></data>
+  <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và số ngày hiệu lực là bắt buộc đối với hiệu lực động.</value></data>
+  <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Tồn kho còn lại phải nằm trong khoảng từ 0 đến tổng tồn kho.</value></data>
+</root>

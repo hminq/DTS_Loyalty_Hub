@@ -25,7 +25,6 @@ public sealed class GetVoucherDefinitionByIdQueryHandler
         {
             throw new DomainException(
                 "VOUCHER_DEFINITION_ID_REQUIRED",
-                "Voucher definition id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -34,7 +33,6 @@ public sealed class GetVoucherDefinitionByIdQueryHandler
                 ct)
             ?? throw new DomainException(
                 "VOUCHER_DEFINITION_NOT_FOUND",
-                "Voucher definition does not exist.",
                 DomainErrorType.NotFound);
     }
 }
