@@ -1,37 +1,54 @@
 using Api.Dtos.Responses;
+using Api.Localization;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Api.Mappers;
 
-public static class ValidationErrorMapper
+public sealed class ValidationErrorMapper(ApiMessageResolver messageResolver)
 {
-    public static IReadOnlyCollection<ApiValidationErrorDto> FromModelState(ModelStateDictionary modelState)
+    public ApiErrorResponseDto FromModelState(ModelStateDictionary modelState)
     {
-        return modelState
+        var errors = modelState
             .Where(entry => entry.Value?.Errors.Count > 0)
-            .SelectMany(entry => entry.Value!.Errors.Select(error => new ApiValidationErrorDto
+            .SelectMany(entry => entry.Value!.Errors.Select(error =>
             {
-                Field = NormalizeField(entry.Key),
-                Code = "INVALID_REQUEST_VALUE",
-                Message = string.IsNullOrWhiteSpace(error.ErrorMessage)
-                    ? "Request value is invalid."
-                    : error.ErrorMessage
+                var field = NormalizeField(entry.Key);
+                var errorCode = field == "request"
+                    ? "REQUEST_BODY_INVALID"
+                    : "VALUE_INVALID";
+
+                return new ApiValidationErrorDto
+                {
+                    Field = field,
+                    Code = errorCode,
+                    Message = messageResolver.Resolve(errorCode)
+                };
             }))
             .ToArray();
+
+        return ApiErrorResponseDto.Validation(
+            errors,
+            messageResolver.Resolve("VALIDATION_ERROR"));
     }
 
-    public static IReadOnlyCollection<ApiValidationErrorDto> FromValidationFailures(
+    public ApiErrorResponseDto FromValidationFailures(
         IEnumerable<ValidationFailure> validationFailures)
     {
-        return validationFailures
+        var errors = validationFailures
             .Select(error => new ApiValidationErrorDto
             {
                 Field = NormalizeField(error.PropertyName),
                 Code = error.ErrorCode,
-                Message = error.ErrorMessage
+                Message = messageResolver.Resolve(
+                    error.ErrorCode,
+                    error.FormattedMessagePlaceholderValues)
             })
             .ToArray();
+
+        return ApiErrorResponseDto.Validation(
+            errors,
+            messageResolver.Resolve("VALIDATION_ERROR"));
     }
 
     private static string NormalizeField(string field)

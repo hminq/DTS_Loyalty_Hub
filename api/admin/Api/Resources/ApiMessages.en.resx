@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="INTERNAL_SERVER_ERROR" xml:space="preserve"><value>An unexpected error occurred.</value></data>
+  <data name="VALIDATION_ERROR" xml:space="preserve"><value>Request validation failed.</value></data>
+  <data name="INVALID_CREDENTIALS" xml:space="preserve"><value>Username or password is incorrect.</value></data>
+  <data name="ADMIN_ID_REQUIRED" xml:space="preserve"><value>Admin id is required.</value></data>
+  <data name="ADMIN_STATUS_INVALID" xml:space="preserve"><value>Admin status is invalid.</value></data>
+  <data name="ADMIN_USER_NOT_FOUND" xml:space="preserve"><value>Admin user does not exist.</value></data>
+  <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email already exists.</value></data>
+  <data name="PHONE_NUMBER_ALREADY_EXISTS" xml:space="preserve"><value>Phone number already exists.</value></data>
+  <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Username already exists.</value></data>
+  <data name="ROLE_ID_REQUIRED" xml:space="preserve"><value>Role id is required.</value></data>
+  <data name="ROLE_NOT_FOUND" xml:space="preserve"><value>Role does not exist.</value></data>
+  <data name="ROLE_NAME_ALREADY_EXISTS" xml:space="preserve"><value>Role name already exists.</value></data>
+  <data name="ROLE_PERMISSION_ALREADY_GRANTED" xml:space="preserve"><value>This role already has the permission.</value></data>
+  <data name="ROLE_PERMISSION_DUPLICATED" xml:space="preserve"><value>Role permission ids must be unique.</value></data>
+  <data name="ROLE_PERMISSION_NOT_FOUND" xml:space="preserve"><value>One or more permissions do not exist.</value></data>
+  <data name="ROLE_PERMISSION_NOT_GRANTED" xml:space="preserve"><value>This role does not have the permission.</value></data>
+  <data name="ROLE_HAS_ASSIGNED_ADMINS" xml:space="preserve"><value>Role cannot be deleted because it is assigned to one or more admins.</value></data>
+  <data name="PAGE_INVALID" xml:space="preserve"><value>Page must be greater than or equal to 1.</value></data>
+  <data name="AUDIT_LOG_DATE_RANGE_INVALID" xml:space="preserve"><value>From date must be earlier than or equal to to date.</value></data>
+  <data name="EVENT_TYPE_NOT_FOUND" xml:space="preserve"><value>Notification event type does not exist.</value></data>
+  <data name="TEMPLATE_NOT_FOUND" xml:space="preserve"><value>Notification template does not exist.</value></data>
+  <data name="TIER_NAME_ALREADY_EXISTS" xml:space="preserve"><value>A tier with this name already exists.</value></data>
+  <data name="TIER_POINTS_REQUIRED_INVALID" xml:space="preserve"><value>Points required cannot be negative.</value></data>
+  <data name="TIER_POINTS_ORDER_INVALID" xml:space="preserve"><value>Points required of a higher priority tier must be greater than points required of a lower priority tier.</value></data>
+  <data name="TIER_PRIORITY_ALREADY_EXISTS" xml:space="preserve"><value>A tier with this priority already exists.</value></data>
+  <data name="VOUCHER_CODE_ALREADY_EXISTS" xml:space="preserve"><value>Voucher code already exists.</value></data>
+  <data name="VOUCHER_DEFINITION_ID_REQUIRED" xml:space="preserve"><value>Voucher definition id is required.</value></data>
+  <data name="VOUCHER_DEFINITION_NOT_FOUND" xml:space="preserve"><value>Voucher definition does not exist.</value></data>
+  <data name="BANNER_FILE_TYPE_INVALID" xml:space="preserve"><value>Banner file must be JPEG, PNG, or WebP.</value></data>
+  <data name="REQUEST_BODY_INVALID" xml:space="preserve"><value>Request body is invalid.</value></data>
+  <data name="VALUE_INVALID" xml:space="preserve"><value>Request value is invalid.</value></data>
+  <data name="ACTION_TOO_LONG" xml:space="preserve"><value>Action must be 50 characters or fewer.</value></data>
+  <data name="BANNER_FILE_REQUIRED" xml:space="preserve"><value>Banner file is required.</value></data>
+  <data name="BANNER_FILE_SIZE_INVALID" xml:space="preserve"><value>Banner file size exceeds the allowed limit for its type.</value></data>
+  <data name="BANNER_UPLOAD_TYPE_INVALID" xml:space="preserve"><value>Banner type must be CAMPAIGN_BANNER or VOUCHER_DEFINITION_BANNER.</value></data>
+  <data name="BODY_TEMPLATE_REQUIRED" xml:space="preserve"><value>Body template is required.</value></data>
+  <data name="BODY_TEMPLATE_TOO_LONG" xml:space="preserve"><value>Body template cannot exceed 5000 characters.</value></data>
+  <data name="CHANNEL_REQUIRED" xml:space="preserve"><value>Channel is required.</value></data>
+  <data name="CHANNEL_TOO_LONG" xml:space="preserve"><value>Channel cannot exceed 50 characters.</value></data>
+  <data name="EMAIL_INVALID" xml:space="preserve"><value>Email is invalid.</value></data>
+  <data name="EMAIL_REQUIRED" xml:space="preserve"><value>Email is required.</value></data>
+  <data name="EMAIL_TOO_LONG" xml:space="preserve"><value>Email must be 50 characters or fewer.</value></data>
+  <data name="ENTITY_TYPE_TOO_LONG" xml:space="preserve"><value>Entity type must be 100 characters or fewer.</value></data>
+  <data name="EVENT_TYPE_CODE_TOO_LONG" xml:space="preserve"><value>Event type code cannot exceed 50 characters.</value></data>
+  <data name="FULL_NAME_TOO_LONG" xml:space="preserve"><value>Full name must be 50 characters or fewer.</value></data>
+  <data name="KEYWORD_TOO_LONG" xml:space="preserve"><value>Keyword cannot exceed 100 characters.</value></data>
+  <data name="LANGUAGE_REQUIRED" xml:space="preserve"><value>Language is required.</value></data>
+  <data name="LANGUAGE_TOO_LONG" xml:space="preserve"><value>Language cannot exceed 10 characters.</value></data>
+  <data name="NAME_REQUIRED" xml:space="preserve"><value>Name is required.</value></data>
+  <data name="NAME_TOO_LONG" xml:space="preserve"><value>Name cannot exceed 200 characters.</value></data>
+  <data name="NOTIFICATION_EVENT_TYPE_ID_REQUIRED" xml:space="preserve"><value>Notification event type ID is required.</value></data>
+  <data name="PAGE_SIZE_INVALID" xml:space="preserve"><value>Page size must be between 1 and 100.</value></data>
+  <data name="PASSWORD_REQUIRED" xml:space="preserve"><value>Password is required.</value></data>
+  <data name="PASSWORD_TOO_LONG" xml:space="preserve"><value>Password must be {MaxLength} characters or fewer.</value></data>
+  <data name="PASSWORD_TOO_SHORT" xml:space="preserve"><value>Password must be at least {MinLength} characters.</value></data>
+  <data name="PERMISSION_ID_REQUIRED" xml:space="preserve"><value>Permission id is required.</value></data>
+  <data name="PHONE_NUMBER_TOO_LONG" xml:space="preserve"><value>Phone number must be 15 characters or fewer.</value></data>
+  <data name="ROLE_NAME_REQUIRED" xml:space="preserve"><value>Role name is required.</value></data>
+  <data name="ROLE_NAME_TOO_LONG" xml:space="preserve"><value>Role name must be 100 characters or fewer.</value></data>
+  <data name="ROLE_PERMISSION_IDS_REQUIRED" xml:space="preserve"><value>Permission ids are required.</value></data>
+  <data name="SEARCH_KEYWORD_TOO_LONG" xml:space="preserve"><value>Search keyword cannot exceed 100 characters.</value></data>
+  <data name="STATUS_INVALID" xml:space="preserve"><value>Status is invalid.</value></data>
+  <data name="STATUS_REQUIRED" xml:space="preserve"><value>Status is required.</value></data>
+  <data name="STATUS_TOO_LONG" xml:space="preserve"><value>Status must be 25 characters or fewer.</value></data>
+  <data name="TIER_CYCLE_MONTH_INVALID" xml:space="preserve"><value>Cycle month must be between 1 and 12.</value></data>
+  <data name="TIER_NAME_LENGTH_INVALID" xml:space="preserve"><value>Tier name must be between 3 and 49 characters.</value></data>
+  <data name="TIER_NAME_REQUIRED" xml:space="preserve"><value>Tier name is required.</value></data>
+  <data name="TIER_PRIORITY_INVALID" xml:space="preserve"><value>Priority must be greater than zero.</value></data>
+  <data name="TITLE_TEMPLATE_REQUIRED" xml:space="preserve"><value>Title template is required.</value></data>
+  <data name="TITLE_TEMPLATE_TOO_LONG" xml:space="preserve"><value>Title template cannot exceed 1000 characters.</value></data>
+  <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Username is required.</value></data>
+  <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Username must be {MaxLength} characters or fewer.</value></data>
+  <data name="VOUCHER_CODE_MUST_BE_EMPTY" xml:space="preserve"><value>Voucher code must be empty for private vouchers.</value></data>
+  <data name="VOUCHER_CODE_REQUIRED" xml:space="preserve"><value>Voucher code is required for public vouchers.</value></data>
+  <data name="VOUCHER_CODE_TOO_LONG" xml:space="preserve"><value>Voucher code must not exceed 200 characters.</value></data>
+  <data name="VOUCHER_DEFINITION_NAME_REQUIRED" xml:space="preserve"><value>Voucher definition name is required.</value></data>
+  <data name="VOUCHER_DEFINITION_NAME_TOO_LONG" xml:space="preserve"><value>Voucher definition name must not exceed 200 characters.</value></data>
+  <data name="VOUCHER_DURATION_DAY_INVALID" xml:space="preserve"><value>Duration day must be greater than zero.</value></data>
+  <data name="VOUCHER_DYNAMIC_DURATION_DAY_REQUIRED" xml:space="preserve"><value>Duration day is required for dynamic validity.</value></data>
+  <data name="VOUCHER_DYNAMIC_VALID_FROM_REQUIRED" xml:space="preserve"><value>Valid from is required for dynamic validity.</value></data>
+  <data name="VOUCHER_FIXED_VALID_FROM_REQUIRED" xml:space="preserve"><value>Valid from is required for fixed validity.</value></data>
+  <data name="VOUCHER_FIXED_VALID_TO_REQUIRED" xml:space="preserve"><value>Valid to is required for fixed validity.</value></data>
+  <data name="VOUCHER_GENERATION_TYPE_INVALID" xml:space="preserve"><value>Voucher generation type is invalid.</value></data>
+  <data name="VOUCHER_GENERATION_TYPE_REQUIRED" xml:space="preserve"><value>Voucher generation type is required.</value></data>
+  <data name="VOUCHER_PRIVATE_GENERATION_TYPE_INVALID" xml:space="preserve"><value>Private vouchers cannot use NONE generation type.</value></data>
+  <data name="VOUCHER_PUBLIC_GENERATION_TYPE_INVALID" xml:space="preserve"><value>Public vouchers must use NONE generation type.</value></data>
+  <data name="VOUCHER_PUBLISH_TYPE_INVALID" xml:space="preserve"><value>Voucher publish type is invalid.</value></data>
+  <data name="VOUCHER_PUBLISH_TYPE_REQUIRED" xml:space="preserve"><value>Voucher publish type is required.</value></data>
+  <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Voucher reward type is invalid.</value></data>
+  <data name="VOUCHER_REWARD_TYPE_REQUIRED" xml:space="preserve"><value>Voucher reward type is required.</value></data>
+  <data name="VOUCHER_REWARD_VALUE_MUST_BE_EMPTY" xml:space="preserve"><value>Reward value must be empty for gift vouchers.</value></data>
+  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Total stock cannot be negative.</value></data>
+  <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Valid from must be earlier than valid to.</value></data>
+  <data name="VOUCHER_VALIDITY_TYPE_INVALID" xml:space="preserve"><value>Voucher validity type is invalid.</value></data>
+  <data name="VOUCHER_VALIDITY_TYPE_REQUIRED" xml:space="preserve"><value>Voucher validity type is required.</value></data>
+  <data name="PERMISSION_REQUIRED" xml:space="preserve"><value>Permission is required.</value></data>
+  <data name="PERMISSION_CODE_REQUIRED" xml:space="preserve"><value>Permission code is required.</value></data>
+  <data name="PERMISSION_CODE_TOO_LONG" xml:space="preserve"><value>Permission code is too long.</value></data>
+  <data name="PERMISSION_CODE_FORMAT_INVALID" xml:space="preserve"><value>Permission code can only contain lowercase letters, numbers, underscore, and dot.</value></data>
+  <data name="PERMISSION_CODE_GROUP_INVALID" xml:space="preserve"><value>Permission code must include a valid group code.</value></data>
+  <data name="PERMISSION_CODE_GROUP_MISMATCH" xml:space="preserve"><value>Permission code must start with its group code.</value></data>
+  <data name="PERMISSION_CODE_NOT_DEFINED" xml:space="preserve"><value>Permission code must be defined in PermissionCodes.</value></data>
+  <data name="PERMISSION_GROUP_CODE_REQUIRED" xml:space="preserve"><value>Permission group code is required.</value></data>
+  <data name="PERMISSION_GROUP_CODE_TOO_LONG" xml:space="preserve"><value>Permission group code is too long.</value></data>
+  <data name="PERMISSION_GROUP_NAME_REQUIRED" xml:space="preserve"><value>Permission group name is required.</value></data>
+  <data name="PERMISSION_GROUP_NAME_TOO_LONG" xml:space="preserve"><value>Permission group name is too long.</value></data>
+  <data name="PERMISSION_GROUP_SORT_ORDER_INVALID" xml:space="preserve"><value>Permission group sort order must be zero or greater.</value></data>
+  <data name="PERMISSION_ACTION_SORT_ORDER_INVALID" xml:space="preserve"><value>Permission action sort order must be zero or greater.</value></data>
+  <data name="PERMISSION_NAME_REQUIRED" xml:space="preserve"><value>Permission name is required.</value></data>
+  <data name="PERMISSION_NAME_TOO_LONG" xml:space="preserve"><value>Permission name is too long.</value></data>
+  <data name="TEMPLATE_NAME_REQUIRED" xml:space="preserve"><value>Template name is required.</value></data>
+  <data name="TEMPLATE_NAME_LENGTH_INVALID" xml:space="preserve"><value>Template name must be between 3 and 255 characters.</value></data>
+  <data name="TEMPLATE_TITLE_REQUIRED" xml:space="preserve"><value>Title template is required.</value></data>
+  <data name="TEMPLATE_BODY_REQUIRED" xml:space="preserve"><value>Body template is required.</value></data>
+  <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and valid to are required for fixed validity.</value></data>
+  <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and duration day are required for dynamic validity.</value></data>
+  <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Remaining stock must be between zero and total stock.</value></data>
+</root>
