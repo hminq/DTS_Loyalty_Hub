@@ -22,10 +22,14 @@ namespace Api.Controllers.Notifications;
 public sealed class NotificationLogsController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
-    public NotificationLogsController(ISender sender)
+    public NotificationLogsController(
+        ISender sender,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -38,8 +42,7 @@ public sealed class NotificationLogsController : ControllerBase
         var validationResult = await validator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
-            return BadRequest(ApiErrorResponseDto.Validation(errors));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(new GetNotificationLogsQuery(request.Page, request.PageSize, request.CustomerId, request.EventTypeCode), ct);

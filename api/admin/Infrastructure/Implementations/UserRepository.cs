@@ -129,6 +129,6 @@ public sealed class UserRepository : IUserRepository
             .Where(admin => admin.AdminId == adminId)
             .Select(admin => admin.User)
             .SingleOrDefaultAsync(ct)
-            ?? throw new DomainException("ADMIN_USER_NOT_FOUND", "Admin user does not exist.", DomainErrorType.NotFound);
+            ?? throw new DomainException("ADMIN_USER_NOT_FOUND", DomainErrorType.NotFound);
     }
 }

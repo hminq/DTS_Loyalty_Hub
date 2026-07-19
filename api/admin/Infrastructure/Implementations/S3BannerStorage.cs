@@ -32,7 +32,6 @@ public sealed class S3BannerStorage : IBannerStorage
             BannerUploadTypes.VoucherDefinitionBanner => "voucher_defs/banners",
             _ => throw new DomainException(
                 "BANNER_UPLOAD_TYPE_INVALID",
-                "Banner upload type is invalid.",
                 DomainErrorType.Validation)
         };
 

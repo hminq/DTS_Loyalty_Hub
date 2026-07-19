@@ -40,7 +40,6 @@ public sealed class CurrentCustomerAccessor : ICurrentCustomerAccessor
         {
             throw new DomainException(
                 "UNAUTHORIZED",
-                "Invalid or missing customer token.",
                 DomainErrorType.Unauthorized);
         }
 

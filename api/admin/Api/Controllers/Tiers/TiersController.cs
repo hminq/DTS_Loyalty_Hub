@@ -20,15 +20,18 @@ public sealed class TiersController : ControllerBase
     private readonly ISender _sender;
     private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<CreateTierRequestDto> _createTierValidator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public TiersController(
         ISender sender,
         ICurrentAdminContext currentAdminContext,
-        IValidator<CreateTierRequestDto> createTierValidator)
+        IValidator<CreateTierRequestDto> createTierValidator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _createTierValidator = createTierValidator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -54,8 +57,7 @@ public sealed class TiersController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);

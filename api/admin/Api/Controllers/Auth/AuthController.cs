@@ -14,13 +14,16 @@ public sealed class AuthController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IValidator<LoginRequestDto> _loginRequestValidator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public AuthController(
         ISender sender,
-        IValidator<LoginRequestDto> loginRequestValidator)
+        IValidator<LoginRequestDto> loginRequestValidator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _loginRequestValidator = loginRequestValidator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpPost("login")]
@@ -32,9 +35,7 @@ public sealed class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            var details = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
-
-            return BadRequest(ApiErrorResponseDto.Validation(details));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(

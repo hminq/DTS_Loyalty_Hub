@@ -23,19 +23,22 @@ public sealed class RolesController : ControllerBase
     private readonly IValidator<GetRolesRequestDto> _getRolesValidator;
     private readonly IValidator<CreateRoleRequestDto> _createRoleValidator;
     private readonly IValidator<UpdateRoleRequestDto> _updateRoleValidator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public RolesController(
         ISender sender,
         ICurrentAdminContext currentAdminContext,
         IValidator<GetRolesRequestDto> getRolesValidator,
         IValidator<CreateRoleRequestDto> createRoleValidator,
-        IValidator<UpdateRoleRequestDto> updateRoleValidator)
+        IValidator<UpdateRoleRequestDto> updateRoleValidator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _getRolesValidator = getRolesValidator;
         _createRoleValidator = createRoleValidator;
         _updateRoleValidator = updateRoleValidator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -48,8 +51,7 @@ public sealed class RolesController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToQuery(), ct);
@@ -81,8 +83,7 @@ public sealed class RolesController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToCommand(_currentAdminContext.UserId), ct);
@@ -105,8 +106,7 @@ public sealed class RolesController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(request.ToCommand(roleId, _currentAdminContext.UserId), ct);

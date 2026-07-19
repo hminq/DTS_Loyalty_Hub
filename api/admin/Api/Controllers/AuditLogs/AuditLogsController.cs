@@ -18,13 +18,16 @@ public sealed class AuditLogsController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly IValidator<GetAuditLogsRequestDto> _getAuditLogsValidator;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public AuditLogsController(
         ISender sender,
-        IValidator<GetAuditLogsRequestDto> getAuditLogsValidator)
+        IValidator<GetAuditLogsRequestDto> getAuditLogsValidator,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _getAuditLogsValidator = getAuditLogsValidator;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -37,8 +40,7 @@ public sealed class AuditLogsController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(ApiErrorResponseDto.Validation(
-                ValidationErrorMapper.FromValidationFailures(validationResult.Errors)));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(

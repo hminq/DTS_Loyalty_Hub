@@ -145,7 +145,6 @@ public sealed class RoleRepository : IRoleRepository
         {
             throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.NotFound);
         }
 
@@ -180,7 +179,6 @@ public sealed class RoleRepository : IRoleRepository
         {
             throw new DomainException(
                 "ROLE_NOT_FOUND",
-                "Role does not exist.",
                 DomainErrorType.NotFound);
         }
 

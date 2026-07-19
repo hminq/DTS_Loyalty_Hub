@@ -24,13 +24,16 @@ public sealed class NotificationTemplatesController : ControllerBase
 {
     private readonly ISender _sender;
     private readonly ICurrentAdminContext _currentAdminContext;
+    private readonly ValidationErrorMapper _validationErrorMapper;
 
     public NotificationTemplatesController(
         ISender sender,
-        ICurrentAdminContext currentAdminContext)
+        ICurrentAdminContext currentAdminContext,
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
+        _validationErrorMapper = validationErrorMapper;
     }
 
     [HttpGet]
@@ -43,8 +46,7 @@ public sealed class NotificationTemplatesController : ControllerBase
         var validationResult = await validator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
-            return BadRequest(ApiErrorResponseDto.Validation(errors));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var result = await _sender.Send(new GetNotificationTemplatesQuery(
@@ -87,8 +89,7 @@ public sealed class NotificationTemplatesController : ControllerBase
         var validationResult = await validator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
-            return BadRequest(ApiErrorResponseDto.Validation(errors));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var command = request.ToCommand(_currentAdminContext.UserId);
@@ -112,8 +113,7 @@ public sealed class NotificationTemplatesController : ControllerBase
         var validationResult = await validator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
-            var errors = ValidationErrorMapper.FromValidationFailures(validationResult.Errors);
-            return BadRequest(ApiErrorResponseDto.Validation(errors));
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
         var command = request.ToCommand(id, _currentAdminContext.UserId);
