@@ -61,16 +61,14 @@ public class Tier
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw ValidationError("TIER_NAME_REQUIRED", "Tier name is required.");
+            throw ValidationError("TIER_NAME_REQUIRED");
         }
 
         var length = name.Trim().Length;
 
         if (length < MinNameLength || length > MaxNameLength)
         {
-            throw ValidationError(
-                "TIER_NAME_LENGTH_INVALID",
-                $"Tier name must be between {MinNameLength} and {MaxNameLength} characters.");
+            throw ValidationError("TIER_NAME_LENGTH_INVALID");
         }
     }
 
@@ -78,9 +76,7 @@ public class Tier
     {
         if (cycleMonth < MinCycleMonth || cycleMonth > MaxCycleMonth)
         {
-            throw ValidationError(
-                "TIER_CYCLE_MONTH_INVALID",
-                $"Cycle month must be between {MinCycleMonth} and {MaxCycleMonth}.");
+            throw ValidationError("TIER_CYCLE_MONTH_INVALID");
         }
     }
 
@@ -88,9 +84,7 @@ public class Tier
     {
         if (pointsRequired < 0)
         {
-            throw ValidationError(
-                "TIER_POINTS_REQUIRED_INVALID",
-                "Points required cannot be negative.");
+            throw ValidationError("TIER_POINTS_REQUIRED_INVALID");
         }
     }
 
@@ -98,12 +92,12 @@ public class Tier
     {
         if (priority <= 0)
         {
-            throw ValidationError("TIER_PRIORITY_INVALID", "Priority must be greater than zero.");
+            throw ValidationError("TIER_PRIORITY_INVALID");
         }
     }
 
-    private static DomainException ValidationError(string errorCode, string message)
+    private static DomainException ValidationError(string errorCode)
     {
-        return new DomainException(errorCode, message, DomainErrorType.Validation);
+        return new DomainException(errorCode, DomainErrorType.Validation);
     }
 }

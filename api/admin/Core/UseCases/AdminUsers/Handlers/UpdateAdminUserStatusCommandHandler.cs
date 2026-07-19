@@ -33,7 +33,6 @@ public sealed class UpdateAdminUserStatusCommandHandler : IRequestHandler<Update
         {
             throw new DomainException(
                 "ADMIN_ID_REQUIRED",
-                "Admin id is required.",
                 DomainErrorType.Validation);
         }
 
@@ -43,7 +42,6 @@ public sealed class UpdateAdminUserStatusCommandHandler : IRequestHandler<Update
         {
             throw new DomainException(
                 "ADMIN_STATUS_INVALID",
-                "Admin status is invalid.",
                 DomainErrorType.Validation);
         }
 
@@ -53,7 +51,6 @@ public sealed class UpdateAdminUserStatusCommandHandler : IRequestHandler<Update
         {
             throw new DomainException(
                 "ADMIN_USER_NOT_FOUND",
-                "Admin user does not exist.",
                 DomainErrorType.NotFound);
         }
 

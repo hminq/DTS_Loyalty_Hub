@@ -2,7 +2,6 @@ namespace Core.UseCases.Auth.Results;
 
 public sealed record LoginResult(
     string AccessToken,
-    string TokenType,
     DateTime ExpiresAt,
     CustomerLoginResult Customer);
 

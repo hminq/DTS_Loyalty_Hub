@@ -36,7 +36,6 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
         {
             throw new DomainException(
                 "ROLE_PERMISSION_DUPLICATED",
-                "Role permission ids must be unique.",
                 DomainErrorType.Conflict);
         }
 
@@ -47,7 +46,6 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
         {
             throw new DomainException(
                 "ROLE_NAME_ALREADY_EXISTS",
-                "Role name already exists.",
                 DomainErrorType.Conflict);
         }
 
@@ -60,7 +58,6 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
         {
             throw new DomainException(
                 "ROLE_PERMISSION_NOT_FOUND",
-                "One or more permissions do not exist.",
                 DomainErrorType.Validation);
         }
 

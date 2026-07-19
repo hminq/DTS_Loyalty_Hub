@@ -37,7 +37,6 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
         {
             throw new DomainException(
                 "TEMPLATE_NOT_FOUND",
-                "Notification template does not exist.",
                 DomainErrorType.NotFound);
         }
         
@@ -46,7 +45,6 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
         {
             throw new DomainException(
                 "EVENT_TYPE_NOT_FOUND",
-                "Notification event type does not exist.",
                 DomainErrorType.NotFound);
         }
 

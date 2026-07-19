@@ -47,7 +47,7 @@ public class Role
     {
         if (roleId == Guid.Empty)
         {
-            throw ValidationError("ROLE_ID_REQUIRED", "Role id is required.");
+            throw ValidationError("ROLE_ID_REQUIRED");
         }
 
         ValidateName(name);
@@ -71,7 +71,7 @@ public class Role
     {
         if (permission is null)
         {
-            throw ValidationError("PERMISSION_REQUIRED", "Permission is required.");
+            throw ValidationError("PERMISSION_REQUIRED");
         }
 
         GrantPermission(permission.PermissionId);
@@ -85,7 +85,6 @@ public class Role
         {
             throw new DomainException(
                 "ROLE_PERMISSION_ALREADY_GRANTED",
-                "This role already has the permission.",
                 DomainErrorType.Conflict);
         }
     }
@@ -98,7 +97,6 @@ public class Role
         {
             throw new DomainException(
                 "ROLE_PERMISSION_NOT_GRANTED",
-                "This role does not have the permission.",
                 DomainErrorType.Conflict);
         }
     }
@@ -124,12 +122,12 @@ public class Role
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw ValidationError("ROLE_NAME_REQUIRED", "Role name is required.");
+            throw ValidationError("ROLE_NAME_REQUIRED");
         }
 
         if (name.Trim().Length > MaxNameLength)
         {
-            throw ValidationError("ROLE_NAME_TOO_LONG", "Role name is too long.");
+            throw ValidationError("ROLE_NAME_TOO_LONG");
         }
     }
 
@@ -137,7 +135,7 @@ public class Role
     {
         if (permissionIds is null)
         {
-            throw ValidationError("ROLE_PERMISSION_IDS_REQUIRED", "Permission ids are required.");
+            throw ValidationError("ROLE_PERMISSION_IDS_REQUIRED");
         }
 
         foreach (var permissionId in permissionIds)
@@ -150,12 +148,12 @@ public class Role
     {
         if (permissionId == Guid.Empty)
         {
-            throw ValidationError("PERMISSION_ID_REQUIRED", "Permission id is required.");
+            throw ValidationError("PERMISSION_ID_REQUIRED");
         }
     }
 
-    private static DomainException ValidationError(string errorCode, string message)
+    private static DomainException ValidationError(string errorCode)
     {
-        return new DomainException(errorCode, message, DomainErrorType.Validation);
+        return new DomainException(errorCode, DomainErrorType.Validation);
     }
 }
