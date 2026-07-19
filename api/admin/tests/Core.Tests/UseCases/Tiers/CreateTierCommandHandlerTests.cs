@@ -80,7 +80,7 @@ public sealed class CreateTierCommandHandlerTests
             CancellationToken.None);
 
         var exception = await action.Should().ThrowAsync<DomainException>();
-        exception.Which.ErrorCode.Should().Be("TIER_POINTS_REQUIRED_INVALID");
+        exception.Which.ErrorCode.Should().Be("TIER_POINTS_ORDER_INVALID");
         VerifyNoMutation();
     }
 

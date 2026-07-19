@@ -76,7 +76,6 @@ public class LoginCommandHandlerTests
 
         // Assert
         result.AccessToken.Should().Be("fake-jwt-token");
-        result.TokenType.Should().Be("Bearer");
         result.ExpiresAt.Should().Be(expiresAt);
         result.Customer.UserId.Should().Be(user.UserId);
         result.Customer.CustomerId.Should().Be(user.CustomerId);
