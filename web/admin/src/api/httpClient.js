@@ -1,11 +1,9 @@
 import axios from 'axios'
+import { storageKeys } from '../config/storageKeys'
 import { normalizeApiError } from './apiError'
 
-const accessTokenStorageKey = 'admin_access_token'
-const languageStorageKey = 'language'
-
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/admin',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 15_000,
   headers: {
     Accept: 'application/json',
@@ -13,8 +11,8 @@ const httpClient = axios.create({
 })
 
 httpClient.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem(accessTokenStorageKey)
-  const language = localStorage.getItem(languageStorageKey) || 'en'
+  const accessToken = localStorage.getItem(storageKeys.accessToken)
+  const language = localStorage.getItem(storageKeys.language) || 'en' //default language
 
   config.headers['Accept-Language'] = language
 

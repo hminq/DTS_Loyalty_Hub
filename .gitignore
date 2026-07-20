@@ -5,3 +5,4 @@ AGENTS.md
 docs
 .env
 docker-compose.prod.yml
+nginx.conf
