@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.OpenApi.Models;
 using System.Globalization;
 
+const string AdminWebCorsPolicy = "AdminWeb";
+
 var envPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 
 // Load local environment variables from the Admin API root directory.
@@ -47,8 +49,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-builder.Services.AddScoped<ApiMessageResolver>();
+builder.Services.AddSingleton<ApiMessageResolver>();
 builder.Services.AddScoped<ValidationErrorMapper>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthenticatedAdminSessionAccessor, AuthenticatedAdminSessionAccessor>();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     var supportedCultures = new[]
@@ -66,7 +70,23 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     ];
 });
 
+// Allow the Admin SPA to call this API
+var allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? ["http://localhost", "http://localhost:5173"];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(AdminWebCorsPolicy, policy =>
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 builder.Services.AddEndpointsApiExplorer();
+
+// add swagger documentation
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Loyalty Hub Admin API", Version = "v1" });
@@ -113,7 +133,7 @@ builder.Services
         };
     });
 
-// Resolve the active admin and enforce database-backed permission policies.
+// Resolve the active admin and enforce permission policies.
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddScoped<CurrentAdminContext>();
 builder.Services.AddScoped<ICurrentAdminContext>(serviceProvider =>
@@ -139,6 +159,7 @@ app.UseRequestLocalization();
 
 // Handle exceptions first, then authenticate and authorize before dispatching controllers.
 app.UseExceptionHandler(_ => { });
+app.UseCors(AdminWebCorsPolicy);
 app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())

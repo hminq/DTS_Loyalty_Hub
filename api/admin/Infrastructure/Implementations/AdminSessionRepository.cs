@@ -15,22 +15,33 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         _dbContext = dbContext;
     }
 
-    public async Task<AdminLoginSession> ReplaceActiveSessionAsync(
+    public async Task<AdminLoginSession?> CreateSessionIfNoneActiveAsync(
         Guid adminId,
         Guid userId,
         DateTime expiresAt,
         CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
-        var activeSessions = await _dbContext.AdminSessions
+
+        // Serialize login attempts for the same admin inside the MediatR-owned transaction.
+        _ = await _dbContext.Admins
+            .FromSqlInterpolated($"SELECT * FROM admin WHERE admin_id = {adminId} FOR UPDATE")
+            .SingleAsync(ct);
+
+        var unrevokedSessions = await _dbContext.AdminSessions
             .Where(session =>
                 session.AdminId == adminId &&
                 session.RevokedAt == null)
             .ToListAsync(ct);
 
-        foreach (var activeSession in activeSessions)
+        if (unrevokedSessions.Any(session => session.ExpiresAt > now))
         {
-            activeSession.RevokedAt = now;
+            return null;
+        }
+
+        foreach (var expiredSession in unrevokedSessions)
+        {
+            expiredSession.RevokedAt = now;
         }
 
         var adminSession = new AdminSession
@@ -62,6 +73,27 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         {
             session.RevokedAt = now;
         }
+    }
+
+    public async Task RevokeSessionAsync(
+        Guid adminId,
+        Guid adminSessionId,
+        Guid accessTokenJti,
+        CancellationToken ct = default)
+    {
+        var session = await _dbContext.AdminSessions
+            .SingleOrDefaultAsync(session =>
+                session.AdminId == adminId &&
+                session.AdminSessionId == adminSessionId &&
+                session.AccessTokenJti == accessTokenJti,
+                ct);
+
+        if (session is null || session.RevokedAt is not null)
+        {
+            return;
+        }
+
+        session.RevokedAt = DateTime.UtcNow;
     }
 
     public Task<bool> IsSessionActiveAsync(

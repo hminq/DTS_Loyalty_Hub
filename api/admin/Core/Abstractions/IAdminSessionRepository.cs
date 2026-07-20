@@ -4,7 +4,7 @@ namespace Core.Abstractions;
 
 public interface IAdminSessionRepository
 {
-    Task<AdminLoginSession> ReplaceActiveSessionAsync(
+    Task<AdminLoginSession?> CreateSessionIfNoneActiveAsync(
         Guid adminId,
         Guid userId,
         DateTime expiresAt,
@@ -15,6 +15,12 @@ public interface IAdminSessionRepository
         Guid accessTokenJti,
         Guid adminId,
         Guid userId,
+        CancellationToken ct = default);
+
+    Task RevokeSessionAsync(
+        Guid adminId,
+        Guid adminSessionId,
+        Guid accessTokenJti,
         CancellationToken ct = default);
 
     Task RevokeActiveSessionsAsync(Guid adminId, CancellationToken ct = default);

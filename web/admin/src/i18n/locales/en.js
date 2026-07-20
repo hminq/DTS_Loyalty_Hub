@@ -1,0 +1,37 @@
+export const en = {
+  common: {
+    adminPortal: 'Admin portal',
+    language: 'Language',
+  },
+  login: {
+    eyebrow: 'Secure access',
+    title: 'Sign in',
+    description: 'Use your administrator credentials.',
+    username: 'Username',
+    usernamePlaceholder: 'Enter your username',
+    password: 'Password',
+    passwordPlaceholder: 'Enter your password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    submit: 'Sign in',
+    submitting: 'Signing in...',
+    unexpectedError: 'Unable to sign in. Please try again.',
+    notice: 'Access is monitored and restricted to authorized administrators.',
+  },
+  dashboard: {
+    eyebrow: 'Dashboard',
+    title: 'Welcome to Loyalty Hub',
+    description: 'The dashboard workspace is ready for the next implementation step.',
+    logout: 'Log out',
+    logoutError: 'Unable to log out. Please try again.',
+  },
+  notFound: {
+    eyebrow: 'Error 404',
+    title: 'Page not found',
+    description: 'The page may have moved, the address may be incorrect, or your account may no longer have access.',
+    goBack: 'Go back',
+    logout: 'Log out',
+    logoutError: 'Unable to log out. Please try again.',
+    footer: 'Loyalty Hub Administration',
+  },
+}

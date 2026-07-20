@@ -33,6 +33,21 @@ jobs:
       - name: Test customer API
         run: dotnet test api/customer/Api-Customer.sln --configuration Release --disable-build-servers
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/admin/package-lock.json
+
+      - name: Build admin web
+        working-directory: web/admin
+        env:
+          VITE_API_BASE_URL: ${{ secrets.ADMIN_WEB_API_BASE_URL }}
+        run: |
+          npm ci
+          npm run build -- --base=${{ secrets.ADMIN_WEB_BASE_PATH }}
+
   build-and-deploy:
     name: Build images and deploy
     runs-on: ubuntu-latest
@@ -50,6 +65,28 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/admin/package-lock.json
+
+      - name: Build admin web
+        working-directory: web/admin
+        env:
+          VITE_API_BASE_URL: ${{ secrets.ADMIN_WEB_API_BASE_URL }}
+        run: |
+          npm ci
+          npm run build -- --base=${{ secrets.ADMIN_WEB_BASE_PATH }}
+
+      - name: Prepare static files
+        run: |
+          mkdir -p .deploy/admin
+          mkdir -p .deploy/customer
+          cp -R web/admin/dist/. .deploy/admin/
+          cp -R web/client/. .deploy/customer/
 
       - name: Build and push admin API
         uses: docker/build-push-action@v6
@@ -83,6 +120,30 @@ jobs:
           push: true
           tags: ${{ env.SCHEDULER_IMAGE }}:${{ github.sha }}
 
+      - name: Upload admin static files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          source: ".deploy/admin/*"
+          target: ${{ secrets.VPS_APP_DIR }}/web/admin
+          strip_components: 2
+          overwrite: true
+
+      - name: Upload customer static files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          source: ".deploy/customer/*"
+          target: ${{ secrets.VPS_APP_DIR }}/web/customer
+          strip_components: 2
+          overwrite: true
+
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -93,6 +154,6 @@ jobs:
           script_stop: true
           script: |
             cd "${{ secrets.VPS_APP_DIR }}"
-            IMAGE_TAG="${{ github.sha }}" docker compose pull admin-api customer-api consumer scheduler
+            IMAGE_TAG="${{ github.sha }}" docker compose pull admin-api customer-api consumer scheduler nginx
             IMAGE_TAG="${{ github.sha }}" docker compose up -d
             docker image prune -f

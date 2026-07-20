@@ -1,3 +1,3 @@
 namespace Core.Abstractions;
 
-public interface ITransactionalRequest;
+public interface ITransactionalRequest : IWriteRequest;

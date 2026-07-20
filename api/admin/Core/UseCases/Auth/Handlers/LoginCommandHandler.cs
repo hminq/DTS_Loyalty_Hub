@@ -41,11 +41,18 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         }
 
         var expiresAt = _accessTokenService.CreateExpiresAt();
-        var session = await _adminSessionRepository.ReplaceActiveSessionAsync(
+        var session = await _adminSessionRepository.CreateSessionIfNoneActiveAsync(
             user.AdminId,
             user.UserId,
             expiresAt,
             ct);
+
+        if (session is null)
+        {
+            throw new DomainException(
+                "SESSION_ALREADY_ACTIVE",
+                DomainErrorType.Conflict);
+        }
 
         var accessToken = _accessTokenService.CreateAccessToken(user, session);
 

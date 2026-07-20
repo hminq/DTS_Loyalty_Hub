@@ -54,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogWriter, AuditLogWriter>();
         services.AddScoped<IBannerStorage, S3BannerStorage>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SaveChangesBehavior<,>));
         
         return services;
     }

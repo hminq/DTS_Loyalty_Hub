@@ -1,0 +1,37 @@
+export const vi = {
+  common: {
+    adminPortal: 'Cổng quản trị',
+    language: 'Ngôn ngữ',
+  },
+  login: {
+    eyebrow: 'Truy cập bảo mật',
+    title: 'Đăng nhập',
+    description: 'Sử dụng thông tin đăng nhập quản trị viên.',
+    username: 'Tên đăng nhập',
+    usernamePlaceholder: 'Nhập tên đăng nhập',
+    password: 'Mật khẩu',
+    passwordPlaceholder: 'Nhập mật khẩu',
+    showPassword: 'Hiện mật khẩu',
+    hidePassword: 'Ẩn mật khẩu',
+    submit: 'Đăng nhập',
+    submitting: 'Đang đăng nhập...',
+    unexpectedError: 'Không thể đăng nhập. Vui lòng thử lại.',
+    notice: 'Quyền truy cập được giám sát và chỉ dành cho quản trị viên được ủy quyền.',
+  },
+  dashboard: {
+    eyebrow: 'Bảng điều khiển',
+    title: 'Chào mừng đến với Loyalty Hub',
+    description: 'Khu vực dashboard đã sẵn sàng cho bước triển khai tiếp theo.',
+    logout: 'Đăng xuất',
+    logoutError: 'Không thể đăng xuất. Vui lòng thử lại.',
+  },
+  notFound: {
+    eyebrow: 'Lỗi 404',
+    title: 'Không tìm thấy trang',
+    description: 'Trang có thể đã được di chuyển, địa chỉ không chính xác hoặc tài khoản của bạn không còn quyền truy cập.',
+    goBack: 'Quay lại',
+    logout: 'Đăng xuất',
+    logoutError: 'Không thể đăng xuất. Vui lòng thử lại.',
+    footer: 'Hệ thống quản trị Loyalty Hub',
+  },
+}

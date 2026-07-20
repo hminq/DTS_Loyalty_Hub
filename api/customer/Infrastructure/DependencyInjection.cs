@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SaveChangesBehavior<,>));
 
         return services;
     }
