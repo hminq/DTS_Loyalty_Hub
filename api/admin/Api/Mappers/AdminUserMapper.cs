@@ -118,6 +118,8 @@ public static class AdminUserMapper
                     Name = permission.Name,
                     GroupCode = permission.GroupCode,
                     GroupName = permission.GroupName,
+                    ActionCode = permission.ActionCode,
+                    ActionName = permission.ActionName,
                     GroupSortOrder = permission.GroupSortOrder,
                     ActionSortOrder = permission.ActionSortOrder
                 })

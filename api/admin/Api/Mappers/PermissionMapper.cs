@@ -20,6 +20,8 @@ public static class PermissionMapper
                         PermissionId = permission.PermissionId,
                         Code = permission.Code,
                         Name = permission.Name,
+                        ActionCode = permission.ActionCode,
+                        ActionName = permission.ActionName,
                         ActionSortOrder = permission.ActionSortOrder
                     })
                     .ToArray()

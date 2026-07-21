@@ -21,6 +21,7 @@ public sealed class RolesController : ControllerBase
     private readonly ISender _sender;
     private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<GetRolesRequestDto> _getRolesValidator;
+    private readonly IValidator<GetRoleOptionsRequestDto> _getRoleOptionsValidator;
     private readonly IValidator<CreateRoleRequestDto> _createRoleValidator;
     private readonly IValidator<UpdateRoleRequestDto> _updateRoleValidator;
     private readonly ValidationErrorMapper _validationErrorMapper;
@@ -29,6 +30,7 @@ public sealed class RolesController : ControllerBase
         ISender sender,
         ICurrentAdminContext currentAdminContext,
         IValidator<GetRolesRequestDto> getRolesValidator,
+        IValidator<GetRoleOptionsRequestDto> getRoleOptionsValidator,
         IValidator<CreateRoleRequestDto> createRoleValidator,
         IValidator<UpdateRoleRequestDto> updateRoleValidator,
         ValidationErrorMapper validationErrorMapper)
@@ -36,6 +38,7 @@ public sealed class RolesController : ControllerBase
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _getRolesValidator = getRolesValidator;
+        _getRoleOptionsValidator = getRoleOptionsValidator;
         _createRoleValidator = createRoleValidator;
         _updateRoleValidator = updateRoleValidator;
         _validationErrorMapper = validationErrorMapper;
@@ -62,19 +65,19 @@ public sealed class RolesController : ControllerBase
     [HttpGet("options")]
     [Authorize(Policy = PermissionCodes.Roles.View)]
     public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>>>> GetOptions(
-        [FromQuery] GetRolesRequestDto request,
+        [FromQuery] GetRoleOptionsRequestDto request,
         CancellationToken ct)
     {
-        var validationResult = await _getRolesValidator.ValidateAsync(request, ct);
+        var validationResult = await _getRoleOptionsValidator.ValidateAsync(request, ct);
 
         if (!validationResult.IsValid)
         {
             return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
         }
 
-        var result = await _sender.Send(request.ToOptionsQuery(), ct);
+        var result = await _sender.Send(request.ToQuery(), ct);
 
-        return Ok(result.ToPagedResponseDto());
+        return Ok(result.ToResponseDto());
     }
 
     [HttpGet("{roleId:guid}")]

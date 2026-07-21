@@ -41,6 +41,8 @@ public sealed class PermissionRepository : IPermissionRepository
                 permission.Name,
                 permission.GroupCode,
                 permission.GroupName,
+                permission.ActionCode,
+                permission.ActionName,
                 permission.GroupSortOrder,
                 permission.ActionSortOrder
             })
@@ -62,6 +64,8 @@ public sealed class PermissionRepository : IPermissionRepository
                         permission.PermissionId,
                         permission.Code,
                         permission.Name,
+                        permission.ActionCode,
+                        permission.ActionName,
                         permission.ActionSortOrder))
                     .ToArray()))
             .ToArray();
