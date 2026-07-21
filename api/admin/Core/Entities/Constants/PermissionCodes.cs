@@ -24,6 +24,7 @@ public static class PermissionCodes
         CustomerUsers.ResetPassword,
         Tiers.View,
         Tiers.Create,
+        Tiers.Update,
         AuditLogs.View,
         Notifications.ViewEventTypes,
         Notifications.ViewTemplates,
@@ -109,6 +110,8 @@ public static class PermissionCodes
     {
         public const string View = "tier.view";
         public const string Create = "tier.create";
+
+        public const string Update = "tier.update";
     }
 
     public static class AuditLogs

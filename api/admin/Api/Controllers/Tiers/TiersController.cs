@@ -20,17 +20,20 @@ public sealed class TiersController : ControllerBase
     private readonly ISender _sender;
     private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<CreateTierRequestDto> _createTierValidator;
+    private readonly IValidator<UpdateTierRequestDto> _updateTierValidator;
     private readonly ValidationErrorMapper _validationErrorMapper;
 
     public TiersController(
         ISender sender,
         ICurrentAdminContext currentAdminContext,
         IValidator<CreateTierRequestDto> createTierValidator,
+        IValidator<UpdateTierRequestDto> updateTierValidator,
         ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _createTierValidator = createTierValidator;
+        _updateTierValidator = updateTierValidator;
         _validationErrorMapper = validationErrorMapper;
     }
 
@@ -67,6 +70,28 @@ public sealed class TiersController : ControllerBase
         };
 
         return Created($"/api/admin/tiers/{response.Data.TierConfigId}", response);
+    }
+
+    [HttpPut("{tierConfigId:guid}")]
+    [Authorize(Policy = PermissionCodes.Tiers.Update)]
+    public async Task<ActionResult<ApiResponseDto<TierResponseDto>>> Update(
+        Guid tierConfigId,
+        [FromBody] UpdateTierRequestDto request,
+        CancellationToken ct)
+    {
+        var validationResult = await _updateTierValidator.ValidateAsync(request, ct);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
+        }
+
+        var result = await _sender.Send(request.ToCommand(tierConfigId, _currentAdminContext.UserId), ct);
+
+        return Ok(new ApiResponseDto<TierResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
     }
 
 }
