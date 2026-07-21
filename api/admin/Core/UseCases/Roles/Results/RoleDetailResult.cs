@@ -12,5 +12,7 @@ public sealed record RolePermissionDetailResult(
     string Name,
     string GroupCode,
     string GroupName,
+    string ActionCode,
+    string ActionName,
     int GroupSortOrder,
     int ActionSortOrder);

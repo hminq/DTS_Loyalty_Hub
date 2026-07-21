@@ -63,7 +63,7 @@ public sealed class UpdateAdminUserStatusCommandHandler : IRequestHandler<Update
         }
 
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "UPDATE_STATUS", AuditEntityTypes.Admin, request.AdminId,
+            request.ActorUserId, AuditActions.UpdateStatus, AuditEntityTypes.Admin, request.AdminId,
             JsonSerializer.Serialize(new { status = existingAdmin.Status }),
             JsonSerializer.Serialize(new { status = normalizedStatus }), null));
     }

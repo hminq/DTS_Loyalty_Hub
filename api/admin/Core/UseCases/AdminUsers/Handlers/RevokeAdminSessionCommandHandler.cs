@@ -43,6 +43,6 @@ public sealed class RevokeAdminSessionCommandHandler : IRequestHandler<RevokeAdm
 
         await _adminSessionRepository.RevokeActiveSessionsAsync(request.AdminId, ct);
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "REVOKE_SESSION", AuditEntityTypes.Admin, request.AdminId, null, null, null));
+            request.ActorUserId, AuditActions.RevokeSession, AuditEntityTypes.Admin, request.AdminId, null, null, null));
     }
 }

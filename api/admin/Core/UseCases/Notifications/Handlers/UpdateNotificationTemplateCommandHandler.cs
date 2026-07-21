@@ -14,8 +14,6 @@ namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<UpdateNotificationTemplateCommand, NotificationTemplateResult>
 {
-    private const string AuditLogUpdateAction = "UPDATE";
-
     private readonly INotificationTemplateRepository _templateRepository;
     private readonly INotificationEventTypeRepository _eventTypeRepository;
     private readonly IAuditLogWriter _auditLogWriter;
@@ -72,7 +70,7 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,
-            AuditLogUpdateAction,
+            AuditActions.Update,
             AuditEntityTypes.NotificationTemplate,
             template.TemplateId,
             oldState,
