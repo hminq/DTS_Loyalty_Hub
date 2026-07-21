@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Core.UseCases.Roles.Queries;
 
-public sealed record GetRoleByIdQuery(Guid RoleId) : IRequest<RoleResult>;
+public sealed record GetRoleByIdQuery(Guid RoleId) : IRequest<RoleDetailResult>;

@@ -1,7 +1,7 @@
 import { logout } from '../api/authApi'
 import { storageKeys } from '../config/storageKeys'
 
-export async function logoutAdmin() {
+export async function logoutSession() {
   try {
     await logout()
     localStorage.removeItem(storageKeys.accessToken)

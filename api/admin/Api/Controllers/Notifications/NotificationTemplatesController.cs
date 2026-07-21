@@ -37,7 +37,7 @@ public sealed class NotificationTemplatesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = PermissionCodes.Notifications.ViewTemplates)]
+    [Authorize(Policy = PermissionCodes.NotificationTemplates.View)]
     public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationTemplateResult>>>> GetPaged(
         [FromQuery] GetNotificationTemplatesRequestDto request,
         [FromServices] IValidator<GetNotificationTemplatesRequestDto> validator,
@@ -66,7 +66,7 @@ public sealed class NotificationTemplatesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Policy = PermissionCodes.Notifications.ViewTemplates)]
+    [Authorize(Policy = PermissionCodes.NotificationTemplates.View)]
     public async Task<ActionResult<ApiResponseDto<NotificationTemplateResult>>> GetById(
         [FromRoute] Guid id,
         CancellationToken ct)
@@ -80,7 +80,7 @@ public sealed class NotificationTemplatesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = PermissionCodes.Notifications.CreateTemplate)]
+    [Authorize(Policy = PermissionCodes.NotificationTemplates.Create)]
     public async Task<ActionResult<ApiResponseDto<NotificationTemplateResult>>> Create(
         [FromBody] CreateNotificationTemplateRequestDto request,
         [FromServices] IValidator<CreateNotificationTemplateRequestDto> validator,
@@ -103,7 +103,7 @@ public sealed class NotificationTemplatesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Policy = PermissionCodes.Notifications.UpdateTemplate)]
+    [Authorize(Policy = PermissionCodes.NotificationTemplates.Update)]
     public async Task<ActionResult<ApiResponseDto<NotificationTemplateResult>>> Update(
         [FromRoute] Guid id,
         [FromBody] UpdateNotificationTemplateRequestDto request,
@@ -127,7 +127,7 @@ public sealed class NotificationTemplatesController : ControllerBase
     }
 
     [HttpPatch("{id}/toggle-status")]
-    [Authorize(Policy = PermissionCodes.Notifications.UpdateTemplate)]
+    [Authorize(Policy = PermissionCodes.NotificationTemplates.Update)]
     public async Task<ActionResult<ApiResponseDto<NotificationTemplateResult>>> ToggleStatus(
         [FromRoute] Guid id,
         CancellationToken ct)

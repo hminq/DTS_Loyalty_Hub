@@ -82,6 +82,8 @@ Avoid nested large rounded containers for the main dashboard shell.
 Use a full-screen admin shell:
 
 - Sidebar fixed on the left inside the page flow.
+- Sidebar stays at viewport height while the main content scrolls independently.
+- The primary navigation owns its own vertical scroll when it cannot fit; utility actions and account identity remain visible at the bottom.
 - Main content fills the remaining width.
 - No floating wrapper around sidebar and content.
 - Sidebar has a right border.
@@ -101,6 +103,7 @@ Sidebar behavior:
 - Child option selection should use the same dark blue selected treatment as top-level items.
 - Long option labels must truncate instead of wrapping.
 - Use connector lines between expanded category and child options.
+- Related account screens live under `Accounts`, with `Admins` and `Customers` as children.
 - Logout stays at the bottom of the sidebar.
 - Logout uses destructive red styling and centered text; no icon needed.
 
@@ -124,6 +127,18 @@ Tables should be dense and readable.
 - Cell padding: `px-3 py-3`.
 - Use border separators.
 - Prefer table-first layouts for growing records.
+- Growing lists reuse `ListPagination` instead of implementing page controls per feature.
+- Pagination uses icon-only previous/next controls and a numeric rows-per-page input limited to `1–100`.
+- Read-only permission catalogs use a matrix: groups as rows, actions as columns, and compact checked/empty boxes as cells.
+- Selectable permission matrices provide both an all-permissions control and one bulk-selection control per permission group.
+
+## Page Headers
+
+- Eyebrow, page title, description, and actions use separate vertical rows.
+- The page title must own its full row.
+- Primary page actions such as `Create` appear below the title/description, aligned to the left.
+- Use the shared `PageHeader` component instead of arranging actions per page.
+- Nested create, detail, and edit pages use compact breadcrumbs instead of a large back button.
 
 ## Buttons
 
@@ -151,6 +166,8 @@ Badges should remain small and not dominate tables or cards.
 
 Forms should be direct and compact.
 
+- Create and edit workflows use dedicated full pages inside the admin shell.
+- Reserve dialogs for short confirmations, especially destructive actions.
 - Labels are short.
 - Errors appear under the related field.
 - Form-level errors appear above the submit action or above the form.

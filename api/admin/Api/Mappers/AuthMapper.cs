@@ -2,6 +2,7 @@ using Api.Dtos.Requests.Auth;
 using Api.Dtos.Responses.Auth;
 using Api.Constants;
 using Core.UseCases.Auth.Commands;
+using Core.UseCases.Auth.Queries;
 using Core.UseCases.Auth.Results;
 
 namespace Api.Mappers;
@@ -31,6 +32,36 @@ public static class AuthMapper
                 RoleId = result.Admin.RoleId,
                 RoleName = result.Admin.RoleName
             },
+            Permissions = result.Permissions
+        };
+    }
+
+    public static GetCurrentAdminQuery ToQuery(
+        Guid userId,
+        Guid adminId,
+        Guid adminSessionId,
+        Guid accessTokenJti)
+    {
+        return new GetCurrentAdminQuery(
+            userId,
+            adminId,
+            adminSessionId,
+            accessTokenJti);
+    }
+
+    public static CurrentAdminResponseDto ToResponseDto(this CurrentAdminResult result)
+    {
+        return new CurrentAdminResponseDto
+        {
+            UserId = result.UserId,
+            AdminId = result.AdminId,
+            Username = result.Username,
+            Email = result.Email,
+            FullName = result.FullName,
+            PhoneNumber = result.PhoneNumber,
+            RoleId = result.RoleId,
+            RoleName = result.RoleName,
+            Status = result.Status,
             Permissions = result.Permissions
         };
     }

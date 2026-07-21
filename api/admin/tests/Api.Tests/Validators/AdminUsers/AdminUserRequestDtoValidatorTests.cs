@@ -118,6 +118,29 @@ public sealed class AdminUserRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor("status").WithErrorCode("STATUS_TOO_LONG");
     }
 
+    [Theory]
+    [InlineData("ENABLE")]
+    [InlineData("disable")]
+    [InlineData(" ENABLE ")]
+    public void GetPaged_DefinedStatus_HasNoStatusError(string status)
+    {
+        var request = new GetAdminUsersRequestDto { Status = status };
+
+        var result = new GetAdminUsersRequestDtoValidator().TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor("status");
+    }
+
+    [Fact]
+    public void GetPaged_UnknownStatus_ReturnsInvalidError()
+    {
+        var request = new GetAdminUsersRequestDto { Status = "LOCKED" };
+
+        var result = new GetAdminUsersRequestDtoValidator().TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor("status").WithErrorCode("STATUS_INVALID");
+    }
+
     private static CreateAdminUserRequestDto ValidCreateRequest() => new()
     {
         Username = "admin",

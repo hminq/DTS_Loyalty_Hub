@@ -55,6 +55,29 @@ public sealed class AuthController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<ApiResponseDto<CurrentAdminResponseDto>>> Me(CancellationToken ct)
+    {
+        if (!_adminSessionAccessor.TryGet(out var session))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _sender.Send(
+            AuthMapper.ToQuery(
+                session.UserId,
+                session.AdminId,
+                session.AdminSessionId,
+                session.AccessTokenJti),
+            ct);
+
+        return Ok(new ApiResponseDto<CurrentAdminResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
+    }
+
+    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(CancellationToken ct)
     {

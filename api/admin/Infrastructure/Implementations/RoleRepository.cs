@@ -62,6 +62,34 @@ public sealed class RoleRepository : IRoleRepository
             role.CreatedAt);
     }
 
+    public Task<RoleDetailResult?> GetDetailByIdAsync(
+        Guid roleId,
+        CancellationToken ct = default)
+    {
+        return _dbContext.Roles
+            .AsNoTracking()
+            .Where(role => role.RoleId == roleId)
+            .Select(role => new RoleDetailResult(
+                role.RoleId,
+                role.Name,
+                role.RolePermissions
+                    .OrderBy(rolePermission => rolePermission.Permission.GroupSortOrder)
+                    .ThenBy(rolePermission => rolePermission.Permission.GroupCode)
+                    .ThenBy(rolePermission => rolePermission.Permission.ActionSortOrder)
+                    .ThenBy(rolePermission => rolePermission.Permission.Code)
+                    .Select(rolePermission => new RolePermissionDetailResult(
+                        rolePermission.Permission.PermissionId,
+                        rolePermission.Permission.Code,
+                        rolePermission.Permission.Name,
+                        rolePermission.Permission.GroupCode,
+                        rolePermission.Permission.GroupName,
+                        rolePermission.Permission.GroupSortOrder,
+                        rolePermission.Permission.ActionSortOrder))
+                    .ToArray(),
+                role.CreatedAt))
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<PagedResult<RoleResult>> GetPagedAsync(
         int page,
         int pageSize,
@@ -98,6 +126,40 @@ public sealed class RoleRepository : IRoleRepository
             .ToArray();
 
         return new PagedResult<RoleResult>(
+            items,
+            page,
+            pageSize,
+            totalItems);
+    }
+
+    public async Task<PagedResult<RoleOptionResult>> GetOptionsPagedAsync(
+        int page,
+        int pageSize,
+        string? keyword,
+        CancellationToken ct = default)
+    {
+        var query = _dbContext.Roles
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var pattern = $"%{keyword.Trim()}%";
+            query = query.Where(role => EF.Functions.ILike(role.Name, pattern));
+        }
+
+        var totalItems = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderBy(role => role.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(role => new RoleOptionResult(
+                role.RoleId,
+                role.Name))
+            .ToArrayAsync(ct);
+
+        return new PagedResult<RoleOptionResult>(
             items,
             page,
             pageSize,
