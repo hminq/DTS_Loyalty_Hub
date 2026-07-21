@@ -1,3 +1,5 @@
+import i18n from '../i18n'
+
 export const fallbackErrorCodes = Object.freeze({
   network: 'NETWORK_ERROR',
   timeout: 'REQUEST_TIMEOUT',
@@ -20,7 +22,7 @@ export function normalizeApiError(error) {
     return {
       status: null,
       code: fallbackErrorCodes.timeout,
-      message: 'The request timed out.',
+      message: i18n.t('errors.requestTimeout'),
       details: [],
     }
   }
@@ -29,7 +31,7 @@ export function normalizeApiError(error) {
     return {
       status: null,
       code: fallbackErrorCodes.network,
-      message: 'Unable to connect to the server.',
+      message: i18n.t('errors.network'),
       details: [],
     }
   }
@@ -37,7 +39,7 @@ export function normalizeApiError(error) {
   return {
     status: error.response.status,
     code: fallbackErrorCodes.unknown,
-    message: 'An unexpected error occurred.',
+    message: i18n.t('errors.unexpected'),
     details: [],
   }
 }

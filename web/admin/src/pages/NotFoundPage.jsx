@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { BrandMark } from '../components/BrandMark'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button } from '../components/ui/button'
-import { logoutAdmin } from '../lib/logout'
+import { logoutSession } from '../lib/logout'
 
 function NotFoundPage() {
   const navigate = useNavigate()
@@ -31,7 +31,7 @@ function NotFoundPage() {
     setIsLoggingOut(true)
     setLogoutError('')
 
-    const result = await logoutAdmin()
+    const result = await logoutSession()
 
     setIsLoggingOut(false)
 

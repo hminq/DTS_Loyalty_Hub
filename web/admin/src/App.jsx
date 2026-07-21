@@ -13,9 +13,23 @@ import { Button } from './components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { RequireAuth } from './components/auth/RequireAuth'
+import { RequirePermission } from './components/auth/RequirePermission'
+import { PermissionCodes } from './constants/permissionCodes'
+import { AppLayout } from './layouts/AppLayout'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { FeaturePage } from './pages/FeaturePage'
+import { PermissionsPage } from './pages/PermissionsPage'
+import { RolesPage } from './pages/RolesPage'
+import { RoleDetailPage } from './pages/RoleDetailPage'
+import { CreateRolePage } from './pages/CreateRolePage'
+import { EditRolePage } from './pages/EditRolePage'
+import { SettingsPage } from './pages/SettingsPage'
+import { SupportPage } from './pages/SupportPage'
+import { AdminAccountsPage } from './pages/AdminAccountsPage'
+import { AdminAccountDetailPage } from './pages/AdminAccountDetailPage'
+import { CreateAdminAccountPage } from './pages/CreateAdminAccountPage'
 
 const colorTokens = [
   ['Foreground', 'bg-foreground'],
@@ -153,13 +167,142 @@ function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
-        path="/dashboard"
         element={
           <RequireAuth>
-            <DashboardPage />
+            <AppLayout />
           </RequireAuth>
         }
-      />
+      >
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route
+          path="roles"
+          element={
+            <RequirePermission permission={PermissionCodes.Roles.View}>
+              <RolesPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="roles/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.Roles.View,
+              PermissionCodes.Roles.Create,
+              PermissionCodes.Permissions.View,
+            ]}>
+              <CreateRolePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="roles/:roleId/edit"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.Roles.View,
+              PermissionCodes.Roles.Update,
+              PermissionCodes.Permissions.View,
+            ]}>
+              <EditRolePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="roles/:roleId"
+          element={
+            <RequirePermission permission={PermissionCodes.Roles.View}>
+              <RoleDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="permissions"
+          element={
+            <RequirePermission permission={PermissionCodes.Permissions.View}>
+              <PermissionsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="admin-accounts"
+          element={
+            <RequirePermission permission={PermissionCodes.AdminUsers.View}>
+              <AdminAccountsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="admin-accounts/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.AdminUsers.View,
+              PermissionCodes.AdminUsers.Create,
+              PermissionCodes.Roles.View,
+            ]}>
+              <CreateAdminAccountPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="admin-accounts/:adminId"
+          element={
+            <RequirePermission permission={PermissionCodes.AdminUsers.View}>
+              <AdminAccountDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route path="admin-users" element={<Navigate to="/admin-accounts" replace />} />
+        <Route
+          path="customer-accounts"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
+              <FeaturePage
+                eyebrowKey="features.accounts.eyebrow"
+                titleKey="features.customerUsers.title"
+                descriptionKey="features.customerUsers.description"
+              />
+            </RequirePermission>
+          }
+        />
+        <Route path="customer-users" element={<Navigate to="/customer-accounts" replace />} />
+        <Route
+          path="voucher-definitions"
+          element={
+            <RequirePermission permission={PermissionCodes.VoucherDefinitions.View}>
+              <FeaturePage
+                eyebrowKey="features.voucherDefinitions.eyebrow"
+                titleKey="features.voucherDefinitions.title"
+                descriptionKey="features.voucherDefinitions.description"
+              />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="tiers"
+          element={
+            <RequirePermission permission={PermissionCodes.Tiers.View}>
+              <FeaturePage
+                eyebrowKey="features.tiers.eyebrow"
+                titleKey="features.tiers.title"
+                descriptionKey="features.tiers.description"
+              />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="audit-logs"
+          element={
+            <RequirePermission permission={PermissionCodes.AuditLogs.View}>
+              <FeaturePage
+                eyebrowKey="features.auditLogs.eyebrow"
+                titleKey="features.auditLogs.title"
+                descriptionKey="features.auditLogs.description"
+              />
+            </RequirePermission>
+          }
+        />
+        <Route path="support" element={<SupportPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
       <Route path="/design-system" element={<DesignSystemPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
