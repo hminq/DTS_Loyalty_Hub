@@ -7,4 +7,13 @@ public static class AuditEntityTypes
     public const string TierConfig = "TierConfig";
     public const string VoucherDefinition = "VoucherDefinition";
     public const string NotificationTemplate = "NotificationTemplate";
+
+    public static IReadOnlyCollection<string> All { get; } =
+    [
+        Admin,
+        Role,
+        TierConfig,
+        VoucherDefinition,
+        NotificationTemplate
+    ];
 }
