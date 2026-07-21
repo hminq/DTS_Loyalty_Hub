@@ -15,7 +15,15 @@ public interface IRoleRepository
 
     Task<Role?> GetByIdAsync(Guid roleId, CancellationToken ct = default);
 
+    Task<RoleDetailResult?> GetDetailByIdAsync(Guid roleId, CancellationToken ct = default);
+
     Task<PagedResult<RoleResult>> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? keyword,
+        CancellationToken ct = default);
+
+    Task<PagedResult<RoleOptionResult>> GetOptionsPagedAsync(
         int page,
         int pageSize,
         string? keyword,

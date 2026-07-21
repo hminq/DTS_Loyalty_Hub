@@ -31,7 +31,7 @@ public sealed class NotificationEventTypesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = PermissionCodes.Notifications.ViewEventTypes)]
+    [Authorize(Policy = PermissionCodes.NotificationEventTypes.View)]
     public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationEventTypeResult>>>> GetList(
         [FromQuery] GetEventTypesRequestDto request,
         [FromServices] IValidator<GetEventTypesRequestDto> validator,

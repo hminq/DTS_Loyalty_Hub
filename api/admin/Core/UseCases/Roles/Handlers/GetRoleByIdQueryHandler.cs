@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Core.UseCases.Roles.Handlers;
 
-public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, RoleResult>
+public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, RoleDetailResult>
 {
     private readonly IRoleRepository _roleRepository;
 
@@ -15,7 +15,7 @@ public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, 
         _roleRepository = roleRepository;
     }
 
-    public async Task<RoleResult> Handle(GetRoleByIdQuery request, CancellationToken ct)
+    public async Task<RoleDetailResult> Handle(GetRoleByIdQuery request, CancellationToken ct)
     {
         if (request.RoleId == Guid.Empty)
         {
@@ -24,7 +24,7 @@ public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, 
                 DomainErrorType.Validation);
         }
 
-        var role = await _roleRepository.GetByIdAsync(request.RoleId, ct);
+        var role = await _roleRepository.GetDetailByIdAsync(request.RoleId, ct);
 
         if (role is null)
         {
@@ -33,10 +33,6 @@ public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, 
                 DomainErrorType.NotFound);
         }
 
-        return new RoleResult(
-            role.RoleId,
-            role.Name,
-            role.PermissionIds,
-            role.CreatedAt);
+        return role;
     }
 }

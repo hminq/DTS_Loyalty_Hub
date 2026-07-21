@@ -26,11 +26,11 @@ public static class PermissionCodes
         Tiers.Create,
         Tiers.Update,
         AuditLogs.View,
-        Notifications.ViewEventTypes,
-        Notifications.ViewTemplates,
-        Notifications.CreateTemplate,
-        Notifications.UpdateTemplate,
-        Notifications.ViewLogs,
+        NotificationEventTypes.View,
+        NotificationTemplates.View,
+        NotificationTemplates.Create,
+        NotificationTemplates.Update,
+        NotificationLogs.View,
         Media.Upload,
         VoucherDefinitions.View,
         VoucherDefinitions.Create,
@@ -119,13 +119,21 @@ public static class PermissionCodes
         public const string View = "audit_log.view";
     }
 
-    public static class Notifications
+    public static class NotificationEventTypes
     {
-        public const string ViewEventTypes = "notification.view_event_types";
-        public const string ViewTemplates = "notification.view_templates";
-        public const string CreateTemplate = "notification.create_template";
-        public const string UpdateTemplate = "notification.update_template";
-        public const string ViewLogs = "notification.view_logs";
+        public const string View = "notification_event_type.view";
+    }
+
+    public static class NotificationTemplates
+    {
+        public const string View = "notification_template.view";
+        public const string Create = "notification_template.create";
+        public const string Update = "notification_template.update";
+    }
+
+    public static class NotificationLogs
+    {
+        public const string View = "notification_log.view";
     }
 
     public static class Media

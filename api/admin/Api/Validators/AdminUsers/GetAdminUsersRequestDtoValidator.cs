@@ -1,4 +1,5 @@
 using Api.Dtos.Requests.AdminUsers;
+using Core.Entities.Constants;
 using FluentValidation;
 
 namespace Api.Validators.AdminUsers;
@@ -30,6 +31,10 @@ public sealed class GetAdminUsersRequestDtoValidator : AbstractValidator<GetAdmi
             .Cascade(CascadeMode.Stop)
             .MaximumLength(25)
             .WithErrorCode("STATUS_TOO_LONG")
+            .Must(status =>
+                string.Equals(status?.Trim(), UserStatus.Enable, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(status?.Trim(), UserStatus.Disable, StringComparison.OrdinalIgnoreCase))
+            .WithErrorCode("STATUS_INVALID")
             .When(request => request.Status is not null)
             .OverridePropertyName("status");
     }
