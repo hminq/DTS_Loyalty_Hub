@@ -5,7 +5,6 @@ using Api.Dtos.Responses;
 using Api.Dtos.Responses.Roles;
 using Api.Localization;
 using Api.Mappers;
-using Core.UseCases.Common;
 using Core.UseCases.Roles.Queries;
 using Core.UseCases.Roles.Results;
 using FluentAssertions;
@@ -23,6 +22,7 @@ public sealed class RolesControllerTests
     private readonly Mock<ISender> _sender = new();
     private readonly Mock<ICurrentAdminContext> _adminContext = new();
     private readonly Mock<IValidator<GetRolesRequestDto>> _getValidator = new();
+    private readonly Mock<IValidator<GetRoleOptionsRequestDto>> _getOptionsValidator = new();
     private readonly Mock<IValidator<CreateRoleRequestDto>> _createValidator = new();
     private readonly Mock<IValidator<UpdateRoleRequestDto>> _updateValidator = new();
 
@@ -36,6 +36,8 @@ public sealed class RolesControllerTests
             "Update Notification Template",
             "notification_template",
             "Notification Template",
+            "update",
+            "Update",
             91,
             30);
         var result = new RoleDetailResult(
@@ -63,26 +65,26 @@ public sealed class RolesControllerTests
             permission.Name,
             permission.GroupCode,
             permission.GroupName,
+            permission.ActionCode,
+            permission.ActionName,
             permission.GroupSortOrder,
             permission.ActionSortOrder
         });
     }
 
     [Fact]
-    public async Task GetOptions_ValidRequest_ReturnsMinimalPagedRoleOptions()
+    public async Task GetOptions_ValidRequest_ReturnsMinimalRoleOptionsWithoutPaging()
     {
-        var request = new GetRolesRequestDto
+        var request = new GetRoleOptionsRequestDto
         {
-            Page = 2,
-            PageSize = 10,
             Keyword = "admin"
         };
         var option = new RoleOptionResult(Guid.NewGuid(), "System Admin");
-        SetupValid(_getValidator);
+        SetupValid(_getOptionsValidator);
         _sender.Setup(sender => sender.Send(
                 It.IsAny<GetRoleOptionsQuery>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new PagedResult<RoleOptionResult>([option], 2, 10, 11));
+            .ReturnsAsync([option]);
         var controller = CreateController();
 
         var actionResult = await controller.GetOptions(request, CancellationToken.None);
@@ -95,14 +97,9 @@ public sealed class RolesControllerTests
             option.RoleId,
             option.Name
         });
-        response.Meta.Should().NotBeNull();
-        response.Meta!.Page.Should().Be(2);
-        response.Meta.TotalItems.Should().Be(11);
-        response.Meta.TotalPages.Should().Be(2);
+        response.Meta.Should().BeNull();
         _sender.Verify(sender => sender.Send(
             It.Is<GetRoleOptionsQuery>(query =>
-                query.Page == request.Page &&
-                query.PageSize == request.PageSize &&
                 query.Keyword == request.Keyword),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -110,23 +107,23 @@ public sealed class RolesControllerTests
     [Fact]
     public async Task GetOptions_InvalidRequest_ReturnsValidationWrapperWithoutSendingQuery()
     {
-        _getValidator.Setup(validator => validator.ValidateAsync(
-                It.IsAny<GetRolesRequestDto>(),
+        _getOptionsValidator.Setup(validator => validator.ValidateAsync(
+                It.IsAny<GetRoleOptionsRequestDto>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult([
-                new ValidationFailure("page", string.Empty) { ErrorCode = "PAGE_INVALID" }
+                new ValidationFailure("keyword", string.Empty) { ErrorCode = "KEYWORD_TOO_LONG" }
             ]));
         var controller = CreateController();
 
         var actionResult = await controller.GetOptions(
-            new GetRolesRequestDto { Page = 0 },
+            new GetRoleOptionsRequestDto { Keyword = new string('a', 101) },
             CancellationToken.None);
 
         var badRequest = actionResult.Result.Should().BeOfType<BadRequestObjectResult>().Which;
         var response = badRequest.Value.Should().BeOfType<ApiErrorResponseDto>().Which;
         response.Error.Code.Should().Be("VALIDATION_ERROR");
         response.Error.Details.Should().ContainSingle(detail =>
-            detail.Field == "page" && detail.Code == "PAGE_INVALID");
+            detail.Field == "keyword" && detail.Code == "KEYWORD_TOO_LONG");
         _sender.Verify(sender => sender.Send(
             It.IsAny<GetRoleOptionsQuery>(),
             It.IsAny<CancellationToken>()), Times.Never);
@@ -136,6 +133,7 @@ public sealed class RolesControllerTests
         _sender.Object,
         _adminContext.Object,
         _getValidator.Object,
+        _getOptionsValidator.Object,
         _createValidator.Object,
         _updateValidator.Object,
         CreateValidationErrorMapper());

@@ -22,6 +22,8 @@ public sealed class GetRoleByIdQueryHandlerTests
             "View Role",
             "role",
             "Role",
+            "view",
+            "View",
             10,
             10);
         var expected = new RoleDetailResult(
