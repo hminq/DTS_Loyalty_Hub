@@ -10,7 +10,7 @@ public class SchedulerWorker(ILogger<SchedulerWorker> logger) : BackgroundServic
             {
                 logger.LogInformation("Scheduler running at: {time}", DateTimeOffset.Now);
             }
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(30000, stoppingToken);
         }
     }
 }

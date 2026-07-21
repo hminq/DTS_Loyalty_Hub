@@ -400,13 +400,24 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.NextTierPoint)
                 .HasPrecision(18, 2)
                 .HasColumnName("next_tier_point");
+            entity.Property(e => e.StartTier)
+                 .HasColumnName("start_tier");
+
+            entity.Property(e => e.ExpiredTier)
+                .HasColumnName("expired_tier");
+
+            entity.Property(e => e.NextTierId)
+                .HasColumnName("next_tier_id");
             entity.Property(e => e.TierId).HasColumnName("tier_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.Tier).WithMany(p => p.Customers)
                 .HasForeignKey(d => d.TierId)
                 .HasConstraintName("fk_customer_tier");
-
+            entity.HasOne(d => d.NextTier)
+                .WithMany(p => p.NextTierCustomers)
+                .HasForeignKey(d => d.NextTierId)
+                .HasConstraintName("fk_customer_next_tier");
             entity.HasOne(d => d.User).WithOne(p => p.Customer)
                 .HasForeignKey<Customer>(d => d.UserId)
                 .HasConstraintName("fk_customer_user");
