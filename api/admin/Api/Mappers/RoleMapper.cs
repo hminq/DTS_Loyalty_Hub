@@ -18,6 +18,14 @@ public static class RoleMapper
             request.Keyword);
     }
 
+    public static GetRoleOptionsQuery ToOptionsQuery(this GetRolesRequestDto request)
+    {
+        return new GetRoleOptionsQuery(
+            request.Page,
+            request.PageSize,
+            request.Keyword);
+    }
+
     public static CreateRoleCommand ToCommand(this CreateRoleRequestDto request, Guid? actorUserId)
     {
         return new CreateRoleCommand(
@@ -46,10 +54,56 @@ public static class RoleMapper
         };
     }
 
+    public static RoleDetailResponseDto ToResponseDto(this RoleDetailResult result)
+    {
+        var permissions = result.Permissions
+            .Select(permission => new RolePermissionDetailResponseDto(
+                permission.PermissionId,
+                permission.Code,
+                permission.Name,
+                permission.GroupCode,
+                permission.GroupName,
+                permission.GroupSortOrder,
+                permission.ActionSortOrder))
+            .ToArray();
+
+        return new RoleDetailResponseDto(
+            result.RoleId,
+            result.Name,
+            permissions.Select(permission => permission.PermissionId).ToArray(),
+            permissions,
+            result.CreatedAt);
+    }
+
+    public static RoleOptionResponseDto ToResponseDto(this RoleOptionResult result)
+    {
+        return new RoleOptionResponseDto
+        {
+            RoleId = result.RoleId,
+            Name = result.Name
+        };
+    }
+
     public static ApiResponseDto<IReadOnlyCollection<RoleResponseDto>> ToPagedResponseDto(
         this PagedResult<RoleResult> result)
     {
         return new ApiResponseDto<IReadOnlyCollection<RoleResponseDto>>
+        {
+            Data = result.Items.Select(item => item.ToResponseDto()).ToArray(),
+            Meta = new ApiMetaDto
+            {
+                Page = result.Page,
+                PageSize = result.PageSize,
+                TotalItems = result.TotalItems,
+                TotalPages = result.TotalPages
+            }
+        };
+    }
+
+    public static ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>> ToPagedResponseDto(
+        this PagedResult<RoleOptionResult> result)
+    {
+        return new ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>>
         {
             Data = result.Items.Select(item => item.ToResponseDto()).ToArray(),
             Meta = new ApiMetaDto

@@ -48,7 +48,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestDtoValidator>()
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-builder.Services.AddScoped<ApiMessageResolver>();
+builder.Services.AddSingleton<ApiMessageResolver>();
 builder.Services.AddScoped<ValidationErrorMapper>();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {

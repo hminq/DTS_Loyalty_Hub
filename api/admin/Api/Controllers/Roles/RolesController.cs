@@ -59,15 +59,33 @@ public sealed class RolesController : ControllerBase
         return Ok(result.ToPagedResponseDto());
     }
 
+    [HttpGet("options")]
+    [Authorize(Policy = PermissionCodes.Roles.View)]
+    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>>>> GetOptions(
+        [FromQuery] GetRolesRequestDto request,
+        CancellationToken ct)
+    {
+        var validationResult = await _getRolesValidator.ValidateAsync(request, ct);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));
+        }
+
+        var result = await _sender.Send(request.ToOptionsQuery(), ct);
+
+        return Ok(result.ToPagedResponseDto());
+    }
+
     [HttpGet("{roleId:guid}")]
     [Authorize(Policy = PermissionCodes.Roles.View)]
-    public async Task<ActionResult<ApiResponseDto<RoleResponseDto>>> GetById(
+    public async Task<ActionResult<ApiResponseDto<RoleDetailResponseDto>>> GetById(
         Guid roleId,
         CancellationToken ct)
     {
         var result = await _sender.Send(new GetRoleByIdQuery(roleId), ct);
 
-        return Ok(new ApiResponseDto<RoleResponseDto>
+        return Ok(new ApiResponseDto<RoleDetailResponseDto>
         {
             Data = result.ToResponseDto()
         });
