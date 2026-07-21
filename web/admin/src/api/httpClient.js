@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { authEvents } from '../auth/authEvents'
+import { getAccessToken, removeAccessToken } from '../auth/tokenStorage'
 import { storageKeys } from '../config/storageKeys'
 import { normalizeApiError } from './apiError'
 
@@ -11,7 +13,7 @@ const httpClient = axios.create({
 })
 
 httpClient.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem(storageKeys.accessToken)
+  const accessToken = getAccessToken()
   const language = localStorage.getItem(storageKeys.language) || 'en' //default language
 
   config.headers['Accept-Language'] = language
@@ -25,7 +27,16 @@ httpClient.interceptors.request.use((config) => {
 
 httpClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(normalizeApiError(error)),
+  (error) => {
+    if (error.response?.status === 401) {
+      removeAccessToken()
+      window.dispatchEvent(new Event(authEvents.unauthorized))
+    } else if (error.response?.status === 403) {
+      window.dispatchEvent(new Event(authEvents.permissionsStale))
+    }
+
+    return Promise.reject(normalizeApiError(error))
+  },
 )
 
 export default httpClient

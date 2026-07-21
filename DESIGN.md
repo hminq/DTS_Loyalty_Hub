@@ -117,6 +117,8 @@ Cards are for dashboard data, forms, tables, and summaries.
 - Keep padding compact: usually `p-4`.
 - Do not put the whole page inside a giant card.
 - Metrics should be easy to scan: label, value, small trend badge.
+- Related identity and permission details share one card with clearly separated vertical sections.
+- Role detail uses the complete read-only permission matrix and marks only permissions assigned to that role.
 
 ## Tables
 

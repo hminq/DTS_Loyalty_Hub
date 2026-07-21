@@ -1,30 +1,39 @@
-import { CaretRightIcon } from '@phosphor-icons/react'
+import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
+
+import {
+  Breadcrumb as BreadcrumbRoot,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '../ui/breadcrumb'
 
 function Breadcrumb({ items }) {
   return (
-    <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
+    <BreadcrumbRoot>
+      <BreadcrumbList>
         {items.map((item, index) => {
           const isCurrent = index === items.length - 1
 
           return (
-            <li key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-1.5">
-              {index > 0 ? <CaretRightIcon size={12} className="shrink-0 text-muted-foreground/60" /> : null}
-              {isCurrent || !item.to ? (
-                <span className={isCurrent ? 'truncate text-foreground' : 'truncate'} aria-current={isCurrent ? 'page' : undefined}>
-                  {item.label}
-                </span>
-              ) : (
-                <Link className="truncate transition-colors hover:text-foreground" to={item.to}>
-                  {item.label}
-                </Link>
-              )}
-            </li>
+            <Fragment key={`${item.label}-${index}`}>
+              {index > 0 ? <BreadcrumbSeparator /> : null}
+              <BreadcrumbItem>
+                {isCurrent || !item.to ? (
+                  isCurrent
+                    ? <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    : <span className="truncate">{item.label}</span>
+                ) : (
+                  <BreadcrumbLink render={<Link to={item.to} />}>{item.label}</BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </Fragment>
           )
         })}
-      </ol>
-    </nav>
+      </BreadcrumbList>
+    </BreadcrumbRoot>
   )
 }
 

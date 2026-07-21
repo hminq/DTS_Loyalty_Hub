@@ -1,6 +1,8 @@
 import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 
 import { Input } from '../ui/input'
+import { Combobox } from '../ui/combobox'
+import { RoleSearchSelect } from '../roles/RoleSearchSelect'
 
 function AdminAccountsFilters({
   keyword,
@@ -9,9 +11,6 @@ function AdminAccountsFilters({
   onStatusChange,
   roleId,
   onRoleChange,
-  roleOptions,
-  isLoadingRoles,
-  roleOptionsError,
   canFilterByRole,
   t,
 }) {
@@ -36,39 +35,32 @@ function AdminAccountsFilters({
 
       <label className="grid gap-1.5 xl:w-44">
         <span className="text-xs font-medium">{t('adminAccounts.filters.statusLabel')}</span>
-        <select
-          className="h-9 w-full rounded-md border border-input bg-background px-3 text-[13px] shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
+        <Combobox
           value={status}
-          onChange={(event) => onStatusChange(event.target.value)}
-        >
-          <option value="">{t('adminAccounts.filters.allStatuses')}</option>
-          <option value="ENABLE">{t('adminAccounts.filters.enabled')}</option>
-          <option value="DISABLE">{t('adminAccounts.filters.disabled')}</option>
-        </select>
+          onValueChange={onStatusChange}
+          options={[
+            { value: 'ENABLE', label: t('adminAccounts.filters.enabled') },
+            { value: 'DISABLE', label: t('adminAccounts.filters.disabled') },
+          ]}
+          placeholder={t('adminAccounts.filters.allStatuses')}
+          emptyOptionLabel={t('adminAccounts.filters.allStatuses')}
+          searchPlaceholder={t('adminAccounts.filters.searchStatus')}
+          emptyText={t('adminAccounts.filters.noStatuses')}
+          ariaLabel={t('adminAccounts.filters.statusLabel')}
+        />
       </label>
 
       {canFilterByRole ? (
-        <label className="grid gap-1.5 xl:w-56">
+        <div className="grid gap-1.5 xl:w-56">
           <span className="text-xs font-medium">{t('adminAccounts.filters.roleLabel')}</span>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-[13px] shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50"
+          <RoleSearchSelect
             value={roleId}
-            onChange={(event) => onRoleChange(event.target.value)}
-            disabled={isLoadingRoles}
-          >
-            <option value="">
-              {isLoadingRoles
-                ? t('adminAccounts.filters.loadingRoles')
-                : t('adminAccounts.filters.allRoles')}
-            </option>
-            {roleOptions.map((role) => (
-              <option key={role.roleId} value={role.roleId}>{role.name}</option>
-            ))}
-          </select>
-          {roleOptionsError ? (
-            <span className="text-xs font-normal text-destructive">{roleOptionsError}</span>
-          ) : null}
-        </label>
+            onChange={onRoleChange}
+            placeholder={t('adminAccounts.filters.allRoles')}
+            emptyOptionLabel={t('adminAccounts.filters.allRoles')}
+            ariaLabel={t('adminAccounts.filters.roleLabel')}
+          />
+        </div>
       ) : null}
 
     </div>

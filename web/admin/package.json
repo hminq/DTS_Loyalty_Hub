@@ -9,13 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@phosphor-icons/react": "^2.1.10",
     "@reduxjs/toolkit": "2.12.0",
     "axios": "1.18.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "i18next": "^26.3.6",
     "react": "19.2.7",
+    "react-day-picker": "^10.0.1",
     "react-dom": "19.2.7",
     "react-i18next": "^17.0.10",
     "react-redux": "9.3.0",

@@ -3,30 +3,25 @@ import { useMemo } from 'react'
 
 import { cn } from '../../lib/utils'
 
-const primaryActionOrder = new Map([
-  ['view', 0],
-  ['create', 1],
-  ['update', 2],
-  ['delete', 3],
-])
-
 function PermissionMatrix({
   groups,
-  selectedPermissionIds = [],
+  selectedPermissionIds,
   onPermissionToggle,
   onPermissionGroupToggle,
   readOnly = false,
   labels,
 }) {
   const matrix = useMemo(() => buildPermissionMatrix(groups), [groups])
-  const selectedIds = useMemo(() => new Set(selectedPermissionIds), [selectedPermissionIds])
+  const selectedIds = useMemo(() => new Set(selectedPermissionIds ?? []), [selectedPermissionIds])
+  const showsReadOnlySelection = readOnly && selectedPermissionIds !== undefined
 
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       {readOnly ? (
         <div className="flex flex-wrap items-center gap-4 border-b border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-          <MatrixLegend active label={labels.defined} />
-          <MatrixLegend label={labels.notDefined} />
+          <MatrixLegend state="selected" label={showsReadOnlySelection ? labels.assigned : labels.defined} />
+          {showsReadOnlySelection ? <MatrixLegend state="unselected" label={labels.notAssigned} /> : null}
+          <MatrixLegend state="missing" label={labels.notDefined} />
         </div>
       ) : null}
 
@@ -41,15 +36,15 @@ function PermissionMatrix({
                     <SelectAllButton
                       label={labels.all}
                       ariaLabel={labels.selectAll}
-                      state={getSelectionState(matrix.allPermissionIds, selectedIds)}
+                      state={getSelectionState(matrix.allPermissionIds, selectedIds) === 'all' ? 'all' : 'none'}
                       onClick={() => onPermissionGroupToggle(matrix.allPermissionIds)}
                     />
                   </div>
                 )}
               </th>
               {matrix.actions.map((action) => (
-                <th key={action} className="min-w-24 px-2 py-2.5 text-center font-semibold">
-                  {labels.action(action)}
+                <th key={action.actionCode} className="min-w-24 px-2 py-2.5 text-center font-semibold">
+                  {action.actionName}
                 </th>
               ))}
             </tr>
@@ -74,14 +69,15 @@ function PermissionMatrix({
                   )}
                 </th>
                 {matrix.actions.map((action) => {
-                  const permission = row.permissionsByAction.get(action)
+                  const permission = row.permissionsByAction.get(action.actionCode)
 
                   return (
-                    <td key={action} className="px-2 py-2.5 text-center">
+                    <td key={action.actionCode} className="px-2 py-2.5 text-center">
                       <PermissionBox
                         permission={permission}
                         selected={permission ? selectedIds.has(permission.permissionId) : false}
                         readOnly={readOnly}
+                        showsReadOnlySelection={showsReadOnlySelection}
                         onToggle={onPermissionToggle}
                         labels={labels}
                       />
@@ -160,7 +156,7 @@ function getSelectionState(permissionIds, selectedIds) {
   return 'none'
 }
 
-function PermissionBox({ permission, selected, readOnly, onToggle, labels }) {
+function PermissionBox({ permission, selected, readOnly, showsReadOnlySelection, onToggle, labels }) {
   if (!permission) {
     return (
       <span
@@ -179,13 +175,20 @@ function PermissionBox({ permission, selected, readOnly, onToggle, labels }) {
     : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-primary'
 
   if (readOnly) {
+    const isChecked = !showsReadOnlySelection || selected
+
     return (
       <span
-        className="inline-grid size-6 place-items-center rounded border border-primary bg-primary text-primary-foreground shadow-xs"
+        className={cn(
+          'inline-grid size-6 place-items-center rounded border',
+          isChecked
+            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+            : 'border-border bg-background text-muted-foreground',
+        )}
         title={label}
-        aria-label={`${labels.defined}: ${permission.name}`}
+        aria-label={`${isChecked ? (labels.assigned ?? labels.defined) : labels.notAssigned}: ${permission.name}`}
       >
-        <CheckIcon size={13} weight="bold" />
+        {isChecked ? <CheckIcon size={13} weight="bold" /> : null}
       </span>
     )
   }
@@ -204,13 +207,20 @@ function PermissionBox({ permission, selected, readOnly, onToggle, labels }) {
   )
 }
 
-function MatrixLegend({ active = false, label }) {
+function MatrixLegend({ state, label }) {
+  const isSelected = state === 'selected'
+  const isMissing = state === 'missing'
+
   return (
     <span className="inline-flex items-center gap-2">
-      <span className={active
-        ? 'inline-grid size-4 place-items-center rounded border border-primary bg-primary text-primary-foreground'
-        : 'inline-grid size-4 place-items-center rounded border border-dashed border-border bg-muted/40 text-muted-foreground/50'}>
-        {active ? <CheckIcon size={9} weight="bold" /> : <MinusIcon size={8} />}
+      <span className={cn(
+        'inline-grid size-4 place-items-center rounded border',
+        isSelected && 'border-primary bg-primary text-primary-foreground',
+        state === 'unselected' && 'border-border bg-background text-muted-foreground',
+        isMissing && 'border-dashed border-border bg-muted/40 text-muted-foreground/50',
+      )}>
+        {isSelected ? <CheckIcon size={9} weight="bold" /> : null}
+        {isMissing ? <MinusIcon size={8} /> : null}
       </span>
       {label}
     </span>
@@ -218,28 +228,31 @@ function MatrixLegend({ active = false, label }) {
 }
 
 function buildPermissionMatrix(groups) {
-  const actionOrders = new Map()
+  const actionsByCode = new Map()
 
   groups.forEach((group) => {
     ;(group.permissions ?? []).forEach((permission) => {
-      const action = getAction(permission.code)
-      const currentOrder = actionOrders.get(action)
-      const nextOrder = permission.actionSortOrder ?? Number.MAX_SAFE_INTEGER
+      const actionCode = permission.actionCode
+      const candidate = {
+        actionCode,
+        actionName: permission.actionName,
+        actionSortOrder: permission.actionSortOrder ?? Number.MAX_SAFE_INTEGER,
+      }
+      const current = actionsByCode.get(actionCode)
 
-      if (currentOrder === undefined || nextOrder < currentOrder) {
-        actionOrders.set(action, nextOrder)
+      if (!current || compareActionMetadata(candidate, current) < 0) {
+        actionsByCode.set(actionCode, candidate)
       }
     })
   })
 
-  const actions = [...actionOrders.keys()].sort((left, right) =>
-    compareActions(left, right, actionOrders))
+  const actions = [...actionsByCode.values()].sort(compareActionMetadata)
 
   const rows = groups.map((group) => ({
     ...group,
     permissionIds: (group.permissions ?? []).map((permission) => permission.permissionId),
     permissionsByAction: new Map(
-      (group.permissions ?? []).map((permission) => [getAction(permission.code), permission]),
+      (group.permissions ?? []).map((permission) => [permission.actionCode, permission]),
     ),
   }))
 
@@ -250,35 +263,14 @@ function buildPermissionMatrix(groups) {
   }
 }
 
-function compareActions(left, right, actionOrders) {
-  const leftPrimaryOrder = primaryActionOrder.get(left)
-  const rightPrimaryOrder = primaryActionOrder.get(right)
+function compareActionMetadata(left, right) {
+  const orderDifference = left.actionSortOrder - right.actionSortOrder
+  if (orderDifference !== 0) return orderDifference
 
-  if (leftPrimaryOrder !== undefined || rightPrimaryOrder !== undefined) {
-    if (leftPrimaryOrder === undefined) return 1
-    if (rightPrimaryOrder === undefined) return -1
-    return leftPrimaryOrder - rightPrimaryOrder
-  }
+  const codeDifference = left.actionCode.localeCompare(right.actionCode)
+  if (codeDifference !== 0) return codeDifference
 
-  if (left === 'upload' || right === 'upload') {
-    if (left === right) return 0
-    return left === 'upload' ? 1 : -1
-  }
-
-  const orderDifference = actionOrders.get(left) - actionOrders.get(right)
-  return orderDifference || left.localeCompare(right)
+  return left.actionName.localeCompare(right.actionName)
 }
 
-function getAction(code) {
-  const separatorIndex = code.indexOf('.')
-  return separatorIndex >= 0 ? code.slice(separatorIndex + 1) : code
-}
-
-function humanizeAction(action) {
-  return action
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
-
-export { PermissionMatrix, humanizeAction }
+export { PermissionMatrix }

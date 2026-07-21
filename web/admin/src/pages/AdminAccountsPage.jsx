@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { getAdminAccounts } from '../api/adminAccountsApi'
-import { getAllRoleOptions } from '../api/rolesApi'
 import { AdminAccountsFilters } from '../components/admin-accounts/AdminAccountsFilters'
 import { AdminAccountsTable } from '../components/admin-accounts/AdminAccountsTable'
 import { ListPagination } from '../components/data-list/ListPagination'
@@ -31,10 +30,6 @@ function AdminAccountsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [loadError, setLoadError] = useState('')
-
-  const [roleOptions, setRoleOptions] = useState([])
-  const [isLoadingRoles, setIsLoadingRoles] = useState(false)
-  const [roleOptionsError, setRoleOptionsError] = useState('')
 
   const canViewRoles = hasPermission(PermissionCodes.Roles.View)
   const canCreateAccount = hasPermission(PermissionCodes.AdminUsers.Create) && canViewRoles
@@ -104,37 +99,11 @@ function AdminAccountsPage() {
     return () => { isCurrent = false }
   }, [keyword, page, pageSize, roleId, status])
 
-  useEffect(() => {
-    if (!canViewRoles) return undefined
-    let isCurrent = true
-
-    async function loadRoles() {
-      setIsLoadingRoles(true)
-      setRoleOptionsError('')
-
-      try {
-        const roles = await getAllRoleOptions()
-        if (!isCurrent) return
-
-        setRoleOptions(roles)
-      } catch (error) {
-        if (isCurrent) setRoleOptionsError(error.message || t('errors.loadRoleOptions'))
-      } finally {
-        if (isCurrent) setIsLoadingRoles(false)
-      }
-    }
-
-    loadRoles()
-    return () => { isCurrent = false }
-  }, [canViewRoles])
-
   function clearFilters() {
     setKeywordInput('')
     updateSearchParams({ keyword: '', status: '', roleId: '', page: 1 })
   }
 
-  const resultFrom = meta.totalItems === 0 ? 0 : ((meta.page - 1) * meta.pageSize) + 1
-  const resultTo = Math.min(meta.page * meta.pageSize, meta.totalItems)
   const showEmptyState = !isLoading && !loadError && accounts.length === 0
 
   return (
@@ -165,20 +134,12 @@ function AdminAccountsPage() {
           onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
           roleId={roleId}
           onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
-          roleOptions={roleOptions}
-          isLoadingRoles={isLoadingRoles}
-          roleOptionsError={roleOptionsError}
           canFilterByRole={canViewRoles}
           t={t}
         />
 
         {!showEmptyState ? (
           <>
-            <div className="flex items-center justify-between px-4 py-3">
-              <p className="text-xs text-muted-foreground">
-                {t('adminAccounts.summary', { from: resultFrom, to: resultTo, total: meta.totalItems })}
-              </p>
-            </div>
             <AdminAccountsTable
               accounts={accounts}
               isLoading={isLoading}

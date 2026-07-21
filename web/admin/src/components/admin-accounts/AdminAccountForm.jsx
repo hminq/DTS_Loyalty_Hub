@@ -5,6 +5,7 @@ import { toFieldErrorMap } from '../../api/apiError'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
 import { Input } from '../ui/input'
+import { RoleSearchSelect } from '../roles/RoleSearchSelect'
 
 const emptyForm = Object.freeze({
   username: '',
@@ -16,7 +17,7 @@ const emptyForm = Object.freeze({
   confirmPassword: '',
 })
 
-function AdminAccountForm({ onSubmit, onCancel, roleOptions, isLoadingRoles, roleOptionsError, t }) {
+function AdminAccountForm({ onSubmit, onCancel, t }) {
   const [form, setForm] = useState(emptyForm)
   const [fieldErrors, setFieldErrors] = useState({})
   const [formError, setFormError] = useState('')
@@ -85,20 +86,17 @@ function AdminAccountForm({ onSubmit, onCancel, roleOptions, isLoadingRoles, rol
             <Input type="tel" value={form.phoneNumber} onChange={(event) => updateField('phoneNumber', event.target.value)} placeholder={t('adminAccounts.form.phoneNumberPlaceholder')} maxLength={15} aria-invalid={Boolean(fieldErrors.phoneNumber)} />
           </FormField>
 
-          <label className="flex flex-col gap-1.5 text-xs font-medium sm:col-span-2">
-            {t('adminAccounts.form.role')}
-            <select
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-[13px] shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50"
+          <div className="flex flex-col gap-1.5 text-xs font-medium sm:col-span-2">
+            <span>{t('adminAccounts.form.role')}</span>
+            <RoleSearchSelect
               value={form.roleId}
-              onChange={(event) => updateField('roleId', event.target.value)}
-              disabled={isLoadingRoles}
-              aria-invalid={Boolean(roleOptionsError || fieldErrors.roleId)}
-            >
-              <option value="">{isLoadingRoles ? t('adminAccounts.filters.loadingRoles') : t('adminAccounts.filters.chooseRole')}</option>
-              {roleOptions.map((role) => <option key={role.roleId} value={role.roleId}>{role.name}</option>)}
-            </select>
-            {roleOptionsError || fieldErrors.roleId ? <span className="font-normal text-destructive">{roleOptionsError || fieldErrors.roleId}</span> : null}
-          </label>
+              onChange={(roleId) => updateField('roleId', roleId)}
+              placeholder={t('adminAccounts.filters.chooseRole')}
+              invalid={Boolean(fieldErrors.roleId)}
+              ariaLabel={t('adminAccounts.form.role')}
+            />
+            {fieldErrors.roleId ? <span className="font-normal text-destructive">{fieldErrors.roleId}</span> : null}
+          </div>
 
           <FormField label={t('adminAccounts.form.password')} error={fieldErrors.password}>
             <PasswordInput value={form.password} onChange={(value) => updateField('password', value)} placeholder={t('adminAccounts.form.passwordPlaceholder')} visible={showPassword} onToggle={() => setShowPassword((current) => !current)} />
@@ -109,7 +107,7 @@ function AdminAccountForm({ onSubmit, onCancel, roleOptions, isLoadingRoles, rol
 
           <div className="flex justify-end gap-2 border-t border-border pt-4 sm:col-span-2">
             <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>{t('adminAccounts.cancel')}</Button>
-            <Button type="submit" disabled={isSubmitting || isLoadingRoles || Boolean(roleOptionsError)}>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? t('adminAccounts.submitting') : t('adminAccounts.submit')}
             </Button>
           </div>

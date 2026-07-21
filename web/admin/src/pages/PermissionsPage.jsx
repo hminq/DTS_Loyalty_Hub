@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getPermissions } from '../api/permissionsApi'
-import { PermissionMatrix, humanizeAction } from '../components/permissions/PermissionMatrix'
+import { PermissionMatrix } from '../components/permissions/PermissionMatrix'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Card, CardContent } from '../components/ui/card'
 
@@ -68,7 +68,6 @@ function PermissionsPage() {
                 group: t('permissions.matrix.group'),
                 defined: t('permissions.matrix.defined'),
                 notDefined: t('permissions.matrix.notDefined'),
-                action: (action) => t(`permissions.actions.${action}`, { defaultValue: humanizeAction(action) }),
               }}
             />
           )}
