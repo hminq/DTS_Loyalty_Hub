@@ -8,5 +8,9 @@ public sealed class PermissionResponseDto
 
     public string Name { get; set; } = null!;
 
+    public string ActionCode { get; set; } = null!;
+
+    public string ActionName { get; set; } = null!;
+
     public int ActionSortOrder { get; set; }
 }

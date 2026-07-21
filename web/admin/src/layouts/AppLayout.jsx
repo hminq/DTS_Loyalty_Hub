@@ -4,18 +4,20 @@ import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router-dom'
 
 import { getCurrentAdmin } from '../api/authApi'
+import { useAuth } from '../auth/AuthContext'
+import { authEvents } from '../auth/authEvents'
 import { Sidebar } from '../components/layout/Sidebar'
 import { Button } from '../components/ui/button'
-import { storageKeys } from '../config/storageKeys'
 import { getVisibleNavigation, navigationItems } from '../constants/navigation'
 import { logoutSession } from '../lib/logout'
 
 function AppLayout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { clearAccessToken } = useAuth()
   const [currentAdmin, setCurrentAdmin] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState('')
+  const [loadError, setLoadError] = useState(null)
   const [logoutError, setLogoutError] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const permissionCodes = currentAdmin?.permissions ?? []
@@ -28,19 +30,18 @@ function AppLayout() {
     try {
       const admin = await getCurrentAdmin()
       setCurrentAdmin(admin)
-      setLoadError('')
+      setLoadError(null)
       return admin
     } catch (error) {
       if (error.status === 401) {
-        localStorage.removeItem(storageKeys.accessToken)
-        navigate('/login', { replace: true })
+        clearAccessToken()
         return null
       }
 
-      setLoadError(error.message || t('errors.loadCurrentAccount'))
+      setLoadError(error)
       throw error
     }
-  }, [navigate, t])
+  }, [clearAccessToken])
 
   useEffect(() => {
     let isMounted = true
@@ -61,6 +62,22 @@ function AppLayout() {
     return () => { isMounted = false }
   }, [refreshCurrentAdmin])
 
+  useEffect(() => {
+    function refreshPermissions() {
+      refreshCurrentAdmin().catch(() => {
+        // refreshCurrentAdmin owns the visible error state.
+      })
+    }
+
+    window.addEventListener(authEvents.permissionsStale, refreshPermissions)
+    window.addEventListener('focus', refreshPermissions)
+
+    return () => {
+      window.removeEventListener(authEvents.permissionsStale, refreshPermissions)
+      window.removeEventListener('focus', refreshPermissions)
+    }
+  }, [refreshCurrentAdmin])
+
   async function handleLogout() {
     setIsLoggingOut(true)
     setLogoutError('')
@@ -70,6 +87,7 @@ function AppLayout() {
     setIsLoggingOut(false)
 
     if (result.ok) {
+      clearAccessToken()
       navigate('/login', { replace: true })
       return
     }
@@ -117,7 +135,7 @@ function AppLayout() {
           ) : null}
           {loadError ? (
             <p className="mb-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
-              {loadError}
+              {loadError.message || t('errors.loadCurrentAccount')}
             </p>
           ) : null}
 

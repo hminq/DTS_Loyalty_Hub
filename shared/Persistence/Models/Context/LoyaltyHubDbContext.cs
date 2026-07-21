@@ -494,13 +494,22 @@ public partial class LoyaltyHubDbContext : DbContext
         {
             entity.HasKey(e => e.PermissionId).HasName("permissions_pkey");
 
-            entity.ToTable("permissions");
+            entity.ToTable("permissions", table => table.HasCheckConstraint(
+                "ck_permissions_code_group_action",
+                "code = group_code || '.' || action_code"));
 
             entity.HasIndex(e => e.Code, "uq_permissions_code").IsUnique();
+            entity.HasIndex(e => new { e.GroupCode, e.ActionCode }, "uq_permissions_group_action").IsUnique();
 
             entity.Property(e => e.PermissionId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("permission_id");
+            entity.Property(e => e.ActionCode)
+                .HasMaxLength(50)
+                .HasColumnName("action_code");
+            entity.Property(e => e.ActionName)
+                .HasMaxLength(100)
+                .HasColumnName("action_name");
             entity.Property(e => e.ActionSortOrder).HasColumnName("action_sort_order");
             entity.Property(e => e.Code)
                 .HasMaxLength(100)

@@ -15,8 +15,6 @@ namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class CreateNotificationTemplateCommandHandler : IRequestHandler<CreateNotificationTemplateCommand, NotificationTemplateResult>
 {
-    private const string AuditLogCreateAction = "CREATE";
-
     private readonly INotificationTemplateRepository _templateRepository;
     private readonly INotificationEventTypeRepository _eventTypeRepository;
     private readonly IAuditLogWriter _auditLogWriter;
@@ -54,7 +52,7 @@ public sealed class CreateNotificationTemplateCommandHandler : IRequestHandler<C
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,
-            AuditLogCreateAction,
+            AuditActions.Create,
             AuditEntityTypes.NotificationTemplate,
             createdTemplate.TemplateId,
             null,

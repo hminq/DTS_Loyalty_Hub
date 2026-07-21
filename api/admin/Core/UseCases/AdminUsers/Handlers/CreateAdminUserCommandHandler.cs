@@ -83,7 +83,7 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
             role);
 
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "CREATE", AuditEntityTypes.Admin, adminId, null,
+            request.ActorUserId, AuditActions.Create, AuditEntityTypes.Admin, adminId, null,
             JsonSerializer.Serialize(new { adminId, userId, username, email, fullName, phoneNumber, roleId = request.RoleId, status = createdAdmin.Status }),
             null));
 

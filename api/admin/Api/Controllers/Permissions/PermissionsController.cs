@@ -11,7 +11,7 @@ namespace Api.Controllers.Permissions;
 
 [ApiController]
 [Route("api/admin/permissions")]
-[Authorize(Policy = PermissionCodes.Permissions.View)]
+[Authorize(Policy = PermissionCodes.Roles.View)]
 public sealed class PermissionsController : ControllerBase
 {
     private readonly ISender _sender;

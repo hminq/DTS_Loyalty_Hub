@@ -46,7 +46,7 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
 
         await _roleRepository.DeleteAsync(request.RoleId, ct);
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "DELETE", AuditEntityTypes.Role, request.RoleId,
+            request.ActorUserId, AuditActions.Delete, AuditEntityTypes.Role, request.RoleId,
             JsonSerializer.Serialize(new { roleId = role.RoleId, name = role.Name, permissionIds = role.PermissionIds }), null, null));
     }
 }

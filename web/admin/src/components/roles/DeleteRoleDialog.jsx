@@ -1,21 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../ui/button'
 
 function DeleteRoleDialog({ role, onClose, onConfirm }) {
   const { t } = useTranslation()
+  const dialogRef = useRef(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     setErrorMessage('')
     setIsDeleting(false)
+
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (role && !dialog.open) {
+      dialog.showModal()
+    } else if (!role && dialog.open) {
+      dialog.close()
+    }
   }, [role])
 
-  if (!role) return null
-
   async function handleConfirm() {
+    if (!role) return
+
     setIsDeleting(true)
     setErrorMessage('')
 
@@ -27,18 +37,31 @@ function DeleteRoleDialog({ role, onClose, onConfirm }) {
     }
   }
 
+  function handleCancel(event) {
+    event.preventDefault()
+    if (!isDeleting) onClose()
+  }
+
+  function handleBackdropClick(event) {
+    if (event.target === event.currentTarget && !isDeleting) {
+      onClose()
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/45 px-4" role="presentation">
-      <section
-        className="w-full max-w-md rounded-xl border border-border bg-background p-5 shadow-2xl"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="delete-role-title"
-        aria-describedby="delete-role-description"
-      >
+    <dialog
+      ref={dialogRef}
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-border bg-background p-0 text-foreground shadow-2xl backdrop:bg-foreground/45"
+      role="alertdialog"
+      aria-labelledby="delete-role-title"
+      aria-describedby="delete-role-description"
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+    >
+      <section className="p-5">
         <h2 id="delete-role-title" className="text-base font-semibold tracking-tight">{t('roles.delete.title')}</h2>
         <p id="delete-role-description" className="mt-2 text-[13px] leading-5 text-muted-foreground">
-          {t('roles.delete.description', { name: role.name })}
+          {t('roles.delete.description', { name: role?.name ?? '' })}
         </p>
         {errorMessage ? (
           <p className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-[13px] font-medium text-destructive">
@@ -52,7 +75,7 @@ function DeleteRoleDialog({ role, onClose, onConfirm }) {
           </Button>
         </div>
       </section>
-    </div>
+    </dialog>
   )
 }
 

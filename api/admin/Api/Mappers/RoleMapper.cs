@@ -18,12 +18,9 @@ public static class RoleMapper
             request.Keyword);
     }
 
-    public static GetRoleOptionsQuery ToOptionsQuery(this GetRolesRequestDto request)
+    public static GetRoleOptionsQuery ToQuery(this GetRoleOptionsRequestDto request)
     {
-        return new GetRoleOptionsQuery(
-            request.Page,
-            request.PageSize,
-            request.Keyword);
+        return new GetRoleOptionsQuery(request.Keyword);
     }
 
     public static CreateRoleCommand ToCommand(this CreateRoleRequestDto request, Guid? actorUserId)
@@ -63,6 +60,8 @@ public static class RoleMapper
                 permission.Name,
                 permission.GroupCode,
                 permission.GroupName,
+                permission.ActionCode,
+                permission.ActionName,
                 permission.GroupSortOrder,
                 permission.ActionSortOrder))
             .ToArray();
@@ -100,19 +99,12 @@ public static class RoleMapper
         };
     }
 
-    public static ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>> ToPagedResponseDto(
-        this PagedResult<RoleOptionResult> result)
+    public static ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>> ToResponseDto(
+        this IReadOnlyCollection<RoleOptionResult> result)
     {
         return new ApiResponseDto<IReadOnlyCollection<RoleOptionResponseDto>>
         {
-            Data = result.Items.Select(item => item.ToResponseDto()).ToArray(),
-            Meta = new ApiMetaDto
-            {
-                Page = result.Page,
-                PageSize = result.PageSize,
-                TotalItems = result.TotalItems,
-                TotalPages = result.TotalPages
-            }
+            Data = result.Select(item => item.ToResponseDto()).ToArray()
         };
     }
 }

@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 
+import { getPermissions } from '../api/permissionsApi'
 import { deleteRole, getRole } from '../api/rolesApi'
 import { DeleteRoleDialog } from '../components/roles/DeleteRoleDialog'
 import { formatDateTime } from '../components/roles/RolesTable'
 import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
+import { PermissionMatrix } from '../components/permissions/PermissionMatrix'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
@@ -21,22 +23,42 @@ function RoleDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const permissionGroups = useMemo(() => groupPermissions(role?.permissions ?? []), [role])
+  const [permissionGroups, setPermissionGroups] = useState([])
+  const [isPermissionsLoading, setIsPermissionsLoading] = useState(false)
+  const [permissionErrorMessage, setPermissionErrorMessage] = useState('')
   const canEdit = hasPermission(PermissionCodes.Roles.Update)
-    && hasPermission(PermissionCodes.Permissions.View)
   const canDelete = hasPermission(PermissionCodes.Roles.Delete)
 
   useEffect(() => {
     let isCurrent = true
 
     async function loadRole() {
+      setIsLoading(true)
+      setErrorMessage('')
+      setRole(null)
+      setPermissionGroups([])
+      setIsPermissionsLoading(false)
+      setPermissionErrorMessage('')
+
       try {
-        const result = await getRole(roleId)
-        if (isCurrent) setRole(result)
+        const roleResult = await getRole(roleId)
+        if (!isCurrent) return
+        setRole(roleResult)
       } catch (error) {
         if (isCurrent) setErrorMessage(error.message || t('errors.loadRole'))
+        return
       } finally {
         if (isCurrent) setIsLoading(false)
+      }
+
+      setIsPermissionsLoading(true)
+      try {
+        const groups = await getPermissions()
+        if (isCurrent) setPermissionGroups(groups ?? [])
+      } catch (error) {
+        if (isCurrent) setPermissionErrorMessage(error.message || t('errors.loadPermissions'))
+      } finally {
+        if (isCurrent) setIsPermissionsLoading(false)
       }
     }
 
@@ -91,38 +113,42 @@ function RoleDetailPage() {
       {isLoading ? <p className="mt-5 text-[13px] text-muted-foreground">{t('roles.detail.loading')}</p> : null}
 
       {role ? (
-        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
-          <Card className="rounded-xl border-border/80 shadow-none">
+        <Card className="mt-5 rounded-xl border-border/80 shadow-none">
+          <section>
             <CardHeader><CardTitle>{t('roles.detail.identity')}</CardTitle></CardHeader>
-            <CardContent className="grid gap-4 text-[13px]">
+            <CardContent className="grid gap-4 text-[13px] sm:grid-cols-3">
               <DetailItem label={t('roles.detail.name')} value={role.name} />
               <DetailItem label={t('roles.detail.id')} value={role.roleId} mono />
               <DetailItem label={t('roles.detail.createdAt')} value={formatDateTime(role.createdAt, i18n.resolvedLanguage)} />
             </CardContent>
-          </Card>
+          </section>
 
-          <Card className="rounded-xl border-border/80 shadow-none">
+          <section className="border-t border-border">
             <CardHeader><CardTitle>{t('roles.detail.permissions')}</CardTitle></CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {permissionGroups.length === 0 ? <p className="text-[13px] text-muted-foreground">{t('roles.detail.noPermissions')}</p> : permissionGroups.map((group) => (
-                <section key={group.groupCode} className="rounded-lg border border-border p-3">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-xs font-semibold">{group.groupName}</h3>
-                    <code className="text-[11px] text-muted-foreground">{group.groupCode}</code>
-                  </div>
-                  <div className="mt-3 grid gap-2">
-                    {group.permissions.map((permission) => (
-                      <div key={permission.permissionId} className="rounded-md bg-muted/55 px-3 py-2">
-                        <p className="text-xs font-medium">{permission.name}</p>
-                        <code className="mt-0.5 block text-[11px] text-muted-foreground">{permission.code}</code>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
+            <CardContent>
+              {isPermissionsLoading ? (
+                <p className="text-[13px] text-muted-foreground">{t('permissions.loading')}</p>
+              ) : permissionErrorMessage ? (
+                <p className="text-[13px] font-medium text-destructive">{permissionErrorMessage}</p>
+              ) : permissionGroups.length === 0 ? (
+                <p className="text-[13px] text-muted-foreground">{t('permissions.empty')}</p>
+              ) : (
+                <PermissionMatrix
+                  groups={permissionGroups}
+                  selectedPermissionIds={role.permissionIds ?? []}
+                  readOnly
+                  labels={{
+                    group: t('permissions.matrix.group'),
+                    assigned: t('permissions.matrix.assigned'),
+                    notAssigned: t('permissions.matrix.notAssigned'),
+                    defined: t('permissions.matrix.defined'),
+                    notDefined: t('permissions.matrix.notDefined'),
+                  }}
+                />
+              )}
             </CardContent>
-          </Card>
-        </div>
+          </section>
+        </Card>
       ) : null}
 
       <DeleteRoleDialog role={deleteOpen ? role : null} onClose={() => setDeleteOpen(false)} onConfirm={handleDelete} />
@@ -137,30 +163,6 @@ function DetailItem({ label, value, mono = false }) {
       <dd className={mono ? 'mt-1 break-all font-mono text-xs' : 'mt-1 font-medium'}>{value}</dd>
     </div>
   )
-}
-
-function groupPermissions(permissions) {
-  const groups = new Map()
-
-  permissions.forEach((permission) => {
-    if (!groups.has(permission.groupCode)) {
-      groups.set(permission.groupCode, {
-        groupCode: permission.groupCode,
-        groupName: permission.groupName,
-        sortOrder: permission.groupSortOrder,
-        permissions: [],
-      })
-    }
-    groups.get(permission.groupCode).permissions.push(permission)
-  })
-
-  return [...groups.values()]
-    .sort((left, right) => left.sortOrder - right.sortOrder || left.groupName.localeCompare(right.groupName))
-    .map((group) => ({
-      ...group,
-      permissions: group.permissions.sort((left, right) =>
-        left.actionSortOrder - right.actionSortOrder || left.code.localeCompare(right.code)),
-    }))
 }
 
 export { RoleDetailPage }

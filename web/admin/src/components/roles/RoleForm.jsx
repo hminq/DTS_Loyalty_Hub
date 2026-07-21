@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { toFieldErrorMap } from '../../api/apiError'
-import { humanizeAction, PermissionMatrix } from '../permissions/PermissionMatrix'
+import { PermissionMatrix } from '../permissions/PermissionMatrix'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
 import { Input } from '../ui/input'
@@ -112,7 +112,6 @@ function RoleForm({ initialValues, permissionGroups, submitLabel, submittingLabe
                 selectGroup: (groupName) => t('permissions.matrix.selectGroup', { groupName }),
                 defined: t('permissions.matrix.defined'),
                 notDefined: t('permissions.matrix.notDefined'),
-                action: (action) => t(`permissions.actions.${action}`, { defaultValue: humanizeAction(action) }),
               }}
             />
             {fieldErrors.permissionIds ? <span className="text-xs text-destructive">{fieldErrors.permissionIds}</span> : null}

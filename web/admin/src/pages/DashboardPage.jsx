@@ -51,7 +51,7 @@ function DashboardPage() {
                   <div className="grid size-10 place-items-center rounded-xl bg-muted text-primary">
                     <Icon size={21} weight="duotone" />
                   </div>
-                  <Badge className="px-2 py-0 text-[11px]" variant="success">
+                  <Badge variant="success">
                     <ArrowUpRightIcon size={13} weight="bold" />
                     {card.delta}
                   </Badge>
@@ -90,10 +90,7 @@ function DashboardPage() {
                       <td className="px-3 py-3 font-medium">{row.name}</td>
                       <td className="px-3 py-3 text-muted-foreground">{row.type}</td>
                       <td className="px-3 py-3">
-                        <Badge
-                          className="px-2 py-0 text-[11px]"
-                          variant={row.status === 'Active' ? 'success' : 'secondary'}
-                        >
+                        <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>
                           {row.status}
                         </Badge>
                       </td>

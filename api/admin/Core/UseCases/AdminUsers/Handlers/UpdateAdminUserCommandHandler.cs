@@ -97,7 +97,7 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
             role);
 
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "UPDATE", AuditEntityTypes.Admin, request.AdminId,
+            request.ActorUserId, AuditActions.Update, AuditEntityTypes.Admin, request.AdminId,
             JsonSerializer.Serialize(new { existingAdmin.Email, existingAdmin.FullName, existingAdmin.PhoneNumber, existingAdmin.RoleId }),
             JsonSerializer.Serialize(new { email, fullName, phoneNumber, roleId = request.RoleId }), null));
 
