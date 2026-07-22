@@ -3,5 +3,11 @@ using MediatR;
 
 namespace Core.Requests;
 
-public sealed record ProcessExpiredCustomerTiersCommand(DateTime ProcessedAt)
-    : IRequest<int>, ITransactionalRequest;
+public sealed record ProcessExpiredCustomerTierBatchCommand(
+    DateTime ProcessedAt,
+    int BatchSize)
+    : IRequest<ProcessExpiredCustomerTierBatchResult>, ITransactionalRequest;
+
+public sealed record ProcessExpiredCustomerTierBatchResult(
+    int SelectedCount,
+    int ProcessedCount);

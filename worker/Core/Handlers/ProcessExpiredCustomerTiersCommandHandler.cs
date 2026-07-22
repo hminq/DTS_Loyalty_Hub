@@ -1,16 +1,17 @@
 using Core.Abstractions;
+using Core.Entities;
 using Core.Requests;
 using MediatR;
 
 namespace Core.Handlers;
 
-public sealed class ProcessExpiredCustomerTiersCommandHandler
-    : IRequestHandler<ProcessExpiredCustomerTiersCommand, int>
+public sealed class ProcessExpiredCustomerTierBatchCommandHandler
+    : IRequestHandler<ProcessExpiredCustomerTierBatchCommand, ProcessExpiredCustomerTierBatchResult>
 {
     private readonly ICustomerTierRepository _repository;
     private readonly ICustomerTierMutationStore _mutationStore;
 
-    public ProcessExpiredCustomerTiersCommandHandler(
+    public ProcessExpiredCustomerTierBatchCommandHandler(
         ICustomerTierRepository repository,
         ICustomerTierMutationStore mutationStore)
     {
@@ -18,17 +19,25 @@ public sealed class ProcessExpiredCustomerTiersCommandHandler
         _mutationStore = mutationStore;
     }
 
-    public async Task<int> Handle(
-        ProcessExpiredCustomerTiersCommand request,
+    public async Task<ProcessExpiredCustomerTierBatchResult> Handle(
+        ProcessExpiredCustomerTierBatchCommand request,
         CancellationToken cancellationToken)
     {
+        if (request.BatchSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(request.BatchSize),
+                request.BatchSize,
+                "Batch size must be greater than zero.");
+        }
+
         var tiers = (await _repository.GetTierConfigurationsAsync(cancellationToken))
             .OrderBy(tier => tier.Priority)
             .ToArray();
 
         if (tiers.Length == 0)
         {
-            return 0;
+            return new ProcessExpiredCustomerTierBatchResult(0, 0);
         }
 
         var tierIndexById = tiers
@@ -37,16 +46,18 @@ public sealed class ProcessExpiredCustomerTiersCommandHandler
 
         var expiredCustomers = await _repository.GetExpiredCustomersAsync(
             request.ProcessedAt,
+            request.BatchSize,
             cancellationToken);
 
-        var processedCount = 0;
+        var mutations = new List<CustomerTierExpirationMutation>(expiredCustomers.Count);
         foreach (var customer in expiredCustomers)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (!tierIndexById.TryGetValue(customer.TierConfigId, out var currentTierIndex))
             {
-                continue;
+                throw new InvalidOperationException(
+                    $"Customer '{customer.CustomerId}' references missing tier configuration '{customer.TierConfigId}'.");
             }
 
             var targetTierIndex = Math.Max(0, currentTierIndex - 1);
@@ -55,35 +66,24 @@ public sealed class ProcessExpiredCustomerTiersCommandHandler
                 ? tiers[targetTierIndex + 1]
                 : null;
 
-            if (currentTierIndex == 0)
-            {
-                await _mutationStore.ResetToMinTierAsync(
-                    customer.CustomerId,
-                    request.ProcessedAt,
-                    request.ProcessedAt.AddMonths(targetTier.CycleMonth),
-                    nextTier?.TierConfigId,
-                    nextTier?.PointsRequired ?? targetTier.PointsRequired,
-                    customer.CurrentTierPoint,
-                    cancellationToken);
-            }
-            else
-            {
-                await _mutationStore.DowngradeTierAsync(
-                    customer.CustomerId,
-                    targetTier.TierConfigId,
-                    targetTier.PointsRequired,
-                    request.ProcessedAt,
-                    request.ProcessedAt.AddMonths(targetTier.CycleMonth),
-                    nextTier?.TierConfigId,
-                    nextTier?.PointsRequired ?? targetTier.PointsRequired,
-                    customer.CurrentTierPoint,
-                    targetTier.PointsRequired,
-                    cancellationToken);
-            }
-
-            processedCount++;
+            mutations.Add(new CustomerTierExpirationMutation(
+                customer.CustomerId,
+                targetTier.TierConfigId,
+                currentTierIndex == 0 ? 0 : targetTier.PointsRequired,
+                request.ProcessedAt,
+                request.ProcessedAt.AddMonths(targetTier.CycleMonth),
+                nextTier?.TierConfigId,
+                nextTier?.PointsRequired ?? targetTier.PointsRequired,
+                customer.CurrentTierPoint));
         }
 
-        return processedCount;
+        await _mutationStore.ApplyBatchAsync(
+            mutations,
+            request.ProcessedAt,
+            cancellationToken);
+
+        return new ProcessExpiredCustomerTierBatchResult(
+            expiredCustomers.Count,
+            mutations.Count);
     }
 }

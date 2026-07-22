@@ -16,113 +16,123 @@ public sealed class CustomerTierMutationStore : ICustomerTierMutationStore
         _dbContext = dbContext;
     }
 
-    public async Task ResetToMinTierAsync(
-        Guid customerId,
-        DateTime startTier,
-        DateTime expiredTier,
-        Guid? nextTierConfigId,
-        decimal nextTierPoint,
-        decimal tierPointBefore,
+    public async Task ApplyBatchAsync(
+        IReadOnlyList<CustomerTierExpirationMutation> mutations,
+        DateTime processedAt,
         CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
-
-        var customer = await _dbContext.Customers
-            .FirstAsync(c => c.CustomerId == customerId, cancellationToken);
-
-        customer.CurrentTierPoint = 0;
-        customer.StartTier = startTier;
-        customer.ExpiredTier = expiredTier;
-        customer.NextTierId = nextTierConfigId;
-        customer.NextTierPoint = nextTierPoint;
-
-        // Đã ở hạng sàn nhưng vẫn hết chu kỳ -> vẫn mất active point + ghi log, y như downgrade.
-        await ApplyPointLossAsync(customerId, tierPointBefore, tierPointAfter: 0, now, cancellationToken);
-    }
-
-    public async Task DowngradeTierAsync(
-        Guid customerId,
-        Guid newTierConfigId,
-        decimal newCurrentTierPoint,
-        DateTime startTier,
-        DateTime expiredTier,
-        Guid? nextTierConfigId,
-        decimal nextTierPoint,
-        decimal tierPointBefore,
-        decimal tierPointAfter,
-        CancellationToken cancellationToken)
-    {
-        var now = DateTime.UtcNow;
-
-        var customer = await _dbContext.Customers
-            .FirstAsync(c => c.CustomerId == customerId, cancellationToken);
-
-        customer.TierId = newTierConfigId;
-        customer.CurrentTierPoint = newCurrentTierPoint;
-        customer.StartTier = startTier;
-        customer.ExpiredTier = expiredTier;
-        customer.NextTierId = nextTierConfigId;
-        customer.NextTierPoint = nextTierPoint;
-
-        await ApplyPointLossAsync(customerId, tierPointBefore, tierPointAfter, now, cancellationToken);
-    }
-
-    private async Task ApplyPointLossAsync(
-        Guid customerId,
-        decimal tierPointBefore,
-        decimal tierPointAfter,
-        DateTime now,
-        CancellationToken cancellationToken)
-    {
-        var customerPoint = await _dbContext.CustomerPoints
-            .FirstOrDefaultAsync(cp => cp.CustomerId == customerId, cancellationToken);
-
-        if (customerPoint is null)
+        if (mutations.Count == 0)
         {
             return;
         }
 
-        var lostActivePoint = customerPoint.ActivePoint;
+        var customerIds = mutations
+            .Select(mutation => mutation.CustomerId)
+            .Distinct()
+            .ToArray();
 
-        customerPoint.ExpiredPoint += lostActivePoint;
-        customerPoint.ActivePoint = 0;
-        customerPoint.UpdatedAt = now;
+        var customersById = _dbContext.ChangeTracker
+            .Entries<Customer>()
+            .Where(entry => customerIds.Contains(entry.Entity.CustomerId))
+            .Select(entry => entry.Entity)
+            .ToDictionary(customer => customer.CustomerId);
 
-        if (lostActivePoint != 0)
+        if (customersById.Count != customerIds.Length)
         {
-            _dbContext.PointTransactions.Add(new PointTransaction
-            {
-                PointTransactionId = Guid.NewGuid(),
-                CustomerId = customerId,
-                CampaignId = null,
-                CampaignSessionId = null,
-                ActionId = null,
-                SourceEventId = null,
-                TransactionType = PointTransactionTypes.ActivePointReset,
-                Amount = PointResetAmounts.Calculate(lostActivePoint, 0),
-                BalanceBefore = lostActivePoint,
-                BalanceAfter = 0,
-                CreatedAt = now,
-            });
+            throw new InvalidOperationException(
+                "Not all customers in the tier expiration batch are tracked by the current transaction.");
         }
 
-        var tierPointChange = PointResetAmounts.Calculate(tierPointBefore, tierPointAfter);
+        var customerPointsByCustomerId = (await _dbContext.CustomerPoints
+                .FromSqlInterpolated($$"""
+                    SELECT *
+                    FROM customer_points
+                    WHERE customer_id = ANY ({{customerIds}})
+                    FOR UPDATE
+                    """)
+                .ToListAsync(cancellationToken))
+            .ToDictionary(customerPoint => customerPoint.CustomerId);
+
+        foreach (var mutation in mutations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var customer = customersById[mutation.CustomerId];
+            customer.TierId = mutation.TierConfigId;
+            customer.CurrentTierPoint = mutation.CurrentTierPoint;
+            customer.StartTier = mutation.StartTier;
+            customer.ExpiredTier = mutation.ExpiredTier;
+            customer.NextTierId = mutation.NextTierConfigId;
+            customer.NextTierPoint = mutation.NextTierPoint;
+
+            if (!customerPointsByCustomerId.TryGetValue(mutation.CustomerId, out var customerPoint))
+            {
+                continue;
+            }
+
+            ApplyPointLoss(customerPoint, mutation, processedAt);
+        }
+    }
+
+    private void ApplyPointLoss(
+        CustomerPoint customerPoint,
+        CustomerTierExpirationMutation mutation,
+        DateTime processedAt)
+    {
+        var activePointBefore = customerPoint.ActivePoint;
+
+        customerPoint.ExpiredPoint += activePointBefore;
+        customerPoint.ActivePoint = 0;
+        customerPoint.UpdatedAt = processedAt;
+
+        if (activePointBefore != 0)
+        {
+            AddPointTransaction(
+                mutation.CustomerId,
+                PointTransactionTypes.ActivePointReset,
+                PointResetAmounts.Calculate(activePointBefore, 0),
+                activePointBefore,
+                0,
+                processedAt);
+        }
+
+        var tierPointChange = PointResetAmounts.Calculate(
+            mutation.TierPointBefore,
+            mutation.CurrentTierPoint);
+
         if (tierPointChange != 0)
         {
-            _dbContext.PointTransactions.Add(new PointTransaction
-            {
-                PointTransactionId = Guid.NewGuid(),
-                CustomerId = customerId,
-                CampaignId = null,
-                CampaignSessionId = null,
-                ActionId = null,
-                SourceEventId = null,
-                TransactionType = PointTransactionTypes.TierPointReset,
-                Amount = tierPointChange,
-                BalanceBefore = tierPointBefore,
-                BalanceAfter = tierPointAfter,
-                CreatedAt = now,
-            });
+            AddPointTransaction(
+                mutation.CustomerId,
+                PointTransactionTypes.TierPointReset,
+                tierPointChange,
+                mutation.TierPointBefore,
+                mutation.CurrentTierPoint,
+                processedAt);
         }
+    }
+
+    private void AddPointTransaction(
+        Guid customerId,
+        string transactionType,
+        decimal amount,
+        decimal balanceBefore,
+        decimal balanceAfter,
+        DateTime createdAt)
+    {
+        _dbContext.PointTransactions.Add(new PointTransaction
+        {
+            PointTransactionId = Guid.NewGuid(),
+            CustomerId = customerId,
+            CampaignId = null,
+            CampaignSessionId = null,
+            ActionId = null,
+            SourceEventId = null,
+            TransactionType = transactionType,
+            Amount = amount,
+            BalanceBefore = balanceBefore,
+            BalanceAfter = balanceAfter,
+            CreatedAt = createdAt,
+        });
     }
 }

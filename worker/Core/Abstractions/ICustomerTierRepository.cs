@@ -9,5 +9,6 @@ public interface ICustomerTierRepository
 
     Task<IReadOnlyList<ExpiredCustomerTier>> GetExpiredCustomersAsync(
         DateTime expiresAtOrBefore,
+        int batchSize,
         CancellationToken cancellationToken);
 }

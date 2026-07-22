@@ -7,33 +7,37 @@ using Scheduler.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Local Scheduler runs from either worker/ or worker/Scheduler/. Load worker/.env
-// only in Development; deployed environments continue to use injected variables.
+// Local Scheduler only loads worker/Scheduler/.env. Deployed environments use
+// variables injected by Docker or the server runtime.
 if (builder.Environment.IsDevelopment())
 {
     var envPath = new[]
         {
             Path.Combine(builder.Environment.ContentRootPath, ".env"),
-            Path.Combine(builder.Environment.ContentRootPath, "..", ".env")
+            Path.Combine(builder.Environment.ContentRootPath, "Scheduler", ".env"),
+            Path.Combine(builder.Environment.ContentRootPath, "worker", "Scheduler", ".env"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env")
         }
         .Select(Path.GetFullPath)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Where(path => string.Equals(
+            Path.GetFileName(Path.GetDirectoryName(path)),
+            "Scheduler",
+            StringComparison.OrdinalIgnoreCase))
         .FirstOrDefault(File.Exists);
 
     if (envPath is not null)
     {
+        Console.WriteLine($"Loading local Scheduler environment from '{envPath}'.");
         Env.Load(envPath);
         builder.Configuration.AddEnvironmentVariables();
     }
 }
 
-var scheduleOptions = builder.Configuration
-    .GetRequiredSection(TierExpirationScheduleOptions.SectionName)
-    .Get<TierExpirationScheduleOptions>()
-    ?? throw new InvalidOperationException(
-        $"Missing configuration section: {TierExpirationScheduleOptions.SectionName}");
-scheduleOptions.Validate();
+var scheduleOptions = TierExpirationScheduleOptions.FromConfiguration(builder.Configuration);
 
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(scheduleOptions);
 builder.Services.AddQuartz(quartz =>
 {
     var jobKey = new JobKey(nameof(ProcessExpiredCustomerTiersJob));

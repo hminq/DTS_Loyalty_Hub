@@ -27,6 +27,7 @@ public sealed class CustomerTierRepository : ICustomerTierRepository
 
     public async Task<IReadOnlyList<ExpiredCustomerTier>> GetExpiredCustomersAsync(
         DateTime expiresAtOrBefore,
+        int batchSize,
         CancellationToken cancellationToken)
     {
         // The transaction behavior has already opened the transaction. Lock each
@@ -39,6 +40,8 @@ public sealed class CustomerTierRepository : ICustomerTierRepository
                 WHERE expired_tier IS NOT NULL
                   AND expired_tier <= {{expiresAtOrBefore}}
                   AND tier_id IS NOT NULL
+                ORDER BY expired_tier, customer_id
+                LIMIT {{batchSize}}
                 FOR UPDATE SKIP LOCKED
                 """)
             .ToListAsync(cancellationToken);
