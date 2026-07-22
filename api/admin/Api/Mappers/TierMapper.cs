@@ -29,12 +29,36 @@ public static class TierMapper
         };
     }
 
-    public static IReadOnlyCollection<TierResponseDto> ToResponseDto(
-        this IReadOnlyCollection<TierResult> results)
+    public static TierListItemResponseDto ToListItemResponseDto(this TierListItemResult result)
+    {
+        return new TierListItemResponseDto
+        {
+            TierConfigId = result.TierConfigId,
+            Name = result.Name,
+            PointsRequired = result.PointsRequired,
+            Priority = result.Priority
+        };
+    }
+
+    public static IReadOnlyCollection<TierListItemResponseDto> ToListItemResponseDto(
+        this IReadOnlyCollection<TierListItemResult> results)
     {
         return results
-            .Select(result => result.ToResponseDto())
+            .Select(result => result.ToListItemResponseDto())
             .ToArray();
+    }
+
+    public static TierDetailResponseDto ToDetailResponseDto(this TierDetailResult result)
+    {
+        return new TierDetailResponseDto
+        {
+            TierConfigId = result.TierConfigId,
+            Name = result.Name,
+            PointsRequired = result.PointsRequired,
+            CycleMonth = result.CycleMonth,
+            Priority = result.Priority,
+            CreatedAt = result.CreatedAt
+        };
     }
 
     public static UpdateTierCommand ToCommand(

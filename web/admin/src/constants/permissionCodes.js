@@ -22,6 +22,7 @@ export const PermissionCodes = Object.freeze({
   Tiers: Object.freeze({
     View: 'tier.view',
     Create: 'tier.create',
+    Update: 'tier.update',
   }),
   AuditLogs: Object.freeze({
     View: 'audit_log.view',

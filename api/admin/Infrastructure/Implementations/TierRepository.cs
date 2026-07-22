@@ -17,18 +17,34 @@ public sealed class TierRepository : ITierRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyCollection<TierResult>> GetListAsync(CancellationToken ct)
+    public async Task<IReadOnlyCollection<TierListItemResult>> GetListAsync(CancellationToken ct)
     {
-       return await _dbContext.TiersConfigs
-        .AsNoTracking()
-        .OrderBy(x => x.Priority)
-        .Select(x => new TierResult(
-            x.TierConfigId,
-            x.Name,
-            x.PointsRequired,
-            x.CycleMonth,
-            x.Priority))
-        .ToListAsync(ct);
+        return await _dbContext.TiersConfigs
+            .AsNoTracking()
+            .OrderBy(x => x.Priority)
+            .Select(x => new TierListItemResult(
+                x.TierConfigId,
+                x.Name,
+                x.PointsRequired,
+                x.Priority))
+            .ToListAsync(ct);
+    }
+
+    public Task<TierDetailResult?> GetDetailByIdAsync(
+        Guid tierConfigId,
+        CancellationToken ct)
+    {
+        return _dbContext.TiersConfigs
+            .AsNoTracking()
+            .Where(x => x.TierConfigId == tierConfigId)
+            .Select(x => new TierDetailResult(
+                x.TierConfigId,
+                x.Name,
+                x.PointsRequired,
+                x.CycleMonth,
+                x.Priority,
+                x.CreatedAt))
+            .FirstOrDefaultAsync(ct);
     }
 
     public Tier Add(Tier tier)
