@@ -23,13 +23,13 @@ public static class DependencyInjection
 
         services.AddSingleton(databaseOptions);
 
-        services.AddScoped<ICustomerTierRepo, CustomerTierRepository>();
+        services.AddScoped<ICustomerTierRepository, CustomerTierRepository>();
         services.AddScoped<ICustomerTierMutationStore, CustomerTierMutationStore>();
 
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly); // Infrastructure (behaviors)
-            cfg.RegisterServicesFromAssembly(typeof(ICustomerTierRepo).Assembly);   // Core (handlers)
+            cfg.RegisterServicesFromAssembly(typeof(ICustomerTierRepository).Assembly); // Core (handlers)
         });
 
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));

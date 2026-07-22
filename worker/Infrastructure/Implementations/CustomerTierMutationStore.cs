@@ -1,4 +1,5 @@
 using Core.Abstractions;
+using Core.Entities;
 using Core.Entities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Models;
@@ -19,6 +20,8 @@ public sealed class CustomerTierMutationStore : ICustomerTierMutationStore
         Guid customerId,
         DateTime startTier,
         DateTime expiredTier,
+        Guid? nextTierConfigId,
+        decimal nextTierPoint,
         decimal tierPointBefore,
         CancellationToken cancellationToken)
     {
@@ -30,6 +33,8 @@ public sealed class CustomerTierMutationStore : ICustomerTierMutationStore
         customer.CurrentTierPoint = 0;
         customer.StartTier = startTier;
         customer.ExpiredTier = expiredTier;
+        customer.NextTierId = nextTierConfigId;
+        customer.NextTierPoint = nextTierPoint;
 
         // Đã ở hạng sàn nhưng vẫn hết chu kỳ -> vẫn mất active point + ghi log, y như downgrade.
         await ApplyPointLossAsync(customerId, tierPointBefore, tierPointAfter: 0, now, cancellationToken);
@@ -83,34 +88,41 @@ public sealed class CustomerTierMutationStore : ICustomerTierMutationStore
         customerPoint.ActivePoint = 0;
         customerPoint.UpdatedAt = now;
 
-        _dbContext.PointTransactions.Add(new PointTransaction
+        if (lostActivePoint != 0)
         {
-            PointTransactionId = Guid.NewGuid(),
-            CustomerId = customerId,
-            CampaignId = null,
-            CampaignSessionId = null,
-            ActionId = null,
-            SourceEventId = null,
-            TransactionType = PointTransactionType.ActivePointTransactionType,
-            Amount = lostActivePoint,
-            BalanceBefore = lostActivePoint,
-            BalanceAfter = 0,
-            CreatedAt = now,
-        });
+            _dbContext.PointTransactions.Add(new PointTransaction
+            {
+                PointTransactionId = Guid.NewGuid(),
+                CustomerId = customerId,
+                CampaignId = null,
+                CampaignSessionId = null,
+                ActionId = null,
+                SourceEventId = null,
+                TransactionType = PointTransactionTypes.ActivePointReset,
+                Amount = PointResetAmounts.Calculate(lostActivePoint, 0),
+                BalanceBefore = lostActivePoint,
+                BalanceAfter = 0,
+                CreatedAt = now,
+            });
+        }
 
-        _dbContext.PointTransactions.Add(new PointTransaction
+        var tierPointChange = PointResetAmounts.Calculate(tierPointBefore, tierPointAfter);
+        if (tierPointChange != 0)
         {
-            PointTransactionId = Guid.NewGuid(),
-            CustomerId = customerId,
-            CampaignId = null,
-            CampaignSessionId = null,
-            ActionId = null,
-            SourceEventId = null,
-            TransactionType = PointTransactionType.TierPointTransactionType,
-            Amount = lostActivePoint,
-            BalanceBefore = tierPointBefore,
-            BalanceAfter = tierPointAfter,
-            CreatedAt = now,
-        });
+            _dbContext.PointTransactions.Add(new PointTransaction
+            {
+                PointTransactionId = Guid.NewGuid(),
+                CustomerId = customerId,
+                CampaignId = null,
+                CampaignSessionId = null,
+                ActionId = null,
+                SourceEventId = null,
+                TransactionType = PointTransactionTypes.TierPointReset,
+                Amount = tierPointChange,
+                BalanceBefore = tierPointBefore,
+                BalanceAfter = tierPointAfter,
+                CreatedAt = now,
+            });
+        }
     }
 }

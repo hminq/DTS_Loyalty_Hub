@@ -6,6 +6,8 @@ public interface ICustomerTierMutationStore
         Guid customerId,
         DateTime startTier,
         DateTime expiredTier,
+        Guid? nextTierConfigId,
+        decimal nextTierPoint,
         decimal tierPointBefore,
         CancellationToken cancellationToken);
 
