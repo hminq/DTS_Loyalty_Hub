@@ -31,6 +31,8 @@
   <data name="TIER_POINTS_REQUIRED_INVALID" xml:space="preserve"><value>Points required cannot be negative.</value></data>
   <data name="TIER_POINTS_ORDER_INVALID" xml:space="preserve"><value>Points required of a higher priority tier must be greater than points required of a lower priority tier.</value></data>
   <data name="TIER_PRIORITY_ALREADY_EXISTS" xml:space="preserve"><value>A tier with this priority already exists.</value></data>
+  <data name="TIER_ID_REQUIRED" xml:space="preserve"><value>Tier id is required.</value></data>
+  <data name="TIER_NOT_FOUND" xml:space="preserve"><value>Tier does not exist.</value></data>
   <data name="VOUCHER_CODE_ALREADY_EXISTS" xml:space="preserve"><value>Voucher code already exists.</value></data>
   <data name="VOUCHER_DEFINITION_ID_REQUIRED" xml:space="preserve"><value>Voucher definition id is required.</value></data>
   <data name="VOUCHER_DEFINITION_NOT_FOUND" xml:space="preserve"><value>Voucher definition does not exist.</value></data>

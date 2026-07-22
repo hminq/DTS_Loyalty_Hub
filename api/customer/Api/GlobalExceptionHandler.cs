@@ -6,18 +6,20 @@ using Microsoft.AspNetCore.Diagnostics;
 namespace Api;
 
 public sealed class GlobalExceptionHandler(
-    ILogger<GlobalExceptionHandler> logger,
-    ApiMessageResolver messageResolver) : IExceptionHandler
+    ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
         CancellationToken ct)
     {
+        // Resolve the scoped ApiMessageResolver per-request from httpContext
+        var messageResolver = httpContext.RequestServices.GetRequiredService<ApiMessageResolver>();
+
         var (statusCode, errorResponse) = exception switch
         {
-            DomainException domainException => CreateDomainError(domainException),
-            _ => CreateUnknownError()
+            DomainException domainException => CreateDomainError(domainException, messageResolver),
+            _ => CreateUnknownError(messageResolver)
         };
 
         if (exception is DomainException handledDomainException)
@@ -46,7 +48,9 @@ public sealed class GlobalExceptionHandler(
         return true;
     }
 
-    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateDomainError(DomainException exception)
+    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateDomainError(
+        DomainException exception, 
+        ApiMessageResolver messageResolver)
     {
         var statusCode = exception.ErrorType switch
         {
@@ -58,12 +62,13 @@ public sealed class GlobalExceptionHandler(
             _ => StatusCodes.Status400BadRequest
         };
 
-        return (statusCode, ApiErrorResponseDto.Create(exception.ErrorCode, messageResolver.Resolve(
-            exception.ErrorCode,
-            exception.MessageArguments)));
+        return (statusCode, ApiErrorResponseDto.Create(
+            exception.ErrorCode, 
+            messageResolver.Resolve(exception.ErrorCode, exception.MessageArguments)));
     }
 
-    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateUnknownError()
+    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateUnknownError(
+        ApiMessageResolver messageResolver)
     {
         return (
             StatusCodes.Status500InternalServerError,

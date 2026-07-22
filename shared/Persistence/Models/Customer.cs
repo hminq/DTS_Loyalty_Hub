@@ -17,6 +17,12 @@ public partial class Customer
 
     public DateTime CreatedAt { get; set; }
 
+    public DateTime? StartTier { get; set; }
+
+    public DateTime? ExpiredTier { get; set; }
+
+    public Guid? NextTierId { get; set; }
+
     public virtual ICollection<CampaignUsage> CampaignUsages { get; set; } = new List<CampaignUsage>();
 
     public virtual CustomerPoint? CustomerPoint { get; set; }
@@ -26,6 +32,8 @@ public partial class Customer
     public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 
     public virtual TiersConfig? Tier { get; set; }
+
+    public virtual TiersConfig? NextTier { get; set; }
 
     public virtual User User { get; set; } = null!;
 

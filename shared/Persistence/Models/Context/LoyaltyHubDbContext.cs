@@ -25,7 +25,6 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<CampaignUsage> CampaignUsages { get; set; }
 
-    public virtual DbSet<CampaignVoucherOption> CampaignVoucherOptions { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
 
@@ -342,43 +341,7 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasConstraintName("fk_campaign_usages_customer");
         });
 
-        modelBuilder.Entity<CampaignVoucherOption>(entity =>
-        {
-            entity.HasKey(e => e.CampaignVoucherOptionId).HasName("campaign_voucher_options_pkey");
-
-            entity.ToTable("campaign_voucher_options");
-
-            entity.HasIndex(e => new { e.CampaignId, e.VoucherDefinitionId }, "uq_campaign_voucher_options_campaign_definition").IsUnique();
-
-            entity.Property(e => e.CampaignVoucherOptionId)
-                .HasDefaultValueSql("gen_random_uuid()")
-                .HasColumnName("campaign_voucher_option_id");
-            entity.Property(e => e.AvailableFrom).HasColumnName("available_from");
-            entity.Property(e => e.AvailableTo).HasColumnName("available_to");
-            entity.Property(e => e.CampaignId).HasColumnName("campaign_id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnName("created_at");
-            entity.Property(e => e.DisplayOrder).HasColumnName("display_order");
-            entity.Property(e => e.LimitPerCustomer).HasColumnName("limit_per_customer");
-            entity.Property(e => e.PointCost)
-                .HasPrecision(18, 2)
-                .HasColumnName("point_cost");
-            entity.Property(e => e.Status)
-                .HasMaxLength(25)
-                .HasDefaultValueSql("'ACTIVE'::character varying")
-                .HasColumnName("status");
-            entity.Property(e => e.VoucherDefinitionId).HasColumnName("voucher_definition_id");
-
-            entity.HasOne(d => d.Campaign).WithMany(p => p.CampaignVoucherOptions)
-                .HasForeignKey(d => d.CampaignId)
-                .HasConstraintName("fk_campaign_voucher_options_campaign");
-
-            entity.HasOne(d => d.VoucherDefinition).WithMany(p => p.CampaignVoucherOptions)
-                .HasForeignKey(d => d.VoucherDefinitionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_campaign_voucher_options_definition");
-        });
+        
 
         modelBuilder.Entity<Customer>(entity =>
         {
@@ -400,13 +363,24 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.NextTierPoint)
                 .HasPrecision(18, 2)
                 .HasColumnName("next_tier_point");
+            entity.Property(e => e.StartTier)
+                 .HasColumnName("start_tier");
+
+            entity.Property(e => e.ExpiredTier)
+                .HasColumnName("expired_tier");
+
+            entity.Property(e => e.NextTierId)
+                .HasColumnName("next_tier_id");
             entity.Property(e => e.TierId).HasColumnName("tier_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.Tier).WithMany(p => p.Customers)
                 .HasForeignKey(d => d.TierId)
                 .HasConstraintName("fk_customer_tier");
-
+            entity.HasOne(d => d.NextTier)
+                .WithMany(p => p.NextTierCustomers)
+                .HasForeignKey(d => d.NextTierId)
+                .HasConstraintName("fk_customer_next_tier");
             entity.HasOne(d => d.User).WithOne(p => p.Customer)
                 .HasForeignKey<Customer>(d => d.UserId)
                 .HasConstraintName("fk_customer_user");

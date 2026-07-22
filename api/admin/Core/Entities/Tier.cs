@@ -57,6 +57,50 @@ public class Tier
             DateTime.UtcNow);
     }
 
+    public static Tier Restore(
+        Guid tierConfigId,
+        string name,
+        decimal pointsRequired,
+        int cycleMonth,
+        int priority,
+        DateTime createdAt)
+    {
+        if (tierConfigId == Guid.Empty)
+        {
+            throw ValidationError("TIER_ID_REQUIRED");
+        }
+
+        ValidateName(name);
+        ValidateCycleMonth(cycleMonth);
+        ValidatePointsRequired(pointsRequired);
+        ValidatePriority(priority);
+
+        return new Tier(
+            tierConfigId,
+            name.Trim(),
+            pointsRequired,
+            cycleMonth,
+            priority,
+            createdAt);
+    }
+
+    public void Update(
+        string name,
+        decimal pointsRequired,
+        int cycleMonth,
+        int priority)
+    {
+        ValidateName(name);
+        ValidateCycleMonth(cycleMonth);
+        ValidatePointsRequired(pointsRequired);
+        ValidatePriority(priority);
+
+        Name = name.Trim();
+        PointsRequired = pointsRequired;
+        CycleMonth = cycleMonth;
+        Priority = priority;
+    }
+
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))

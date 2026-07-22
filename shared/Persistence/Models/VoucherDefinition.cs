@@ -38,8 +38,6 @@ public partial class VoucherDefinition
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 
-    public virtual ICollection<CampaignVoucherOption> CampaignVoucherOptions { get; set; } = new List<CampaignVoucherOption>();
-
     public virtual ICollection<CustomerVoucher> CustomerVouchers { get; set; } = new List<CustomerVoucher>();
 
     public virtual ICollection<VoucherPool> VoucherPools { get; set; } = new List<VoucherPool>();
