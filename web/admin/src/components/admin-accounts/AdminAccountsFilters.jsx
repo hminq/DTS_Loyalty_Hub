@@ -15,7 +15,7 @@ function AdminAccountsFilters({
   t,
 }) {
   return (
-    <div className="flex flex-col gap-3 border-b border-border bg-muted/25 p-4 xl:flex-row xl:items-end">
+    <div className="mb-4 flex flex-col gap-3 rounded-lg border border-border bg-muted/25 p-3 xl:flex-row xl:items-end">
       <label className="grid min-w-0 flex-1 gap-1.5">
         <span className="text-xs font-medium">{t('adminAccounts.filters.searchLabel')}</span>
         <div className="relative">

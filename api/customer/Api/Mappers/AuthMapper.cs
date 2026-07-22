@@ -1,6 +1,7 @@
 using Api.Dtos.Requests.Auth;
 using Api.Dtos.Responses.Auth;
 using Api.Constants;
+using Core.Entities;
 using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Results;
 
@@ -36,10 +37,10 @@ public static class AuthMapper
     {
         return new RegisterCommand(
             request.Username!.Trim(),
-            request.Email!.Trim(),
+            UserProfileRules.NormalizeEmail(request.Email!),
             request.Password!,
-            request.FullName!.Trim(),
-            request.Phone!.Trim());
+            UserProfileRules.NormalizeFullName(request.FullName!),
+            UserProfileRules.NormalizePhoneNumber(request.Phone!));
     }
 
     public static RegisterResponseDto ToResponseDto(this RegisterResult result)

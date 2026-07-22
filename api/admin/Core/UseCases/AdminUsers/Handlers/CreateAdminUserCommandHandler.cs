@@ -1,4 +1,5 @@
 using Core.Abstractions;
+using Core.Entities;
 using Core.Exceptions;
 using Core.UseCases.AdminUsers.Commands;
 using Core.UseCases.AdminUsers.Results;
@@ -34,8 +35,8 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
     public async Task<AdminUserResult> Handle(CreateAdminUserCommand request, CancellationToken ct)
     {
         var username = request.Username.Trim();
-        var email = request.Email.Trim();
-        var phoneNumber = NormalizeOptional(request.PhoneNumber);
+        var email = UserProfileRules.NormalizeEmail(request.Email);
+        var phoneNumber = UserProfileRules.NormalizeOptionalPhoneNumber(request.PhoneNumber);
 
         var role = await GetRoleAsync(request.RoleId, ct);
 
@@ -63,7 +64,7 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
         var userId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
         var createdAt = DateTime.UtcNow;
-        var fullName = NormalizeOptional(request.FullName);
+        var fullName = UserProfileRules.NormalizeOptionalFullName(request.FullName);
 
         _userRepository.AddAdminUser(
             userId, username, email, _passwordHasher.Hash(request.Password), fullName, phoneNumber, createdAt);
@@ -105,10 +106,4 @@ public sealed class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminU
                 DomainErrorType.Validation);
     }
 
-    private static string? NormalizeOptional(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value)
-            ? null
-            : value.Trim();
-    }
 }

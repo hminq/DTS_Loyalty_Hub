@@ -1,9 +1,12 @@
 namespace Api.Constants;
 
+using Core.Entities;
+
 public static class ValidationConstants
 {
     // Regex Patterns
-    public const string PhonePattern = @"^\+?[0-9]{9,15}$";
+    public const string PhonePattern = UserProfileRules.PhoneNumberPattern;
+    public const string FullNamePattern = UserProfileRules.FullNamePattern;
 
     // Password Rules
     public const int MinPasswordLength = 5;
@@ -14,10 +17,10 @@ public static class ValidationConstants
     public const int MaxUsernameLength = 50;
 
     // FullName Rules
-    public const int MinFullNameLength = 5;
-    public const int MaxFullNameLength = 50;
+    public const int MinFullNameLength = UserProfileRules.MinFullNameLength;
+    public const int MaxFullNameLength = UserProfileRules.MaxFullNameLength;
 
     // Email Rules
-    public const int MinEmailLength = 5;
-    public const int MaxEmailLength = 50;
+    public const int MinEmailLength = UserProfileRules.MinEmailLength;
+    public const int MaxEmailLength = UserProfileRules.MaxEmailLength;
 }
