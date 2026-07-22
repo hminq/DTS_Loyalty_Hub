@@ -15,11 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\api\admin\Core\Core.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\api\admin\Infrastructure\Infrastructure.csproj" />
-  </ItemGroup>
-
 </Project>

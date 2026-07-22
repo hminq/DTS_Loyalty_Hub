@@ -1,4 +1,3 @@
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -46,11 +45,11 @@ public class TierExpirationSchedulerWorker : BackgroundService
 
             // Vì BackgroundService là Singleton, cần tạo Scope để inject Scoped Services (DbContext/Repository)
             using var scope = _serviceProvider.CreateScope();
-           // var customerRepository = scope.ServiceProvider.GetRequiredService<ICustomerRepository>();
+            var customerTierRepo = scope.ServiceProvider.GetRequiredService<ICustomerTierRepo>();
 
-           // int updatedCount = await customerRepository.ResetExpiredCustomerNextTierPointsAsync(cancellationToken);
+            int updatedCount = await customerTierRepo.CheckAndProcessExpiredTiersAsync(cancellationToken);
 
-            //_logger.LogInformation("Đã quét xong! Số lượng customer được cập nhật next_tier_point về 0: {Count}", updatedCount);
+            _logger.LogInformation("Đã quét xong! Số lượng customer được xử lý (giữ hạng/hạ hạng): {Count}", updatedCount);
         }
         catch (Exception ex)
         {
