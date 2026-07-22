@@ -6,7 +6,7 @@ import {
 } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { BrandMark } from '../BrandMark'
 import { cn } from '../../lib/utils'
@@ -66,26 +66,34 @@ function Sidebar({ admin, navigationItems, isLoggingOut, logoutLabel, onLogout }
 
             return (
               <div key={item.id}>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] font-semibold transition-colors',
-                    isActiveLeaf
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
-                      : 'text-sidebar-foreground hover:bg-muted',
-                  )}
-                  onClick={() => (item.children ? toggleCategory(item) : navigate(item.path))}
-                  aria-expanded={item.children ? isOpen : undefined}
-                >
-                  <Icon size={18} weight={isActiveLeaf ? 'fill' : 'regular'} />
-                  <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
-                  {item.children ? (
+                {item.children ? (
+                  <button
+                    type="button"
+                    className="flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] font-semibold text-sidebar-foreground transition-colors hover:bg-muted"
+                    onClick={() => toggleCategory(item)}
+                    aria-expanded={isOpen}
+                  >
+                    <Icon size={18} />
+                    <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
                     <CaretDownIcon
                       size={14}
                       className={cn('transition-transform', isOpen && 'rotate-180')}
                     />
-                  ) : null}
-                </button>
+                  </button>
+                ) : (
+                  <NavLink
+                    to={item.path}
+                    className={cn(
+                      'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] font-semibold transition-colors',
+                      isActiveLeaf
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                        : 'text-sidebar-foreground hover:bg-muted',
+                    )}
+                  >
+                    <Icon size={18} weight={isActiveLeaf ? 'fill' : 'regular'} />
+                    <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
+                  </NavLink>
+                )}
 
                 {item.children && isOpen ? (
                   <div className="relative ml-[1.15rem] mt-1 flex flex-col gap-0.5 py-0.5 pl-5 before:absolute before:left-0 before:top-0 before:h-[calc(100%-0.875rem)] before:w-px before:bg-sidebar-border">
@@ -93,19 +101,18 @@ function Sidebar({ admin, navigationItems, isLoggingOut, logoutLabel, onLogout }
                       const isActiveChild = isPathActive(location.pathname, child.path)
 
                       return (
-                        <button
+                        <NavLink
                           key={child.id}
-                          type="button"
+                          to={child.path}
                           className={cn(
                             'relative flex h-8 w-full items-center rounded-lg px-2.5 text-left text-[13px] font-semibold transition-colors before:absolute before:-left-5 before:top-1/2 before:h-px before:w-3.5 before:bg-sidebar-border',
                             isActiveChild
                               ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
                               : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                           )}
-                          onClick={() => navigate(child.path)}
                         >
                           <span className="min-w-0 flex-1 truncate">{t(child.labelKey)}</span>
-                        </button>
+                        </NavLink>
                       )
                     })}
                   </div>
@@ -118,17 +125,17 @@ function Sidebar({ admin, navigationItems, isLoggingOut, logoutLabel, onLogout }
 
       <div className="mt-4 shrink-0 border-t border-sidebar-border pt-3">
         <div className="flex flex-col gap-1">
-          <SidebarUtilityItem
+          <SidebarUtilityLink
             icon={LifebuoyIcon}
             label={t('navigation.support')}
             active={location.pathname === '/support'}
-            onClick={() => navigate('/support')}
+            to="/support"
           />
-          <SidebarUtilityItem
+          <SidebarUtilityLink
             icon={GearSixIcon}
             label={t('navigation.settings')}
             active={location.pathname === '/settings'}
-            onClick={() => navigate('/settings')}
+            to="/settings"
           />
           <SidebarUtilityItem
             icon={SignOutIcon}
@@ -165,6 +172,23 @@ function SidebarUtilityItem({ icon: Icon, label, active = false, destructive = f
       <Icon size={18} className="shrink-0" />
       <span className="min-w-0 flex-1 truncate text-left">{label}</span>
     </button>
+  )
+}
+
+function SidebarUtilityLink({ icon: Icon, label, active = false, to }) {
+  return (
+    <NavLink
+      to={to}
+      className={cn(
+        'flex min-h-9 w-full items-center gap-3 rounded-lg px-2.5 text-[13px] font-medium transition-colors',
+        active
+          ? 'bg-muted text-foreground'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+      )}
+    >
+      <Icon size={18} className="shrink-0" />
+      <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+    </NavLink>
   )
 }
 

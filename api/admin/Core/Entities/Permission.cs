@@ -9,6 +9,8 @@ public class Permission
     private const int MaxNameLength = 100;
     private const int MaxGroupCodeLength = 50;
     private const int MaxGroupNameLength = 100;
+    private const int MaxActionCodeLength = 50;
+    private const int MaxActionNameLength = 100;
 
     private Permission(
         Guid permissionId,
@@ -16,6 +18,8 @@ public class Permission
         string name,
         string groupCode,
         string groupName,
+        string actionCode,
+        string actionName,
         int groupSortOrder,
         int actionSortOrder,
         DateTime createdAt)
@@ -25,6 +29,8 @@ public class Permission
         Name = name;
         GroupCode = groupCode;
         GroupName = groupName;
+        ActionCode = actionCode;
+        ActionName = actionName;
         GroupSortOrder = groupSortOrder;
         ActionSortOrder = actionSortOrder;
         CreatedAt = createdAt;
@@ -40,6 +46,10 @@ public class Permission
 
     public string GroupName { get; private set; }
 
+    public string ActionCode { get; private set; }
+
+    public string ActionName { get; private set; }
+
     public int GroupSortOrder { get; private set; }
 
     public int ActionSortOrder { get; private set; }
@@ -51,10 +61,12 @@ public class Permission
         string name,
         string groupCode,
         string groupName,
+        string actionCode,
+        string actionName,
         int groupSortOrder,
         int actionSortOrder)
     {
-        Validate(code, name, groupCode, groupName, groupSortOrder, actionSortOrder);
+        Validate(code, name, groupCode, groupName, actionCode, actionName, groupSortOrder, actionSortOrder);
         ValidateDefinedCode(code);
 
         return new Permission(
@@ -63,6 +75,8 @@ public class Permission
             name.Trim(),
             NormalizeCode(groupCode),
             groupName.Trim(),
+            NormalizeCode(actionCode),
+            actionName.Trim(),
             groupSortOrder,
             actionSortOrder,
             DateTime.UtcNow);
@@ -74,6 +88,8 @@ public class Permission
         string name,
         string groupCode,
         string groupName,
+        string actionCode,
+        string actionName,
         int groupSortOrder,
         int actionSortOrder,
         DateTime createdAt)
@@ -83,7 +99,7 @@ public class Permission
             throw ValidationError("PERMISSION_ID_REQUIRED");
         }
 
-        Validate(code, name, groupCode, groupName, groupSortOrder, actionSortOrder);
+        Validate(code, name, groupCode, groupName, actionCode, actionName, groupSortOrder, actionSortOrder);
 
         return new Permission(
             permissionId,
@@ -91,6 +107,8 @@ public class Permission
             name.Trim(),
             NormalizeCode(groupCode),
             groupName.Trim(),
+            NormalizeCode(actionCode),
+            actionName.Trim(),
             groupSortOrder,
             actionSortOrder,
             createdAt);
@@ -99,6 +117,7 @@ public class Permission
     public void UpdateDisplay(
         string name,
         string groupName,
+        string actionName,
         int groupSortOrder,
         int actionSortOrder)
     {
@@ -106,11 +125,14 @@ public class Permission
         ValidateLength(name, MaxNameLength, "PERMISSION_NAME_TOO_LONG");
         ValidateName(groupName, "PERMISSION_GROUP_NAME_REQUIRED");
         ValidateLength(groupName, MaxGroupNameLength, "PERMISSION_GROUP_NAME_TOO_LONG");
+        ValidateName(actionName, "PERMISSION_ACTION_NAME_REQUIRED");
+        ValidateLength(actionName, MaxActionNameLength, "PERMISSION_ACTION_NAME_TOO_LONG");
         ValidateSortOrder(groupSortOrder, "PERMISSION_GROUP_SORT_ORDER_INVALID");
         ValidateSortOrder(actionSortOrder, "PERMISSION_ACTION_SORT_ORDER_INVALID");
 
         Name = name.Trim();
         GroupName = groupName.Trim();
+        ActionName = actionName.Trim();
         GroupSortOrder = groupSortOrder;
         ActionSortOrder = actionSortOrder;
     }
@@ -120,6 +142,8 @@ public class Permission
         string name,
         string groupCode,
         string groupName,
+        string actionCode,
+        string actionName,
         int groupSortOrder,
         int actionSortOrder)
     {
@@ -127,17 +151,25 @@ public class Permission
         ValidateLength(code, MaxCodeLength, "PERMISSION_CODE_TOO_LONG");
         ValidateCode(groupCode, "PERMISSION_GROUP_CODE_REQUIRED");
         ValidateLength(groupCode, MaxGroupCodeLength, "PERMISSION_GROUP_CODE_TOO_LONG");
+        ValidateActionCode(actionCode);
+        ValidateLength(actionCode, MaxActionCodeLength, "PERMISSION_ACTION_CODE_TOO_LONG");
         ValidateName(name, "PERMISSION_NAME_REQUIRED");
         ValidateLength(name, MaxNameLength, "PERMISSION_NAME_TOO_LONG");
         ValidateName(groupName, "PERMISSION_GROUP_NAME_REQUIRED");
         ValidateLength(groupName, MaxGroupNameLength, "PERMISSION_GROUP_NAME_TOO_LONG");
+        ValidateName(actionName, "PERMISSION_ACTION_NAME_REQUIRED");
+        ValidateLength(actionName, MaxActionNameLength, "PERMISSION_ACTION_NAME_TOO_LONG");
         ValidateSortOrder(groupSortOrder, "PERMISSION_GROUP_SORT_ORDER_INVALID");
         ValidateSortOrder(actionSortOrder, "PERMISSION_ACTION_SORT_ORDER_INVALID");
 
         var normalizedCode = NormalizeCode(code);
         var normalizedGroupCode = NormalizeCode(groupCode);
+        var normalizedActionCode = NormalizeCode(actionCode);
 
-        if (!normalizedCode.StartsWith($"{normalizedGroupCode}.", StringComparison.Ordinal))
+        if (!string.Equals(
+                normalizedCode,
+                $"{normalizedGroupCode}.{normalizedActionCode}",
+                StringComparison.Ordinal))
         {
             throw ValidationError("PERMISSION_CODE_GROUP_MISMATCH");
         }
@@ -184,6 +216,16 @@ public class Permission
         if (string.IsNullOrWhiteSpace(value))
         {
             throw ValidationError(errorCode);
+        }
+    }
+
+    private static void ValidateActionCode(string value)
+    {
+        ValidateCode(value, "PERMISSION_ACTION_CODE_REQUIRED");
+
+        if (NormalizeCode(value).Contains('.', StringComparison.Ordinal))
+        {
+            throw ValidationError("PERMISSION_ACTION_CODE_FORMAT_INVALID");
         }
     }
 

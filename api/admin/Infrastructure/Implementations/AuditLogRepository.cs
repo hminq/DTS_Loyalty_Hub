@@ -54,11 +54,14 @@ public sealed class AuditLogRepository : IAuditLogRepository
 
         var items = await query
             .OrderByDescending(auditLog => auditLog.CreatedAt)
+            .ThenByDescending(auditLog => auditLog.AuditLogId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(auditLog => new AuditLogResult(
                 auditLog.AuditLogId,
                 auditLog.ActorUserId,
+                auditLog.ActorUser != null ? auditLog.ActorUser.Username : null,
+                auditLog.ActorUser != null ? auditLog.ActorUser.FullName : null,
                 auditLog.Action,
                 auditLog.EntityType,
                 auditLog.EntityId,

@@ -31,29 +31,13 @@ export async function deleteRole(roleId) {
   await httpClient.delete(`/roles/${roleId}`)
 }
 
-export async function getRoleOptions({ page = 1, pageSize = 20, keyword } = {}) {
+export async function searchRoleOptions(keyword = '', signal) {
   const response = await httpClient.get('/roles/options', {
     params: {
-      page,
-      pageSize,
-      keyword: keyword || undefined,
+      keyword: keyword.trim() || undefined,
     },
+    signal,
   })
 
-  return response.data
-}
-
-export async function getAllRoleOptions() {
-  const roles = []
-  let page = 1
-  let totalPages = 1
-
-  do {
-    const response = await getRoleOptions({ page, pageSize: 100 })
-    roles.push(...(response.data ?? []))
-    totalPages = Math.max(response.meta?.totalPages ?? 1, 1)
-    page += 1
-  } while (page <= totalPages)
-
-  return [...new Map(roles.map((role) => [role.roleId, role])).values()]
+  return response.data.data ?? []
 }

@@ -95,4 +95,17 @@ public sealed class RoleRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor("pageSize").WithErrorCode("PAGE_SIZE_INVALID");
         result.ShouldHaveValidationErrorFor("keyword").WithErrorCode("KEYWORD_TOO_LONG");
     }
+
+    [Fact]
+    public void GetOptions_KeywordTooLong_ReturnsExpectedError()
+    {
+        var request = new GetRoleOptionsRequestDto
+        {
+            Keyword = new string('a', 101)
+        };
+
+        var result = new GetRoleOptionsRequestDtoValidator().TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor("keyword").WithErrorCode("KEYWORD_TOO_LONG");
+    }
 }

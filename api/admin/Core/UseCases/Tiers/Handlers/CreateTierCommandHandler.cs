@@ -12,8 +12,6 @@ namespace Core.UseCases.Tiers.Handlers;
 
 public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand, TierResult>
 {
-    private const string AuditLogCreateAction = "CREATE";
-
     private readonly ITierRepository _tierRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
@@ -43,7 +41,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
         _auditLogWriter.Add(
             new AuditLogEntry(
                 request.ActorUserId,
-                AuditLogCreateAction,
+                AuditActions.Create,
                 AuditEntityTypes.TierConfig,
                 createdTier.TierConfigId,
                 null,                       

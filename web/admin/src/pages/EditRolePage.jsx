@@ -23,6 +23,11 @@ function EditRolePage() {
     let isCurrent = true
 
     async function loadData() {
+      setRole(null)
+      setPermissionGroups([])
+      setErrorMessage('')
+      setIsLoading(true)
+
       try {
         const [roleResult, groups] = await Promise.all([getRole(roleId), getPermissions()])
         if (!isCurrent) return
@@ -46,7 +51,6 @@ function EditRolePage() {
     const stillHasEditRouteAccess = [
       PermissionCodes.Roles.View,
       PermissionCodes.Roles.Update,
-      PermissionCodes.Permissions.View,
     ].every((permission) => currentPermissions.includes(permission))
 
     if (!stillHasEditRouteAccess) {
@@ -75,6 +79,7 @@ function EditRolePage() {
       {isLoading ? <p className="mt-5 text-[13px] text-muted-foreground">{t('roles.editPage.loading')}</p> : null}
       {role && !errorMessage ? (
         <RoleForm
+          key={role.roleId}
           initialValues={{ name: role.name, permissionIds: role.permissionIds ?? [] }}
           permissionGroups={permissionGroups}
           submitLabel={t('roles.editPage.submit')}

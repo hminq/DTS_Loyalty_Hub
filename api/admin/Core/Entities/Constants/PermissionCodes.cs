@@ -8,9 +8,6 @@ public static class PermissionCodes
         Roles.Create,
         Roles.Update,
         Roles.Delete,
-        Permissions.View,
-        RolePermissions.View,
-        RolePermissions.Update,
         AdminUsers.View,
         AdminUsers.Create,
         AdminUsers.Update,
@@ -61,17 +58,6 @@ public static class PermissionCodes
         public const string Create = "role.create";
         public const string Update = "role.update";
         public const string Delete = "role.delete";
-    }
-
-    public static class Permissions
-    {
-        public const string View = "permission.view";
-    }
-
-    public static class RolePermissions
-    {
-        public const string View = "role_permission.view";
-        public const string Update = "role_permission.update";
     }
 
     public static class AdminUsers

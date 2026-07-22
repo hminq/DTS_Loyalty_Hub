@@ -9,14 +9,14 @@ import {
   WarningCircleIcon,
 } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { login, toFieldErrorMap } from '../api'
+import { useAuth } from '../auth/AuthContext'
 import { BrandMark } from '../components/BrandMark'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
-import { storageKeys } from '../config/storageKeys'
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -26,6 +26,12 @@ function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { isAuthenticated, setAccessToken } = useAuth()
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -42,8 +48,13 @@ function LoginPage() {
 
     try {
       const result = await login(values)
-      localStorage.setItem(storageKeys.accessToken, result.accessToken)
-      navigate('/dashboard', { replace: true })
+      if (!setAccessToken(result.accessToken)) {
+        setFormError(t('login.unexpectedError'))
+        return
+      }
+
+      const destination = location.state?.from?.pathname || '/dashboard'
+      navigate(destination, { replace: true })
     } catch (error) {
       const nextFieldErrors = toFieldErrorMap(error.details)
       setFieldErrors(nextFieldErrors)

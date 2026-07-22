@@ -64,7 +64,7 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
         var createdRole = _roleRepository.Add(role);
 
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "CREATE", AuditEntityTypes.Role, createdRole.RoleId, null,
+            request.ActorUserId, AuditActions.Create, AuditEntityTypes.Role, createdRole.RoleId, null,
             JsonSerializer.Serialize(new { roleId = createdRole.RoleId, name = createdRole.Name, permissionIds = createdRole.PermissionIds }), null));
 
         return new RoleResult(

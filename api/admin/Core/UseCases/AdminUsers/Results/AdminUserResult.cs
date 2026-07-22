@@ -24,5 +24,7 @@ public sealed record AdminUserPermissionResult(
     string Name,
     string GroupCode,
     string GroupName,
+    string ActionCode,
+    string ActionName,
     int GroupSortOrder,
     int ActionSortOrder);

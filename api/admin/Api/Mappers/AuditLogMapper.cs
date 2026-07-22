@@ -13,6 +13,8 @@ public static class AuditLogMapper
         {
             AuditLogId = result.AuditLogId,
             ActorUserId = result.ActorUserId,
+            ActorUsername = result.ActorUsername,
+            ActorFullName = result.ActorFullName,
             Action = result.Action,
             EntityType = result.EntityType,
             EntityId = result.EntityId,
@@ -21,6 +23,12 @@ public static class AuditLogMapper
             Metadata = result.Metadata,
             CreatedAt = result.CreatedAt
         };
+    }
+
+    public static AuditLogFilterOptionsResponseDto ToResponseDto(
+        this AuditLogFilterOptionsResult result)
+    {
+        return new AuditLogFilterOptionsResponseDto(result.EntityTypes, result.Actions);
     }
 
     public static ApiResponseDto<IReadOnlyCollection<AuditLogResponseDto>> ToPagedResponseDto(

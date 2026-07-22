@@ -14,8 +14,6 @@ namespace Core.UseCases.Notifications.Handlers;
 
 public sealed class ToggleTemplateStatusCommandHandler : IRequestHandler<ToggleTemplateStatusCommand, NotificationTemplateResult>
 {
-    private const string AuditLogUpdateAction = "TOGGLE_STATUS";
-
     private readonly INotificationTemplateRepository _templateRepository;
     private readonly INotificationEventTypeRepository _eventTypeRepository;
     private readonly IAuditLogWriter _auditLogWriter;
@@ -56,7 +54,7 @@ public sealed class ToggleTemplateStatusCommandHandler : IRequestHandler<ToggleT
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,
-            AuditLogUpdateAction,
+            AuditActions.ToggleStatus,
             AuditEntityTypes.NotificationTemplate,
             template.TemplateId,
             oldState,

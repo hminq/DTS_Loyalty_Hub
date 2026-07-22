@@ -1,12 +1,12 @@
 import { Navigate, useLocation } from 'react-router-dom'
 
-import { storageKeys } from '../../config/storageKeys'
+import { useAuth } from '../../auth/AuthContext'
 
 function RequireAuth({ children }) {
   const location = useLocation()
-  const hasAccessToken = Boolean(localStorage.getItem(storageKeys.accessToken))
+  const { isAuthenticated } = useAuth()
 
-  if (!hasAccessToken) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 

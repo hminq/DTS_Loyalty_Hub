@@ -1,169 +1,34 @@
-import {
-  ArrowRightIcon,
-  BellIcon,
-  CheckCircleIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  UploadSimpleIcon,
-} from '@phosphor-icons/react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
+import { lazy, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
-import { Input } from './components/ui/input'
 import { RequireAuth } from './components/auth/RequireAuth'
 import { RequirePermission } from './components/auth/RequirePermission'
 import { PermissionCodes } from './constants/permissionCodes'
 import { AppLayout } from './layouts/AppLayout'
-import { DashboardPage } from './pages/DashboardPage'
-import { LoginPage } from './pages/LoginPage'
-import { NotFoundPage } from './pages/NotFoundPage'
-import { FeaturePage } from './pages/FeaturePage'
-import { PermissionsPage } from './pages/PermissionsPage'
-import { RolesPage } from './pages/RolesPage'
-import { RoleDetailPage } from './pages/RoleDetailPage'
-import { CreateRolePage } from './pages/CreateRolePage'
-import { EditRolePage } from './pages/EditRolePage'
-import { SettingsPage } from './pages/SettingsPage'
-import { SupportPage } from './pages/SupportPage'
-import { AdminAccountsPage } from './pages/AdminAccountsPage'
-import { AdminAccountDetailPage } from './pages/AdminAccountDetailPage'
-import { CreateAdminAccountPage } from './pages/CreateAdminAccountPage'
 
-const colorTokens = [
-  ['Foreground', 'bg-foreground'],
-  ['Primary', 'bg-primary'],
-  ['Accent', 'bg-accent'],
-  ['Muted', 'bg-muted'],
-  ['Border', 'bg-border'],
-]
-
-function Section({ eyebrow, title, children }) {
-  return (
-    <section className="grid gap-6 border-t border-border py-10 md:grid-cols-[220px_1fr]">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
-        <h2 className="mt-2 text-lg font-semibold tracking-tight">{title}</h2>
-      </div>
-      <div>{children}</div>
-    </section>
-  )
-}
-
-function DesignSystemPage() {
-  return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="grid size-8 place-items-center rounded-md bg-foreground text-xs font-bold text-white">LH</div>
-            <span className="text-sm font-semibold">Loyalty Hub Admin</span>
-            <Badge variant="secondary">Design system</Badge>
-          </div>
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <BellIcon size={18} weight="bold" />
-          </Button>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl px-6 py-14 lg:px-8">
-        <div className="max-w-3xl">
-          <Badge variant="outline">Foundation 01</Badge>
-          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-            Clear, restrained interfaces for operational work.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-            A monochrome admin foundation with a deep blue accent for primary actions, focus, and active states.
-          </p>
-        </div>
-
-        <div className="mt-14">
-          <Section eyebrow="01 / Foundation" title="Color tokens">
-            <div className="grid gap-3 sm:grid-cols-5">
-              {colorTokens.map(([label, color]) => (
-                <div key={label} className="rounded-lg border border-border p-2">
-                  <div className={`h-20 rounded-md border border-black/5 ${color}`} />
-                  <p className="px-1 pb-1 pt-3 text-xs font-medium">{label}</p>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          <Section eyebrow="02 / Actions" title="Buttons">
-            <div className="flex flex-wrap items-center gap-3">
-              <Button><PlusIcon size={16} weight="bold" />Create voucher</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="outline"><UploadSimpleIcon size={16} />Upload banner</Button>
-              <Button variant="ghost">Ghost</Button>
-              <Button variant="destructive">Delete</Button>
-              <Button size="icon" aria-label="Continue"><ArrowRightIcon size={17} weight="bold" /></Button>
-            </div>
-          </Section>
-
-          <Section eyebrow="03 / Forms" title="Inputs">
-            <div className="grid max-w-2xl gap-5 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-medium">
-                Voucher name
-                <Input placeholder="Summer reward" />
-                <span className="text-xs font-normal text-muted-foreground">Use a short, recognizable name.</span>
-              </label>
-              <label className="grid gap-2 text-sm font-medium">
-                Search
-                <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                  <Input className="pl-9" placeholder="Search voucher definitions" />
-                </div>
-              </label>
-            </div>
-          </Section>
-
-          <Section eyebrow="04 / Status" title="Badges and cards">
-            <div className="grid gap-5 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <CardTitle>Voucher definition</CardTitle>
-                      <CardDescription>Reusable surface for admin records.</CardDescription>
-                    </div>
-                    <Badge variant="success"><CheckCircleIcon size={13} weight="fill" />Active</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-end justify-between rounded-lg bg-muted p-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Remaining stock</p>
-                      <p className="mt-1 text-2xl font-semibold tracking-tight">1,240</p>
-                    </div>
-                    <Button variant="outline" size="sm">View detail</Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-foreground text-white">
-                <CardHeader>
-                  <Badge className="w-fit bg-white/10 text-white">Dark surface</Badge>
-                  <CardTitle className="pt-3 text-xl">Use dark blue sparingly.</CardTitle>
-                  <CardDescription className="text-white/60">
-                    Reserve accent color for intent, selection, and clear interaction feedback.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="bg-white text-foreground hover:bg-white/90">Review tokens<ArrowRightIcon size={16} /></Button>
-                </CardContent>
-              </Card>
-            </div>
-          </Section>
-        </div>
-      </div>
-    </main>
-  )
-}
+const AdminAccountDetailPage = lazyNamed(() => import('./pages/AdminAccountDetailPage'), 'AdminAccountDetailPage')
+const AdminAccountsPage = lazyNamed(() => import('./pages/AdminAccountsPage'), 'AdminAccountsPage')
+const AuditLogsPage = lazyNamed(() => import('./pages/AuditLogsPage'), 'AuditLogsPage')
+const CreateAdminAccountPage = lazyNamed(() => import('./pages/CreateAdminAccountPage'), 'CreateAdminAccountPage')
+const CreateRolePage = lazyNamed(() => import('./pages/CreateRolePage'), 'CreateRolePage')
+const DashboardPage = lazyNamed(() => import('./pages/DashboardPage'), 'DashboardPage')
+const DesignSystemPage = lazyNamed(() => import('./pages/DesignSystemPage'), 'DesignSystemPage')
+const EditRolePage = lazyNamed(() => import('./pages/EditRolePage'), 'EditRolePage')
+const FeaturePage = lazyNamed(() => import('./pages/FeaturePage'), 'FeaturePage')
+const LoginPage = lazyNamed(() => import('./pages/LoginPage'), 'LoginPage')
+const NotFoundPage = lazyNamed(() => import('./pages/NotFoundPage'), 'NotFoundPage')
+const PermissionsPage = lazyNamed(() => import('./pages/PermissionsPage'), 'PermissionsPage')
+const RoleDetailPage = lazyNamed(() => import('./pages/RoleDetailPage'), 'RoleDetailPage')
+const RolesPage = lazyNamed(() => import('./pages/RolesPage'), 'RolesPage')
+const SettingsPage = lazyNamed(() => import('./pages/SettingsPage'), 'SettingsPage')
+const SupportPage = lazyNamed(() => import('./pages/SupportPage'), 'SupportPage')
 
 function App() {
   return (
-    <Routes>
+    <Suspense fallback={<RouteLoading />}>
+      <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
@@ -188,7 +53,6 @@ function App() {
             <RequirePermission permissions={[
               PermissionCodes.Roles.View,
               PermissionCodes.Roles.Create,
-              PermissionCodes.Permissions.View,
             ]}>
               <CreateRolePage />
             </RequirePermission>
@@ -200,7 +64,6 @@ function App() {
             <RequirePermission permissions={[
               PermissionCodes.Roles.View,
               PermissionCodes.Roles.Update,
-              PermissionCodes.Permissions.View,
             ]}>
               <EditRolePage />
             </RequirePermission>
@@ -217,7 +80,7 @@ function App() {
         <Route
           path="permissions"
           element={
-            <RequirePermission permission={PermissionCodes.Permissions.View}>
+            <RequirePermission permission={PermissionCodes.Roles.View}>
               <PermissionsPage />
             </RequirePermission>
           }
@@ -292,11 +155,7 @@ function App() {
           path="audit-logs"
           element={
             <RequirePermission permission={PermissionCodes.AuditLogs.View}>
-              <FeaturePage
-                eyebrowKey="features.auditLogs.eyebrow"
-                titleKey="features.auditLogs.title"
-                descriptionKey="features.auditLogs.description"
-              />
+              <AuditLogsPage />
             </RequirePermission>
           }
         />
@@ -305,8 +164,26 @@ function App() {
       </Route>
       <Route path="/design-system" element={<DesignSystemPage />} />
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   )
+}
+
+function RouteLoading() {
+  const { t } = useTranslation()
+
+  return (
+    <main className="grid min-h-screen place-items-center bg-background text-foreground" aria-busy="true">
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <CircleNotchIcon className="animate-spin" />
+        {t('common.loadingWorkspace')}
+      </div>
+    </main>
+  )
+}
+
+function lazyNamed(loader, exportName) {
+  return lazy(() => loader().then((module) => ({ default: module[exportName] })))
 }
 
 export default App

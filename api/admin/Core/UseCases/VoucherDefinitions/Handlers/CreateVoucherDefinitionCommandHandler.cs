@@ -13,8 +13,6 @@ namespace Core.UseCases.VoucherDefinitions.Handlers;
 public sealed class CreateVoucherDefinitionCommandHandler
     : IRequestHandler<CreateVoucherDefinitionCommand, VoucherDefinitionResult>
 {
-    private const string AuditLogCreateAction = "CREATE";
-
     private readonly IVoucherDefinitionRepository _voucherDefinitionRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
@@ -63,7 +61,7 @@ public sealed class CreateVoucherDefinitionCommandHandler
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,
-            AuditLogCreateAction,
+            AuditActions.Create,
             AuditEntityTypes.VoucherDefinition,
             createdVoucherDefinition.VoucherDefinitionId,
             null,
