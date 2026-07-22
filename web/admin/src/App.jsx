@@ -30,6 +30,8 @@ import { SupportPage } from './pages/SupportPage'
 import { AdminAccountsPage } from './pages/AdminAccountsPage'
 import { AdminAccountDetailPage } from './pages/AdminAccountDetailPage'
 import { CreateAdminAccountPage } from './pages/CreateAdminAccountPage'
+import { NotificationTemplatesPage } from './pages/NotificationTemplatesPage'
+import { NotificationTemplateDesignerPage } from './pages/NotificationTemplateDesignerPage'
 
 const colorTokens = [
   ['Foreground', 'bg-foreground'],
@@ -297,6 +299,36 @@ function App() {
                 titleKey="features.auditLogs.title"
                 descriptionKey="features.auditLogs.description"
               />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates"
+          element={
+            <RequirePermission permission={PermissionCodes.NotificationTemplates.View}>
+              <NotificationTemplatesPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.NotificationTemplates.View,
+              PermissionCodes.NotificationTemplates.Create,
+            ]}>
+              <NotificationTemplateDesignerPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates/:id"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.NotificationTemplates.View,
+              PermissionCodes.NotificationTemplates.Update,
+            ]}>
+              <NotificationTemplateDesignerPage />
             </RequirePermission>
           }
         />
