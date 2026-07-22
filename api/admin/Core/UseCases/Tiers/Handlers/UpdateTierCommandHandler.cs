@@ -11,8 +11,6 @@ namespace Core.UseCases.Tiers.Handlers;
 
 public sealed class UpdateTierCommandHandler : IRequestHandler<UpdateTierCommand, TierResult>
 {
-    private const string AuditLogUpdateAction = "UPDATE";
-
     private readonly ITierRepository _tierRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
@@ -68,7 +66,7 @@ public sealed class UpdateTierCommandHandler : IRequestHandler<UpdateTierCommand
         _auditLogWriter.Add(
             new AuditLogEntry(
                 request.ActorUserId,
-                AuditLogUpdateAction,
+                AuditActions.Update,
                 AuditEntityTypes.TierConfig,
                 updatedTier.TierConfigId,
                 oldValue,
