@@ -12,6 +12,8 @@
   <data name="ADMIN_ID_REQUIRED" xml:space="preserve"><value>Admin id is required.</value></data>
   <data name="ADMIN_STATUS_INVALID" xml:space="preserve"><value>Admin status is invalid.</value></data>
   <data name="ADMIN_USER_NOT_FOUND" xml:space="preserve"><value>Admin user does not exist.</value></data>
+  <data name="CUSTOMER_ID_REQUIRED" xml:space="preserve"><value>Customer id is required.</value></data>
+  <data name="CUSTOMER_USER_NOT_FOUND" xml:space="preserve"><value>Customer user does not exist.</value></data>
   <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email already exists.</value></data>
   <data name="PHONE_NUMBER_ALREADY_EXISTS" xml:space="preserve"><value>Phone number already exists.</value></data>
   <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Username already exists.</value></data>
@@ -28,6 +30,7 @@
   <data name="EVENT_TYPE_NOT_FOUND" xml:space="preserve"><value>Notification event type does not exist.</value></data>
   <data name="TEMPLATE_NOT_FOUND" xml:space="preserve"><value>Notification template does not exist.</value></data>
   <data name="TIER_NAME_ALREADY_EXISTS" xml:space="preserve"><value>A tier with this name already exists.</value></data>
+  <data name="TIER_ID_INVALID" xml:space="preserve"><value>Tier id is invalid.</value></data>
   <data name="TIER_POINTS_REQUIRED_INVALID" xml:space="preserve"><value>Points required cannot be negative.</value></data>
   <data name="TIER_POINTS_ORDER_INVALID" xml:space="preserve"><value>Points required of a higher priority tier must be greater than points required of a lower priority tier.</value></data>
   <data name="TIER_PRIORITY_ALREADY_EXISTS" xml:space="preserve"><value>A tier with this priority already exists.</value></data>
@@ -51,6 +54,8 @@
   <data name="ENTITY_TYPE_TOO_LONG" xml:space="preserve"><value>Entity type must be 100 characters or fewer.</value></data>
   <data name="EVENT_TYPE_CODE_TOO_LONG" xml:space="preserve"><value>Event type code cannot exceed 50 characters.</value></data>
   <data name="FULL_NAME_TOO_LONG" xml:space="preserve"><value>Full name must be 50 characters or fewer.</value></data>
+  <data name="FULL_NAME_TOO_SHORT" xml:space="preserve"><value>Full name must be at least 2 characters.</value></data>
+  <data name="FULL_NAME_INVALID" xml:space="preserve"><value>Full name contains invalid characters.</value></data>
   <data name="KEYWORD_TOO_LONG" xml:space="preserve"><value>Keyword cannot exceed 100 characters.</value></data>
   <data name="LANGUAGE_REQUIRED" xml:space="preserve"><value>Language is required.</value></data>
   <data name="LANGUAGE_TOO_LONG" xml:space="preserve"><value>Language cannot exceed 10 characters.</value></data>
@@ -63,6 +68,7 @@
   <data name="PASSWORD_TOO_SHORT" xml:space="preserve"><value>Password must be at least {MinLength} characters.</value></data>
   <data name="PERMISSION_ID_REQUIRED" xml:space="preserve"><value>Permission id is required.</value></data>
   <data name="PHONE_NUMBER_TOO_LONG" xml:space="preserve"><value>Phone number must be 15 characters or fewer.</value></data>
+  <data name="PHONE_NUMBER_INVALID" xml:space="preserve"><value>Phone number must be 9 to 15 characters, contain digits only, and may start with +.</value></data>
   <data name="ROLE_NAME_REQUIRED" xml:space="preserve"><value>Role name is required.</value></data>
   <data name="ROLE_NAME_TOO_LONG" xml:space="preserve"><value>Role name must be 100 characters or fewer.</value></data>
   <data name="ROLE_PERMISSION_IDS_REQUIRED" xml:space="preserve"><value>Permission ids are required.</value></data>

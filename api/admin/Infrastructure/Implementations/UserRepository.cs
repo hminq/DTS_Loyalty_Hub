@@ -1,4 +1,5 @@
 using Core.Entities.Constants;
+using Core.Entities;
 using Core.Abstractions;
 using Core.UseCases.Auth.Models;
 using Persistence.Models.Context;
@@ -61,22 +62,67 @@ public sealed class UserRepository : IUserRepository
     public Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default) =>
         _dbContext.Users.AsNoTracking().AnyAsync(user => user.Username == username.Trim(), ct);
 
-    public Task<bool> EmailExistsAsync(string email, CancellationToken ct = default) =>
-        _dbContext.Users.AsNoTracking().AnyAsync(user => user.Email == email.Trim(), ct);
+    public Task<bool> EmailExistsAsync(string email, CancellationToken ct = default)
+    {
+        var normalizedEmail = UserProfileRules.NormalizeEmail(email);
+        return _dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.Email.ToLower() == normalizedEmail, ct);
+    }
 
-    public Task<bool> PhoneNumberExistsAsync(string phoneNumber, CancellationToken ct = default) =>
-        _dbContext.Users.AsNoTracking().AnyAsync(user => user.PhoneNumber == phoneNumber.Trim(), ct);
+    public Task<bool> PhoneNumberExistsAsync(string phoneNumber, CancellationToken ct = default)
+    {
+        var normalizedPhoneNumber = UserProfileRules.NormalizeOptionalPhoneNumber(phoneNumber)!;
+        return _dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.PhoneNumber == normalizedPhoneNumber, ct);
+    }
 
-    public Task<bool> EmailExistsExceptAdminAsync(string email, Guid adminId, CancellationToken ct = default) =>
-        _dbContext.Admins.AsNoTracking().AnyAsync(
-            admin => admin.AdminId != adminId && admin.User.Email == email.Trim(), ct);
+    public Task<bool> EmailExistsExceptAdminAsync(
+        string email,
+        Guid adminId,
+        CancellationToken ct = default)
+    {
+        var normalizedEmail = UserProfileRules.NormalizeEmail(email);
+        return _dbContext.Users.AsNoTracking().AnyAsync(
+            user => user.Email.ToLower() == normalizedEmail &&
+                (user.Admin == null || user.Admin.AdminId != adminId),
+            ct);
+    }
 
     public Task<bool> PhoneNumberExistsExceptAdminAsync(
         string phoneNumber,
         Guid adminId,
-        CancellationToken ct = default) =>
-        _dbContext.Admins.AsNoTracking().AnyAsync(
-            admin => admin.AdminId != adminId && admin.User.PhoneNumber == phoneNumber.Trim(), ct);
+        CancellationToken ct = default)
+    {
+        var normalizedPhoneNumber = UserProfileRules.NormalizeOptionalPhoneNumber(phoneNumber)!;
+        return _dbContext.Users.AsNoTracking().AnyAsync(
+            user => user.PhoneNumber == normalizedPhoneNumber &&
+                (user.Admin == null || user.Admin.AdminId != adminId),
+            ct);
+    }
+
+    public Task<bool> EmailExistsExceptCustomerAsync(
+        string email,
+        Guid customerId,
+        CancellationToken ct = default)
+    {
+        var normalizedEmail = UserProfileRules.NormalizeEmail(email);
+        return _dbContext.Users.AsNoTracking().AnyAsync(
+            user => user.Email.ToLower() == normalizedEmail &&
+                (user.Customer == null || user.Customer.CustomerId != customerId),
+            ct);
+    }
+
+    public Task<bool> PhoneNumberExistsExceptCustomerAsync(
+        string phoneNumber,
+        Guid customerId,
+        CancellationToken ct = default)
+    {
+        var normalizedPhoneNumber = UserProfileRules.NormalizeOptionalPhoneNumber(phoneNumber)!;
+        return _dbContext.Users.AsNoTracking().AnyAsync(
+            user => user.PhoneNumber == normalizedPhoneNumber &&
+                (user.Customer == null || user.Customer.CustomerId != customerId),
+            ct);
+    }
 
     public void AddAdminUser(
         Guid userId,
@@ -123,6 +169,30 @@ public sealed class UserRepository : IUserRepository
         user.UpdatedAt = DateTime.UtcNow;
     }
 
+    public async Task UpdateCustomerProfileAsync(
+        Guid customerId,
+        string email,
+        string? fullName,
+        string? phoneNumber,
+        CancellationToken ct = default)
+    {
+        var user = await GetCustomerUserForUpdateAsync(customerId, ct);
+        user.Email = email;
+        user.FullName = fullName;
+        user.PhoneNumber = phoneNumber;
+        user.UpdatedAt = DateTime.UtcNow;
+    }
+
+    public async Task UpdateCustomerStatusAsync(
+        Guid customerId,
+        string status,
+        CancellationToken ct = default)
+    {
+        var user = await GetCustomerUserForUpdateAsync(customerId, ct);
+        user.Status = status;
+        user.UpdatedAt = DateTime.UtcNow;
+    }
+
     private async Task<User> GetAdminUserForUpdateAsync(Guid adminId, CancellationToken ct)
     {
         return await _dbContext.Admins
@@ -130,5 +200,16 @@ public sealed class UserRepository : IUserRepository
             .Select(admin => admin.User)
             .SingleOrDefaultAsync(ct)
             ?? throw new DomainException("ADMIN_USER_NOT_FOUND", DomainErrorType.NotFound);
+    }
+
+    private async Task<User> GetCustomerUserForUpdateAsync(Guid customerId, CancellationToken ct)
+    {
+        return await _dbContext.Customers
+            .Where(customer =>
+                customer.CustomerId == customerId &&
+                customer.User.UserType == UserTypes.Customer)
+            .Select(customer => customer.User)
+            .SingleOrDefaultAsync(ct)
+            ?? throw new DomainException("CUSTOMER_USER_NOT_FOUND", DomainErrorType.NotFound);
     }
 }
