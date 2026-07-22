@@ -5,7 +5,11 @@ namespace Core.Abstractions;
 
 public interface ITierRepository
 {
-    Task<IReadOnlyCollection<TierResult>> GetListAsync(
+    Task<IReadOnlyCollection<TierListItemResult>> GetListAsync(
+        CancellationToken ct);
+
+    Task<TierDetailResult?> GetDetailByIdAsync(
+        Guid tierConfigId,
         CancellationToken ct);
 
     Task<Tier?> GetByIdAsync(
