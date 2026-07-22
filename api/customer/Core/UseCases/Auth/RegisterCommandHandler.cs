@@ -1,4 +1,5 @@
 using Core.Abstractions;
+using Core.Entities;
 using Core.Exceptions;
 using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Models;
@@ -25,21 +26,26 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
 
     public async Task<RegisterResult> Handle(RegisterCommand request, CancellationToken ct)
     {
-        if (await _userRepository.ExistsByUsernameAsync(request.Username, ct))
+        var username = request.Username.Trim();
+        var email = UserProfileRules.NormalizeEmail(request.Email);
+        var fullName = UserProfileRules.NormalizeFullName(request.FullName);
+        var phone = UserProfileRules.NormalizePhoneNumber(request.Phone);
+
+        if (await _userRepository.ExistsByUsernameAsync(username, ct))
         {
             throw new DomainException(
                 "USERNAME_ALREADY_EXISTS",
                 DomainErrorType.Conflict);
         }
 
-        if (await _userRepository.ExistsByEmailAsync(request.Email, ct))
+        if (await _userRepository.ExistsByEmailAsync(email, ct))
         {
             throw new DomainException(
                 "EMAIL_ALREADY_EXISTS",
                 DomainErrorType.Conflict);
         }
 
-        if (await _userRepository.ExistsByPhoneAsync(request.Phone, ct))
+        if (await _userRepository.ExistsByPhoneAsync(phone, ct))
         {
             throw new DomainException(
                 "PHONE_ALREADY_EXISTS",
@@ -54,11 +60,11 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
             userId,
             customerId,
             new NewCustomerUser(
-                request.Username,
-                request.Email,
+                username,
+                email,
                 passwordHash,
-                request.FullName,
-                request.Phone));
+                fullName,
+                phone));
 
         var expiresAt = _accessTokenService.CreateExpiresAt();
 
@@ -66,7 +72,7 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
             new CustomerTokenUser(
                 created.UserId,
                 created.CustomerId,
-                request.Username),
+                username),
             expiresAt);
 
         return new RegisterResult(
@@ -75,8 +81,8 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
             new CustomerRegisterResult(
                 created.UserId,
                 created.CustomerId,
-                request.Username,
-                request.Email,
-                request.FullName));
+                username,
+                email,
+                fullName));
     }
 }

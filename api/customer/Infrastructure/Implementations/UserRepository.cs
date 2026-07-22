@@ -1,4 +1,5 @@
 using Core.Entities.Constants;
+using Core.Entities;
 using Core.Abstractions;
 using Core.UseCases.Auth.Models;
 using Persistence.Models;
@@ -47,12 +48,16 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default)
     {
-        return await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email, ct);
+        var normalizedEmail = UserProfileRules.NormalizeEmail(email);
+        return await _dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.Email.ToLower() == normalizedEmail, ct);
     }
 
     public async Task<bool> ExistsByPhoneAsync(string phone, CancellationToken ct = default)
     {
-        return await _dbContext.Users.AsNoTracking().AnyAsync(u => u.PhoneNumber == phone, ct);
+        var normalizedPhone = UserProfileRules.NormalizePhoneNumber(phone);
+        return await _dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.PhoneNumber == normalizedPhone, ct);
     }
 
     public CreatedCustomerUser Add(Guid userId, Guid customerId, NewCustomerUser newUser)
