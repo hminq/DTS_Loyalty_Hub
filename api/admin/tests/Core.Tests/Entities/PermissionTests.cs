@@ -55,11 +55,15 @@ public sealed class PermissionTests
             "Notification permission",
             groupCode,
             "Notification",
+            code[(code.IndexOf('.') + 1)..],
+            "View",
             1,
             1);
 
         permission.Code.Should().Be(code);
         permission.GroupCode.Should().Be(groupCode);
+        permission.ActionCode.Should().Be(code[(code.IndexOf('.') + 1)..]);
+        permission.ActionName.Should().Be("View");
     }
 
     [Fact]
@@ -70,6 +74,25 @@ public sealed class PermissionTests
             "View Notification Template",
             "notification",
             "Notification",
+            "view",
+            "View",
+            1,
+            1);
+
+        action.Should().Throw<DomainException>()
+            .Which.ErrorCode.Should().Be("PERMISSION_CODE_GROUP_MISMATCH");
+    }
+
+    [Fact]
+    public void Create_ActionCodeDoesNotMatchFullCode_ThrowsDomainException()
+    {
+        var action = () => Permission.Create(
+            PermissionCodes.Roles.View,
+            "View Role",
+            "role",
+            "Role",
+            "update",
+            "Update",
             1,
             1);
 

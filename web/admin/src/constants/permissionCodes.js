@@ -5,13 +5,6 @@ export const PermissionCodes = Object.freeze({
     Update: 'role.update',
     Delete: 'role.delete',
   }),
-  Permissions: Object.freeze({
-    View: 'permission.view',
-  }),
-  RolePermissions: Object.freeze({
-    View: 'role_permission.view',
-    Update: 'role_permission.update',
-  }),
   AdminUsers: Object.freeze({
     View: 'admin_user.view',
     Create: 'admin_user.create',

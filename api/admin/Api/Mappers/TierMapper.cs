@@ -36,4 +36,18 @@ public static class TierMapper
             .Select(result => result.ToResponseDto())
             .ToArray();
     }
+
+    public static UpdateTierCommand ToCommand(
+    this UpdateTierRequestDto request,
+    Guid tierConfigId,
+    Guid? actorUserId)
+    {
+        return new UpdateTierCommand(
+            tierConfigId,
+            request.Name,
+            request.PointsRequired,
+            request.CycleMonth,
+            request.Priority,
+            actorUserId);
+    }
 }

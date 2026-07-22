@@ -6,6 +6,10 @@ public sealed class AuditLogResponseDto
 
     public Guid? ActorUserId { get; set; }
 
+    public string? ActorUsername { get; set; }
+
+    public string? ActorFullName { get; set; }
+
     public string Action { get; set; } = null!;
 
     public string EntityType { get; set; } = null!;

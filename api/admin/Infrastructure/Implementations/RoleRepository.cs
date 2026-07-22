@@ -83,6 +83,8 @@ public sealed class RoleRepository : IRoleRepository
                         rolePermission.Permission.Name,
                         rolePermission.Permission.GroupCode,
                         rolePermission.Permission.GroupName,
+                        rolePermission.Permission.ActionCode,
+                        rolePermission.Permission.ActionName,
                         rolePermission.Permission.GroupSortOrder,
                         rolePermission.Permission.ActionSortOrder))
                     .ToArray(),
@@ -132,10 +134,9 @@ public sealed class RoleRepository : IRoleRepository
             totalItems);
     }
 
-    public async Task<PagedResult<RoleOptionResult>> GetOptionsPagedAsync(
-        int page,
-        int pageSize,
+    public async Task<IReadOnlyCollection<RoleOptionResult>> SearchOptionsAsync(
         string? keyword,
+        int limit,
         CancellationToken ct = default)
     {
         var query = _dbContext.Roles
@@ -148,22 +149,14 @@ public sealed class RoleRepository : IRoleRepository
             query = query.Where(role => EF.Functions.ILike(role.Name, pattern));
         }
 
-        var totalItems = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderBy(role => role.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+        return await query
+            .OrderBy(role => role.Name.ToLower())
+            .ThenBy(role => role.RoleId)
             .Select(role => new RoleOptionResult(
                 role.RoleId,
                 role.Name))
+            .Take(limit)
             .ToArrayAsync(ct);
-
-        return new PagedResult<RoleOptionResult>(
-            items,
-            page,
-            pageSize,
-            totalItems);
     }
 
     public Task<bool> HasAssignedAdminsAsync(Guid roleId, CancellationToken ct = default)

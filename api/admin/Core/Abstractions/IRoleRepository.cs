@@ -23,10 +23,9 @@ public interface IRoleRepository
         string? keyword,
         CancellationToken ct = default);
 
-    Task<PagedResult<RoleOptionResult>> GetOptionsPagedAsync(
-        int page,
-        int pageSize,
+    Task<IReadOnlyCollection<RoleOptionResult>> SearchOptionsAsync(
         string? keyword,
+        int limit,
         CancellationToken ct = default);
 
     Task<bool> HasAssignedAdminsAsync(Guid roleId, CancellationToken ct = default);

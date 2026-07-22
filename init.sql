@@ -35,11 +35,16 @@ CREATE TABLE permissions (
     name VARCHAR(100) NOT NULL,
     group_code VARCHAR(50) NOT NULL,
     group_name VARCHAR(100) NOT NULL,
+    action_code VARCHAR(50) NOT NULL,
+    action_name VARCHAR(100) NOT NULL,
     group_sort_order INTEGER NOT NULL DEFAULT 0,
     action_sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT uq_permissions_code UNIQUE (code)
+    CONSTRAINT uq_permissions_code UNIQUE (code),
+    CONSTRAINT uq_permissions_group_action UNIQUE (group_code, action_code),
+    CONSTRAINT ck_permissions_code_group_action
+        CHECK (code = group_code || '.' || action_code)
 );
 
 CREATE TABLE role_permissions (
@@ -388,3 +393,12 @@ CREATE TABLE audit_logs (
         FOREIGN KEY (actor_user_id) REFERENCES users (user_id),
     CONSTRAINT ck_audit_logs_metadata_object CHECK (jsonb_typeof(metadata) = 'object')
 );
+
+CREATE INDEX ix_audit_logs_created_at_id
+    ON audit_logs (created_at DESC, audit_log_id DESC);
+
+CREATE INDEX ix_audit_logs_entity_type_created_at_id
+    ON audit_logs (entity_type, created_at DESC, audit_log_id DESC);
+
+CREATE INDEX ix_audit_logs_action_created_at_id
+    ON audit_logs (action, created_at DESC, audit_log_id DESC);

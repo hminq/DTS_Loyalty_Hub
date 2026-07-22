@@ -104,6 +104,8 @@ public sealed class AdminUserRepository : IAdminUserRepository
                 rolePermission.Permission.Name,
                 rolePermission.Permission.GroupCode,
                 rolePermission.Permission.GroupName,
+                rolePermission.Permission.ActionCode,
+                rolePermission.Permission.ActionName,
                 rolePermission.Permission.GroupSortOrder,
                 rolePermission.Permission.ActionSortOrder))
             .ToArray();

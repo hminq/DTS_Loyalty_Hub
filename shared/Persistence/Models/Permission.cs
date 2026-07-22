@@ -15,6 +15,10 @@ public partial class Permission
 
     public string GroupName { get; set; } = null!;
 
+    public string ActionCode { get; set; } = null!;
+
+    public string ActionName { get; set; } = null!;
+
     public int GroupSortOrder { get; set; }
 
     public int ActionSortOrder { get; set; }

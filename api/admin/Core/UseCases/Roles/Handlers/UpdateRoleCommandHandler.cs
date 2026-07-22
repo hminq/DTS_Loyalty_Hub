@@ -80,7 +80,7 @@ public sealed class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand
         var updatedRole = await _roleRepository.UpdateAsync(role, ct);
 
         _auditLogWriter.Add(new AuditLogEntry(
-            request.ActorUserId, "UPDATE", AuditEntityTypes.Role, updatedRole.RoleId, oldValue,
+            request.ActorUserId, AuditActions.Update, AuditEntityTypes.Role, updatedRole.RoleId, oldValue,
             JsonSerializer.Serialize(new { name = updatedRole.Name, permissionIds = updatedRole.PermissionIds }), null));
 
         return new RoleResult(

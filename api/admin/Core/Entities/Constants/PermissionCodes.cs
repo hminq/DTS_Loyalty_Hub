@@ -8,9 +8,6 @@ public static class PermissionCodes
         Roles.Create,
         Roles.Update,
         Roles.Delete,
-        Permissions.View,
-        RolePermissions.View,
-        RolePermissions.Update,
         AdminUsers.View,
         AdminUsers.Create,
         AdminUsers.Update,
@@ -24,6 +21,7 @@ public static class PermissionCodes
         CustomerUsers.ResetPassword,
         Tiers.View,
         Tiers.Create,
+        Tiers.Update,
         AuditLogs.View,
         NotificationEventTypes.View,
         NotificationTemplates.View,
@@ -62,17 +60,6 @@ public static class PermissionCodes
         public const string Delete = "role.delete";
     }
 
-    public static class Permissions
-    {
-        public const string View = "permission.view";
-    }
-
-    public static class RolePermissions
-    {
-        public const string View = "role_permission.view";
-        public const string Update = "role_permission.update";
-    }
-
     public static class AdminUsers
     {
         public const string View = "admin_user.view";
@@ -109,6 +96,8 @@ public static class PermissionCodes
     {
         public const string View = "tier.view";
         public const string Create = "tier.create";
+
+        public const string Update = "tier.update";
     }
 
     public static class AuditLogs

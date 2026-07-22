@@ -18,7 +18,7 @@ const navigationItems = [
     icon: IdentificationBadgeIcon,
     children: [
       { id: 'roles', labelKey: 'navigation.roles', path: '/roles', permission: PermissionCodes.Roles.View },
-      { id: 'permissions', labelKey: 'navigation.permissions', path: '/permissions', permission: PermissionCodes.Permissions.View },
+      { id: 'permissions', labelKey: 'navigation.permissions', path: '/permissions', permission: PermissionCodes.Roles.View },
     ],
   },
   {

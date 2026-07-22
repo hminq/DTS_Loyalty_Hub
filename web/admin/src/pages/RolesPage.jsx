@@ -31,9 +31,7 @@ function RolesPage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const canCreate = hasPermission(PermissionCodes.Roles.Create)
-    && hasPermission(PermissionCodes.Permissions.View)
   const canEdit = hasPermission(PermissionCodes.Roles.Update)
-    && hasPermission(PermissionCodes.Permissions.View)
   const canDelete = hasPermission(PermissionCodes.Roles.Delete)
 
   const updateSearchParams = useCallback((updates) => {
@@ -138,11 +136,6 @@ function RolesPage() {
 
       <Card className="mt-5 rounded-xl border-border/80 shadow-none">
         <CardContent className="p-4">
-          {meta ? (
-            <p className="mb-3 text-xs text-muted-foreground">
-              {t('roles.summary', { count: roles.length, total: meta.totalItems })}
-            </p>
-          ) : null}
           <RolesTable
             roles={roles}
             isLoading={isLoading}

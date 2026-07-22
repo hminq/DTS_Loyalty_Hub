@@ -4,4 +4,6 @@ public sealed record PermissionResult(
     Guid PermissionId,
     string Code,
     string Name,
+    string ActionCode,
+    string ActionName,
     int ActionSortOrder);
