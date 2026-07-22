@@ -46,7 +46,8 @@ public sealed class GlobalExceptionHandler(
         return true;
     }
 
-    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateDomainError(DomainException exception)
+    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateDomainError(
+        DomainException exception)
     {
         var statusCode = exception.ErrorType switch
         {
@@ -58,9 +59,9 @@ public sealed class GlobalExceptionHandler(
             _ => StatusCodes.Status400BadRequest
         };
 
-        return (statusCode, ApiErrorResponseDto.Create(exception.ErrorCode, messageResolver.Resolve(
-            exception.ErrorCode,
-            exception.MessageArguments)));
+        return (statusCode, ApiErrorResponseDto.Create(
+            exception.ErrorCode, 
+            messageResolver.Resolve(exception.ErrorCode, exception.MessageArguments)));
     }
 
     private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateUnknownError()
