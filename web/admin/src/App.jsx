@@ -13,8 +13,16 @@ const AdminAccountsPage = lazyNamed(() => import('./pages/AdminAccountsPage'), '
 const AuditLogsPage = lazyNamed(() => import('./pages/AuditLogsPage'), 'AuditLogsPage')
 const CreateAdminAccountPage = lazyNamed(() => import('./pages/CreateAdminAccountPage'), 'CreateAdminAccountPage')
 const CreateRolePage = lazyNamed(() => import('./pages/CreateRolePage'), 'CreateRolePage')
+const CustomerAccountDetailPage = lazyNamed(() => import('./pages/CustomerAccountDetailPage'), 'CustomerAccountDetailPage')
+const CustomerAccountsPage = lazyNamed(() => import('./pages/CustomerAccountsPage'), 'CustomerAccountsPage')
+const CustomerPointTransactionsPage = lazyNamed(() => import('./pages/CustomerPointTransactionsPage'), 'CustomerPointTransactionsPage')
+const CustomerPointsPage = lazyNamed(() => import('./pages/CustomerPointsPage'), 'CustomerPointsPage')
+const CustomerVoucherRedemptionsPage = lazyNamed(() => import('./pages/CustomerVoucherRedemptionsPage'), 'CustomerVoucherRedemptionsPage')
+const CustomerVouchersPage = lazyNamed(() => import('./pages/CustomerVouchersPage'), 'CustomerVouchersPage')
 const DashboardPage = lazyNamed(() => import('./pages/DashboardPage'), 'DashboardPage')
 const DesignSystemPage = lazyNamed(() => import('./pages/DesignSystemPage'), 'DesignSystemPage')
+const EditAdminAccountPage = lazyNamed(() => import('./pages/EditAdminAccountPage'), 'EditAdminAccountPage')
+const EditCustomerAccountPage = lazyNamed(() => import('./pages/EditCustomerAccountPage'), 'EditCustomerAccountPage')
 const EditRolePage = lazyNamed(() => import('./pages/EditRolePage'), 'EditRolePage')
 const FeaturePage = lazyNamed(() => import('./pages/FeaturePage'), 'FeaturePage')
 const LoginPage = lazyNamed(() => import('./pages/LoginPage'), 'LoginPage')
@@ -113,16 +121,75 @@ function App() {
             </RequirePermission>
           }
         />
+        <Route
+          path="admin-accounts/:adminId/edit"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.AdminUsers.View,
+              PermissionCodes.AdminUsers.Update,
+              PermissionCodes.Roles.View,
+            ]}>
+              <EditAdminAccountPage />
+            </RequirePermission>
+          }
+        />
         <Route path="admin-users" element={<Navigate to="/admin-accounts" replace />} />
         <Route
           path="customer-accounts"
           element={
             <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
-              <FeaturePage
-                eyebrowKey="features.accounts.eyebrow"
-                titleKey="features.customerUsers.title"
-                descriptionKey="features.customerUsers.description"
-              />
+              <CustomerAccountsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="customer-accounts/:customerId"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
+              <CustomerAccountDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="customer-accounts/:customerId/points"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
+              <CustomerPointsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="customer-accounts/:customerId/vouchers"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
+              <CustomerVouchersPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="customer-accounts/:customerId/voucher-redemptions"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
+              <CustomerVoucherRedemptionsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="customer-accounts/:customerId/point-transactions"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerUsers.View}>
+              <CustomerPointTransactionsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="customer-accounts/:customerId/edit"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.CustomerUsers.View,
+              PermissionCodes.CustomerUsers.Update,
+            ]}>
+              <EditCustomerAccountPage />
             </RequirePermission>
           }
         />

@@ -1,29 +1,29 @@
-import { PlusIcon, UserPlusIcon } from '@phosphor-icons/react'
+import { UsersThreeIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
-import { getAdminAccounts, updateAdminAccountStatus } from '../api/adminAccountsApi'
-import { AdminAccountStatusDialog } from '../components/admin-accounts/AdminAccountStatusDialog'
-import { AdminAccountsFilters } from '../components/admin-accounts/AdminAccountsFilters'
-import { AdminAccountsTable } from '../components/admin-accounts/AdminAccountsTable'
+import { getCustomerAccounts, updateCustomerAccountStatus } from '../api/customerAccountsApi'
+import { getTierConfigs } from '../api/tiersApi'
+import { CustomerAccountsFilters } from '../components/customer-accounts/CustomerAccountsFilters'
+import { CustomerAccountStatusDialog } from '../components/customer-accounts/CustomerAccountStatusDialog'
+import { CustomerAccountsTable } from '../components/customer-accounts/CustomerAccountsTable'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
 
-function AdminAccountsPage() {
+function CustomerAccountsPage() {
   const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const { hasPermission } = useOutletContext()
   const [searchParams, setSearchParams] = useSearchParams()
   const page = readPositiveInteger(searchParams.get('page'), 1)
-  const requestedPageSize = readPositiveInteger(searchParams.get('pageSize'), 20)
-  const pageSize = Math.min(requestedPageSize, 100)
+  const pageSize = Math.min(readPositiveInteger(searchParams.get('pageSize'), 20), 100)
   const keyword = searchParams.get('keyword') || ''
   const status = searchParams.get('status') || ''
-  const roleId = searchParams.get('roleId') || ''
+  const tierId = searchParams.get('tierId') || ''
 
   const [keywordInput, setKeywordInput] = useState(keyword)
   const [accounts, setAccounts] = useState([])
@@ -34,11 +34,13 @@ function AdminAccountsPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [statusAccount, setStatusAccount] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [tierOptions, setTierOptions] = useState([])
+  const [isTierLoading, setIsTierLoading] = useState(false)
+  const [tierError, setTierError] = useState('')
 
-  const canViewRoles = hasPermission(PermissionCodes.Roles.View)
-  const canCreateAccount = hasPermission(PermissionCodes.AdminUsers.Create) && canViewRoles
-  const canUpdateStatus = hasPermission(PermissionCodes.AdminUsers.Disable)
-  const hasActiveFilters = Boolean(keyword || status || roleId)
+  const canFilterByTier = hasPermission(PermissionCodes.Tiers.View)
+  const canUpdateStatus = hasPermission(PermissionCodes.CustomerUsers.Disable)
+  const hasActiveFilters = Boolean(keyword || status || tierId)
 
   const updateSearchParams = useCallback((updates, replace = false) => {
     setSearchParams((current) => {
@@ -55,13 +57,11 @@ function AdminAccountsPage() {
     }, { replace })
   }, [pageSize, setSearchParams])
 
-  useEffect(() => {
-    setKeywordInput(keyword)
-  }, [keyword])
+  useEffect(() => setKeywordInput(keyword), [keyword])
 
   useEffect(() => {
     if (searchParams.get('page') !== String(page) || searchParams.get('pageSize') !== String(pageSize)) {
-      updateSearchParams({ page, pageSize })
+      updateSearchParams({ page, pageSize }, true)
     }
   }, [page, pageSize, searchParams, updateSearchParams])
 
@@ -77,6 +77,12 @@ function AdminAccountsPage() {
   }, [keyword, keywordInput, updateSearchParams])
 
   useEffect(() => {
+    if (!canFilterByTier && tierId) {
+      updateSearchParams({ tierId: '', page: 1 }, true)
+    }
+  }, [canFilterByTier, tierId, updateSearchParams])
+
+  useEffect(() => {
     const controller = new AbortController()
 
     async function loadAccounts() {
@@ -85,8 +91,8 @@ function AdminAccountsPage() {
       setLoadError('')
 
       try {
-        const response = await getAdminAccounts(
-          { page, pageSize, keyword, status, roleId },
+        const response = await getCustomerAccounts(
+          { page, pageSize, keyword, status, tierId },
           controller.signal,
         )
         if (controller.signal.aborted) return
@@ -100,7 +106,9 @@ function AdminAccountsPage() {
         setAccounts(response.data ?? [])
         setMeta(nextMeta)
       } catch (error) {
-        if (!controller.signal.aborted) setLoadError(error.message || t('errors.loadAdminAccounts'))
+        if (!controller.signal.aborted) {
+          setLoadError(error.message || t('errors.loadCustomerAccounts'))
+        }
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false)
@@ -111,19 +119,51 @@ function AdminAccountsPage() {
 
     loadAccounts()
     return () => controller.abort()
-  }, [keyword, page, pageSize, refreshKey, roleId, status, t, updateSearchParams])
+  }, [keyword, page, pageSize, refreshKey, status, t, tierId, updateSearchParams])
+
+  useEffect(() => {
+    if (!canFilterByTier) {
+      setTierOptions([])
+      setTierError('')
+      return undefined
+    }
+
+    const controller = new AbortController()
+    setIsTierLoading(true)
+    setTierError('')
+
+    getTierConfigs(controller.signal)
+      .then((tiers) => {
+        if (!controller.signal.aborted) {
+          setTierOptions((tiers ?? []).map((tier) => ({
+            value: tier.tierConfigId,
+            label: tier.name,
+          })))
+        }
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setTierError(error.message || t('errors.loadTierOptions'))
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsTierLoading(false)
+      })
+
+    return () => controller.abort()
+  }, [canFilterByTier, t])
 
   function clearFilters() {
     setKeywordInput('')
-    updateSearchParams({ keyword: '', status: '', roleId: '', page: 1 })
+    updateSearchParams({ keyword: '', status: '', tierId: '', page: 1 })
   }
 
   async function handleStatusChange(nextStatus) {
-    await updateAdminAccountStatus(statusAccount.adminId, nextStatus)
+    await updateCustomerAccountStatus(statusAccount.customerId, nextStatus)
     setStatusAccount(null)
     setSuccessMessage(t(nextStatus === 'DISABLE'
-      ? 'adminAccounts.status.disableSuccess'
-      : 'adminAccounts.status.enableSuccess'))
+      ? 'customerAccounts.status.disableSuccess'
+      : 'customerAccounts.status.enableSuccess'))
     setRefreshKey((current) => current + 1)
   }
 
@@ -132,21 +172,18 @@ function AdminAccountsPage() {
   return (
     <>
       <PageHeader
-        eyebrow={t('adminAccounts.eyebrow')}
-        title={t('adminAccounts.title')}
-        description={t('adminAccounts.description')}
-        actions={canCreateAccount ? (
-          <Button size="sm" onClick={() => navigate('/admin-accounts/new')}>
-            <PlusIcon size={15} weight="bold" />
-            {t('adminAccounts.create')}
-          </Button>
-        ) : null}
+        eyebrow={t('customerAccounts.eyebrow')}
+        title={t('customerAccounts.title')}
+        description={t('customerAccounts.description')}
       />
 
       {loadError ? (
-        <p className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
-          {loadError}
-        </p>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
+          <p>{loadError}</p>
+          <Button variant="outline" size="sm" onClick={() => setRefreshKey((current) => current + 1)}>
+            {t('customerAccounts.retry')}
+          </Button>
+        </div>
       ) : null}
       {successMessage ? (
         <p className="mt-5 rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
@@ -156,29 +193,29 @@ function AdminAccountsPage() {
 
       <Card className="mt-5 overflow-visible rounded-xl border-border/80 shadow-none">
         <CardContent className="p-4">
-          <AdminAccountsFilters
+          <CustomerAccountsFilters
             keyword={keywordInput}
             onKeywordChange={setKeywordInput}
             status={status}
             onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
-            roleId={roleId}
-            onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
-            canFilterByRole={canViewRoles}
+            tierId={tierId}
+            onTierChange={(value) => updateSearchParams({ tierId: value, page: 1 })}
+            canFilterByTier={canFilterByTier}
+            tierOptions={tierOptions}
+            isTierLoading={isTierLoading}
+            tierError={tierError}
             t={t}
           />
 
           {!showEmptyState ? (
             <>
-              <AdminAccountsTable
+              <CustomerAccountsTable
                 accounts={accounts}
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 language={i18n.resolvedLanguage}
-                capabilities={{
-                  canView: true,
-                  canUpdateStatus,
-                }}
-                onView={(adminId) => navigate(`/admin-accounts/${adminId}`)}
+                canUpdateStatus={canUpdateStatus}
+                onView={(customerId) => navigate(`/customer-accounts/${customerId}`)}
                 onStatusChange={setStatusAccount}
                 t={t}
               />
@@ -189,44 +226,38 @@ function AdminAccountsPage() {
               />
             </>
           ) : (
-            <EmptyState
-              filtered={hasActiveFilters}
-              canCreate={canCreateAccount}
-              onCreate={() => navigate('/admin-accounts/new')}
-              onClear={clearFilters}
-              t={t}
-            />
+            <CustomerAccountsEmptyState filtered={hasActiveFilters} onClear={clearFilters} t={t} />
           )}
         </CardContent>
       </Card>
 
-      <AdminAccountStatusDialog
+      <CustomerAccountStatusDialog
         account={statusAccount}
         open={Boolean(statusAccount)}
         onClose={() => setStatusAccount(null)}
         onConfirm={handleStatusChange}
       />
-
     </>
   )
 }
 
-function EmptyState({ filtered, canCreate, onCreate, onClear, t }) {
+function CustomerAccountsEmptyState({ filtered, onClear, t }) {
   return (
     <div className="grid place-items-center px-6 py-16 text-center">
       <div className="grid size-11 place-items-center rounded-full bg-muted text-primary">
-        <UserPlusIcon size={21} />
+        <UsersThreeIcon size={21} aria-hidden="true" />
       </div>
       <h2 className="mt-4 text-sm font-semibold">
-        {t(filtered ? 'adminAccounts.noResultsTitle' : 'adminAccounts.emptyTitle')}
+        {t(filtered ? 'customerAccounts.noResultsTitle' : 'customerAccounts.emptyTitle')}
       </h2>
       <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
-        {t(filtered ? 'adminAccounts.noResultsDescription' : 'adminAccounts.emptyDescription')}
+        {t(filtered ? 'customerAccounts.noResultsDescription' : 'customerAccounts.emptyDescription')}
       </p>
-      <div className="mt-4 flex gap-2">
-        {filtered ? <Button variant="outline" size="sm" onClick={onClear}>{t('adminAccounts.clearFilters')}</Button> : null}
-        {!filtered && canCreate ? <Button size="sm" onClick={onCreate}>{t('adminAccounts.create')}</Button> : null}
-      </div>
+      {filtered ? (
+        <Button className="mt-4" variant="outline" size="sm" onClick={onClear}>
+          {t('customerAccounts.clearFilters')}
+        </Button>
+      ) : null}
     </div>
   )
 }
@@ -236,4 +267,4 @@ function readPositiveInteger(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
 
-export { AdminAccountsPage }
+export { CustomerAccountsPage }

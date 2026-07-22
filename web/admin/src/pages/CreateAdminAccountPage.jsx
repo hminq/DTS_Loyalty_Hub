@@ -1,11 +1,10 @@
-import { ArrowLeftIcon } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { createAdminAccount } from '../api/adminAccountsApi'
 import { AdminAccountForm } from '../components/admin-accounts/AdminAccountForm'
+import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Button } from '../components/ui/button'
 
 function CreateAdminAccountPage() {
   const { t } = useTranslation()
@@ -22,17 +21,18 @@ function CreateAdminAccountPage() {
   return (
     <>
       <PageHeader
-        eyebrow={t('adminAccounts.eyebrow')}
+        breadcrumb={<Breadcrumb items={[
+          { label: t('adminAccounts.title'), to: '/admin-accounts' },
+          { label: t('adminAccounts.createTitle') },
+        ]} />}
         title={t('adminAccounts.createTitle')}
         description={t('adminAccounts.createDescription')}
-        actions={(
-          <Button variant="outline" size="sm" onClick={() => navigate('/admin-accounts')}>
-            <ArrowLeftIcon size={15} />
-            {t('adminAccounts.detail.back')}
-          </Button>
-        )}
       />
       <AdminAccountForm
+        mode="create"
+        submitLabel={t('adminAccounts.submit')}
+        submittingLabel={t('adminAccounts.submitting')}
+        submitError={t('adminAccounts.createError')}
         onSubmit={handleSubmit}
         onCancel={() => navigate('/admin-accounts')}
         t={t}
