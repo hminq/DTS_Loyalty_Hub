@@ -105,7 +105,7 @@
   <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Voucher reward type is invalid.</value></data>
   <data name="VOUCHER_REWARD_TYPE_REQUIRED" xml:space="preserve"><value>Voucher reward type is required.</value></data>
   <data name="VOUCHER_REWARD_VALUE_MUST_BE_EMPTY" xml:space="preserve"><value>Reward value must be empty for gift vouchers.</value></data>
-  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Total stock cannot be negative.</value></data>
+  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Total stock must be greater than 0.</value></data>
   <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Valid from must be earlier than valid to.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_INVALID" xml:space="preserve"><value>Voucher validity type is invalid.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_REQUIRED" xml:space="preserve"><value>Voucher validity type is required.</value></data>
@@ -130,7 +130,11 @@
   <data name="TEMPLATE_BODY_REQUIRED" xml:space="preserve"><value>Body template is required.</value></data>
   <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and valid to are required for fixed validity.</value></data>
   <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and duration day are required for dynamic validity.</value></data>
-  <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Remaining stock must be between zero and total stock.</value></data>
+  <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Remaining stock must be between 0 and total stock.</value></data>
+  <data name="VOUCHER_REWARD_VALUE_REQUIRED" xml:space="preserve"><value>Reward value is required.</value></data>
+  <data name="VOUCHER_FIXED_REWARD_VALUE_INVALID" xml:space="preserve"><value>Fixed reward value must be greater than 0.</value></data>
+  <data name="VOUCHER_PERCENT_REWARD_VALUE_INVALID" xml:space="preserve"><value>Percentage reward value must be between 1 and 100.</value></data>
+  <data name="VOUCHER_BANNER_IMAGE_KEY_INVALID" xml:space="preserve"><value>Banner image key is invalid.</value></data>
   <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Customer voucher does not exist.</value></data>
   <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Redeem from date must be earlier than or equal to redeem to date.</value></data>
 </root>

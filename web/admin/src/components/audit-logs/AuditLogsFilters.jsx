@@ -34,7 +34,7 @@ function AuditLogsFilters({ filters, options, optionsError, onApply, onClear }) 
   }
 
   return (
-    <form className="border-b border-border bg-muted/25 p-4" onSubmit={submit}>
+    <form className="mb-4 rounded-lg border border-border bg-muted/25 p-3" onSubmit={submit}>
       <div className="grid items-end gap-3 md:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_minmax(150px,0.8fr)_minmax(140px,0.7fr)_auto]">
         <FilterField label={t('auditLogs.filters.from')}>
           <DateTimePicker

@@ -52,9 +52,15 @@ public sealed class CreateVoucherDefinitionRequestDtoValidator
             .OverridePropertyName("publishType");
 
         RuleFor(request => request.TotalStock)
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .WithErrorCode("VOUCHER_TOTAL_STOCK_INVALID")
             .OverridePropertyName("totalStock");
+
+        RuleFor(request => request.BannerImageUrl)
+            .Must(key => key!.StartsWith(BannerUploadTypes.VoucherDefinitionBannerPrefix))
+            .When(request => !string.IsNullOrWhiteSpace(request.BannerImageUrl))
+            .WithErrorCode("VOUCHER_BANNER_IMAGE_KEY_INVALID")
+            .OverridePropertyName("bannerImageUrl");
 
         RuleFor(request => request.DurationDay)
             .GreaterThan(0)
@@ -94,6 +100,25 @@ public sealed class CreateVoucherDefinitionRequestDtoValidator
             .Empty()
             .When(request => IsType(request.RewardType, VoucherRewardTypes.Gift))
             .WithErrorCode("VOUCHER_REWARD_VALUE_MUST_BE_EMPTY")
+            .OverridePropertyName("rewardValue");
+
+        RuleFor(request => request.RewardValue)
+            .NotNull()
+            .When(request => IsType(request.RewardType, VoucherRewardTypes.Fixed) || IsType(request.RewardType, VoucherRewardTypes.Percent))
+            .WithErrorCode("VOUCHER_REWARD_VALUE_REQUIRED")
+            .OverridePropertyName("rewardValue");
+
+        RuleFor(request => request.RewardValue)
+            .GreaterThan(0)
+            .When(request => IsType(request.RewardType, VoucherRewardTypes.Fixed) && request.RewardValue.HasValue)
+            .WithErrorCode("VOUCHER_FIXED_REWARD_VALUE_INVALID")
+            .OverridePropertyName("rewardValue");
+
+        RuleFor(request => request.RewardValue)
+            .GreaterThan(0)
+            .LessThanOrEqualTo(100)
+            .When(request => IsType(request.RewardType, VoucherRewardTypes.Percent) && request.RewardValue.HasValue)
+            .WithErrorCode("VOUCHER_PERCENT_REWARD_VALUE_INVALID")
             .OverridePropertyName("rewardValue");
 
         RuleFor(request => request.ValidFrom)

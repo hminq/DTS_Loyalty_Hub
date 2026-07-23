@@ -142,7 +142,7 @@ public sealed class VoucherDefinitionTests
         " WELCOME10 ",
         " Welcome voucher ",
         " Description ",
-        " https://example.com/banner.png ",
+        " voucher_defs/banners/banner.png ",
         " fixed ",
         10,
         " fixed ",

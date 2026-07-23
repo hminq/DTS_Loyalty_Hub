@@ -7,10 +7,10 @@ import { getAdminAccounts, updateAdminAccountStatus } from '../api/adminAccounts
 import { AdminAccountStatusDialog } from '../components/admin-accounts/AdminAccountStatusDialog'
 import { AdminAccountsFilters } from '../components/admin-accounts/AdminAccountsFilters'
 import { AdminAccountsTable } from '../components/admin-accounts/AdminAccountsTable'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 function AdminAccountsPage() {
@@ -37,6 +37,7 @@ function AdminAccountsPage() {
 
   const canViewRoles = hasPermission(PermissionCodes.Roles.View)
   const canCreateAccount = hasPermission(PermissionCodes.AdminUsers.Create) && canViewRoles
+  const canEditAccount = hasPermission(PermissionCodes.AdminUsers.Update) && canViewRoles
   const canUpdateStatus = hasPermission(PermissionCodes.AdminUsers.Disable)
   const hasActiveFilters = Boolean(keyword || status || roleId)
 
@@ -154,19 +155,19 @@ function AdminAccountsPage() {
         </p>
       ) : null}
 
-      <Card className="mt-5 overflow-visible rounded-xl border-border/80 shadow-none">
-        <CardContent className="p-4">
-          <AdminAccountsFilters
-            keyword={keywordInput}
-            onKeywordChange={setKeywordInput}
-            status={status}
-            onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
-            roleId={roleId}
-            onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
-            canFilterByRole={canViewRoles}
-            t={t}
-          />
+      <div className="mt-5">
+        <AdminAccountsFilters
+          keyword={keywordInput}
+          onKeywordChange={setKeywordInput}
+          status={status}
+          onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
+          roleId={roleId}
+          onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
+          canFilterByRole={canViewRoles}
+          t={t}
+        />
 
+        <DataTableCard>
           {!showEmptyState ? (
             <>
               <AdminAccountsTable
@@ -176,9 +177,11 @@ function AdminAccountsPage() {
                 language={i18n.resolvedLanguage}
                 capabilities={{
                   canView: true,
+                  canEdit: canEditAccount,
                   canUpdateStatus,
                 }}
                 onView={(adminId) => navigate(`/admin-accounts/${adminId}`)}
+                onEdit={(adminId) => navigate(`/admin-accounts/${adminId}/edit`)}
                 onStatusChange={setStatusAccount}
                 t={t}
               />
@@ -197,8 +200,8 @@ function AdminAccountsPage() {
               t={t}
             />
           )}
-        </CardContent>
-      </Card>
+        </DataTableCard>
+      </div>
 
       <AdminAccountStatusDialog
         account={statusAccount}

@@ -40,11 +40,29 @@ const navigationItems = [
     ],
   },
   {
-    id: 'voucher-definitions',
-    labelKey: 'navigation.voucherDefinitions',
+    id: 'vouchers',
+    labelKey: 'navigation.vouchers',
     icon: TicketIcon,
-    path: '/voucher-definitions',
-    permission: PermissionCodes.VoucherDefinitions.View,
+    children: [
+      {
+        id: 'voucher-configs',
+        labelKey: 'navigation.voucherConfigs',
+        path: '/voucher-definitions',
+        permission: PermissionCodes.VoucherDefinitions.View,
+      },
+      {
+        id: 'voucher-pools',
+        labelKey: 'navigation.voucherPools',
+        path: '/vouchers/pools',
+        permission: PermissionCodes.VoucherDefinitions.View,
+      },
+      {
+        id: 'voucher-redemptions',
+        labelKey: 'navigation.voucherRedemptions',
+        path: '/vouchers/redemptions',
+        permission: PermissionCodes.VoucherDefinitions.View,
+      },
+    ],
   },
   {
     id: 'tiers',

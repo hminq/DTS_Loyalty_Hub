@@ -10,7 +10,7 @@ function AuditLogsTable({ auditLogs, isLoading, language, hasActiveFilters }) {
   const [expandedId, setExpandedId] = useState(null)
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
+    <div className="relative overflow-x-auto">
       <table className="w-full min-w-[850px] border-collapse text-left text-[13px]">
         <thead className="bg-muted/70 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
@@ -20,8 +20,6 @@ function AuditLogsTable({ auditLogs, isLoading, language, hasActiveFilters }) {
           </tr>
         </thead>
         <tbody>
-          {isLoading && auditLogs.length === 0 ? <MessageRow>{t('auditLogs.loading')}</MessageRow> : null}
-          {!isLoading && auditLogs.length === 0 ? <MessageRow>{t(hasActiveFilters ? 'auditLogs.noResults' : 'auditLogs.empty')}</MessageRow> : null}
           {auditLogs.map((auditLog) => (
             <AuditRow key={auditLog.auditLogId} auditLog={auditLog} language={language} expanded={expandedId === auditLog.auditLogId} onToggle={() => setExpandedId((current) => current === auditLog.auditLogId ? null : auditLog.auditLogId)} t={t} />
           ))}

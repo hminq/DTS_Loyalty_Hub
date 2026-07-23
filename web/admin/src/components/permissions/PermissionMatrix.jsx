@@ -16,7 +16,7 @@ function PermissionMatrix({
   const showsReadOnlySelection = readOnly && selectedPermissionIds !== undefined
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
+    <div className="relative overflow-x-auto">
       {readOnly ? (
         <div className="flex flex-wrap items-center gap-4 border-b border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
           <MatrixLegend state="selected" label={showsReadOnlySelection ? labels.assigned : labels.defined} />
