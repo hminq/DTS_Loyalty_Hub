@@ -131,9 +131,10 @@
   <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và kết thúc là bắt buộc đối với hiệu lực cố định.</value></data>
   <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và số ngày hiệu lực là bắt buộc đối với hiệu lực động.</value></data>
   <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Tồn kho còn lại phải nằm trong khoảng từ 0 đến tổng tồn kho.</value></data>
-
   <data name="VOUCHER_REWARD_VALUE_REQUIRED" xml:space="preserve"><value>Giá trị phần thưởng là bắt buộc.</value></data>
   <data name="VOUCHER_FIXED_REWARD_VALUE_INVALID" xml:space="preserve"><value>Giá trị phần thưởng cố định phải lớn hơn 0.</value></data>
   <data name="VOUCHER_PERCENT_REWARD_VALUE_INVALID" xml:space="preserve"><value>Phần trăm phần thưởng phải từ 1 đến 100.</value></data>
   <data name="VOUCHER_BANNER_IMAGE_KEY_INVALID" xml:space="preserve"><value>Đường dẫn ảnh banner không hợp lệ.</value></data>
+  <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Không tìm thấy voucher của khách hàng.</value></data>
+  <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Thời gian bắt đầu nhận voucher phải trước hoặc bằng thời gian kết thúc.</value></data>
 </root>
