@@ -36,7 +36,10 @@ public static class VoucherDefinitionMapper
         return new GetVoucherDefinitionsQuery(
             request.Page,
             request.PageSize,
-            request.Keyword);
+            request.Keyword,
+            request.RewardType,
+            request.ValidityType,
+            request.PublishType);
     }
 
     public static VoucherDefinitionResponseDto ToResponseDto(this VoucherDefinitionResult result)
@@ -63,12 +66,29 @@ public static class VoucherDefinitionMapper
         };
     }
 
-    public static ApiResponseDto<IReadOnlyCollection<VoucherDefinitionResponseDto>> ToPagedResponseDto(
-        this PagedResult<VoucherDefinitionResult> result)
+    public static VoucherDefinitionListItemResponseDto ToListItemResponseDto(this VoucherDefinitionListItemResult result)
     {
-        return new ApiResponseDto<IReadOnlyCollection<VoucherDefinitionResponseDto>>
+        return new VoucherDefinitionListItemResponseDto
         {
-            Data = result.Items.Select(item => item.ToResponseDto()).ToArray(),
+            VoucherDefinitionId = result.VoucherDefinitionId,
+            Code = result.Code,
+            Name = result.Name,
+            RewardType = result.RewardType,
+            RewardValue = result.RewardValue,
+            PublishType = result.PublishType,
+            TotalStock = result.TotalStock,
+            RemainingStock = result.RemainingStock,
+            CreatedAt = result.CreatedAt,
+            DeletedAt = result.DeletedAt
+        };
+    }
+
+    public static ApiResponseDto<IReadOnlyCollection<VoucherDefinitionListItemResponseDto>> ToPagedResponseDto(
+        this PagedResult<VoucherDefinitionListItemResult> result)
+    {
+        return new ApiResponseDto<IReadOnlyCollection<VoucherDefinitionListItemResponseDto>>
+        {
+            Data = result.Items.Select(item => item.ToListItemResponseDto()).ToArray(),
             Meta = new ApiMetaDto
             {
                 Page = result.Page,
@@ -77,5 +97,17 @@ public static class VoucherDefinitionMapper
                 TotalPages = result.TotalPages
             }
         };
+    }
+
+    public static VoucherDefinitionOptionsResponseDto ToOptionsResponseDto(
+        this VoucherDefinitionOptionsResult result,
+        Api.Localization.VoucherDefinitionOptionLabelResolver labelResolver)
+    {
+        return new VoucherDefinitionOptionsResponseDto(
+            RewardTypes: result.RewardTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolveRewardType(v))).ToArray(),
+            ValidityTypes: result.ValidityTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolveValidityType(v))).ToArray(),
+            PublishTypes: result.PublishTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolvePublishType(v))).ToArray(),
+            GenerationTypes: result.GenerationTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolveGenerationType(v))).ToArray()
+        );
     }
 }

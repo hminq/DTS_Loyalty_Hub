@@ -30,9 +30,9 @@ public sealed class AuditLogsController : ControllerBase
         _validationErrorMapper = validationErrorMapper;
     }
 
-    [HttpGet("filter-options")]
+    [HttpGet("options")]
     [Authorize(Policy = PermissionCodes.AuditLogs.View)]
-    public async Task<ActionResult<ApiResponseDto<AuditLogFilterOptionsResponseDto>>> GetFilterOptions(
+    public async Task<ActionResult<ApiResponseDto<AuditLogFilterOptionsResponseDto>>> GetOptions(
         CancellationToken ct)
     {
         var result = await _sender.Send(new GetAuditLogFilterOptionsQuery(), ct);

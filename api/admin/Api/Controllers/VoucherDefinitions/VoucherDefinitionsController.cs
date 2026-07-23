@@ -2,6 +2,7 @@ using Api.Authentication;
 using Api.Dtos.Requests.VoucherDefinitions;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.VoucherDefinitions;
+using Api.Localization;
 using Api.Mappers;
 using Core.Entities.Constants;
 using Core.UseCases.VoucherDefinitions.Queries;
@@ -22,24 +23,27 @@ public sealed class VoucherDefinitionsController : ControllerBase
     private readonly IValidator<GetVoucherDefinitionsRequestDto> _getVoucherDefinitionsValidator;
     private readonly IValidator<CreateVoucherDefinitionRequestDto> _createVoucherDefinitionValidator;
     private readonly ValidationErrorMapper _validationErrorMapper;
+    private readonly VoucherDefinitionOptionLabelResolver _labelResolver;
 
     public VoucherDefinitionsController(
         ISender sender,
         ICurrentAdminContext currentAdminContext,
         IValidator<GetVoucherDefinitionsRequestDto> getVoucherDefinitionsValidator,
         IValidator<CreateVoucherDefinitionRequestDto> createVoucherDefinitionValidator,
-        ValidationErrorMapper validationErrorMapper)
+        ValidationErrorMapper validationErrorMapper,
+        VoucherDefinitionOptionLabelResolver labelResolver)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _getVoucherDefinitionsValidator = getVoucherDefinitionsValidator;
         _createVoucherDefinitionValidator = createVoucherDefinitionValidator;
         _validationErrorMapper = validationErrorMapper;
+        _labelResolver = labelResolver;
     }
 
     [HttpGet]
     [Authorize(Policy = PermissionCodes.VoucherDefinitions.View)]
-    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<VoucherDefinitionResponseDto>>>> GetList(
+    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<VoucherDefinitionListItemResponseDto>>>> GetList(
         [FromQuery] GetVoucherDefinitionsRequestDto request,
         CancellationToken ct)
     {
@@ -53,6 +57,18 @@ public sealed class VoucherDefinitionsController : ControllerBase
         var result = await _sender.Send(request.ToQuery(), ct);
 
         return Ok(result.ToPagedResponseDto());
+    }
+
+    [HttpGet("options")]
+    [Authorize(Policy = PermissionCodes.VoucherDefinitions.View)]
+    public async Task<ActionResult<ApiResponseDto<VoucherDefinitionOptionsResponseDto>>> GetOptions(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetVoucherDefinitionOptionsQuery(), ct);
+
+        return Ok(new ApiResponseDto<VoucherDefinitionOptionsResponseDto>
+        {
+            Data = result.ToOptionsResponseDto(_labelResolver)
+        });
     }
 
     [HttpGet("{voucherDefinitionId:guid}")]
