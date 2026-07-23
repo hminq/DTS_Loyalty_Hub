@@ -1,4 +1,5 @@
 using Api.Dtos.Requests.AdminUsers;
+using Core.Entities;
 using FluentValidation;
 
 namespace Api.Validators.AdminUsers;
@@ -19,10 +20,12 @@ public sealed class CreateAdminUserRequestDtoValidator : AbstractValidator<Creat
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithErrorCode("EMAIL_REQUIRED")
+            .MinimumLength(UserProfileRules.MinEmailLength)
+            .WithErrorCode("EMAIL_INVALID")
+            .MaximumLength(UserProfileRules.MaxEmailLength)
+            .WithErrorCode("EMAIL_TOO_LONG")
             .EmailAddress()
             .WithErrorCode("EMAIL_INVALID")
-            .MaximumLength(50)
-            .WithErrorCode("EMAIL_TOO_LONG")
             .OverridePropertyName("email");
 
         RuleFor(request => request.Password)
@@ -37,16 +40,22 @@ public sealed class CreateAdminUserRequestDtoValidator : AbstractValidator<Creat
 
         RuleFor(request => request.FullName)
             .Cascade(CascadeMode.Stop)
-            .MaximumLength(50)
+            .MinimumLength(UserProfileRules.MinFullNameLength)
+            .WithErrorCode("FULL_NAME_TOO_SHORT")
+            .MaximumLength(UserProfileRules.MaxFullNameLength)
             .WithErrorCode("FULL_NAME_TOO_LONG")
-            .When(request => request.FullName is not null)
+            .Matches(UserProfileRules.FullNamePattern)
+            .WithErrorCode("FULL_NAME_INVALID")
+            .When(request => !string.IsNullOrWhiteSpace(request.FullName))
             .OverridePropertyName("fullName");
 
         RuleFor(request => request.PhoneNumber)
             .Cascade(CascadeMode.Stop)
-            .MaximumLength(15)
+            .MaximumLength(UserProfileRules.MaxPhoneNumberLength)
             .WithErrorCode("PHONE_NUMBER_TOO_LONG")
-            .When(request => request.PhoneNumber is not null)
+            .Matches(UserProfileRules.PhoneNumberPattern)
+            .WithErrorCode("PHONE_NUMBER_INVALID")
+            .When(request => !string.IsNullOrWhiteSpace(request.PhoneNumber))
             .OverridePropertyName("phoneNumber");
 
         RuleFor(request => request.RoleId)

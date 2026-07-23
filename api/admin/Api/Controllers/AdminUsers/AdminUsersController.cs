@@ -147,5 +147,4 @@ public sealed class AdminUsersController : ControllerBase
 
         return NoContent();
     }
-
 }

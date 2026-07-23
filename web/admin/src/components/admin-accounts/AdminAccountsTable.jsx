@@ -1,9 +1,18 @@
-import { ArrowRightIcon, CircleNotchIcon } from '@phosphor-icons/react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 
-function AdminAccountsTable({ accounts, isLoading, isRefreshing, language, onView, t }) {
+function AdminAccountsTable({
+  accounts,
+  isLoading,
+  isRefreshing,
+  language,
+  capabilities,
+  onView,
+  onStatusChange,
+  t,
+}) {
   return (
     <div className="relative overflow-x-auto">
       {isRefreshing ? (
@@ -13,7 +22,7 @@ function AdminAccountsTable({ accounts, isLoading, isRefreshing, language, onVie
         </div>
       ) : null}
 
-      <table className="w-full min-w-[760px] border-collapse text-left text-[13px]">
+      <table className="w-full min-w-[860px] border-collapse text-left text-[13px]">
         <thead className="bg-muted/55 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
             <th className="px-4 py-2.5 font-semibold">{t('adminAccounts.columns.account')}</th>
@@ -50,11 +59,25 @@ function AdminAccountsTable({ accounts, isLoading, isRefreshing, language, onVie
               <td className="px-4 py-3 text-muted-foreground">
                 {formatDateTime(account.createdAt, language)}
               </td>
-              <td className="px-4 py-3 text-right">
-                <Button variant="ghost" size="sm" onClick={() => onView(account.adminId)}>
-                  {t('adminAccounts.actions.view')}
-                  <ArrowRightIcon size={14} />
-                </Button>
+              <td className="px-4 py-3">
+                <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                  {capabilities.canView ? (
+                    <Button variant="ghost" size="sm" onClick={() => onView(account.adminId)}>
+                      {t('adminAccounts.actions.view')}
+                    </Button>
+                  ) : null}
+                  {capabilities.canUpdateStatus ? (
+                    <Button
+                      variant={account.status === 'ENABLE' ? 'destructive' : 'default'}
+                      size="sm"
+                      onClick={() => onStatusChange(account)}
+                    >
+                      {t(account.status === 'ENABLE'
+                        ? 'adminAccounts.actions.disable'
+                        : 'adminAccounts.actions.enable')}
+                    </Button>
+                  ) : null}
+                </div>
               </td>
             </tr>
           ))}

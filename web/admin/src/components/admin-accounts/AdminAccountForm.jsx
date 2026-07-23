@@ -1,9 +1,10 @@
 import { EyeIcon, EyeSlashIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import { toFieldErrorMap } from '../../api/apiError'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
+import { Field, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { Input } from '../ui/input'
 import { RoleSearchSelect } from '../roles/RoleSearchSelect'
 
@@ -13,12 +14,24 @@ const emptyForm = Object.freeze({
   fullName: '',
   phoneNumber: '',
   roleId: '',
+  roleName: '',
   password: '',
   confirmPassword: '',
 })
 
-function AdminAccountForm({ onSubmit, onCancel, t }) {
-  const [form, setForm] = useState(emptyForm)
+function AdminAccountForm({
+  mode = 'create',
+  initialValues = emptyForm,
+  submitLabel,
+  submittingLabel,
+  submitError,
+  onSubmit,
+  onCancel,
+  t,
+}) {
+  const isCreate = mode === 'create'
+  const formId = useId()
+  const [form, setForm] = useState(() => ({ ...emptyForm, ...initialValues }))
   const [fieldErrors, setFieldErrors] = useState({})
   const [formError, setFormError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,6 +39,10 @@ function AdminAccountForm({ onSubmit, onCancel, t }) {
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }))
+    clearFieldError(field)
+  }
+
+  function clearFieldError(field) {
     setFieldErrors((current) => {
       if (!current[field]) return current
       const next = { ...current }
@@ -36,7 +53,7 @@ function AdminAccountForm({ onSubmit, onCancel, t }) {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    const validationErrors = validateForm(form, t)
+    const validationErrors = validateForm(form, isCreate, t)
 
     if (Object.keys(validationErrors).length > 0) {
       setFieldErrors(validationErrors)
@@ -49,16 +66,18 @@ function AdminAccountForm({ onSubmit, onCancel, t }) {
 
     try {
       await onSubmit({
-        username: form.username.trim(),
+        ...(isCreate ? {
+          username: form.username.trim(),
+          password: form.password,
+        } : {}),
         email: form.email.trim(),
-        password: form.password,
         fullName: form.fullName.trim() || null,
         phoneNumber: form.phoneNumber.trim() || null,
         roleId: form.roleId,
       })
     } catch (error) {
       setFieldErrors(toFieldErrorMap(error.details))
-      setFormError(error.message || t('adminAccounts.createError'))
+      setFormError(error.message || submitError)
       setIsSubmitting(false)
     }
   }
@@ -66,98 +85,200 @@ function AdminAccountForm({ onSubmit, onCancel, t }) {
   return (
     <Card className="mt-5 rounded-xl border-border/80 shadow-none">
       <CardContent className="p-5">
-        <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit} noValidate>
-          {formError ? (
-            <p className="sm:col-span-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-[13px] font-medium text-destructive">
-              {formError}
-            </p>
-          ) : null}
+        <form onSubmit={handleSubmit} noValidate>
+          <FieldGroup className="sm:grid-cols-2">
+            {formError ? (
+              <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-[13px] font-medium text-destructive sm:col-span-2">
+                {formError}
+              </p>
+            ) : null}
 
-          <FormField label={t('adminAccounts.form.username')} error={fieldErrors.username}>
-            <Input value={form.username} onChange={(event) => updateField('username', event.target.value)} placeholder={t('adminAccounts.form.usernamePlaceholder')} maxLength={50} autoComplete="off" autoFocus aria-invalid={Boolean(fieldErrors.username)} />
-          </FormField>
-          <FormField label={t('adminAccounts.form.email')} error={fieldErrors.email}>
-            <Input type="email" value={form.email} onChange={(event) => updateField('email', event.target.value)} placeholder={t('adminAccounts.form.emailPlaceholder')} maxLength={50} autoComplete="off" aria-invalid={Boolean(fieldErrors.email)} />
-          </FormField>
-          <FormField label={t('adminAccounts.form.fullName')} error={fieldErrors.fullName}>
-            <Input value={form.fullName} onChange={(event) => updateField('fullName', event.target.value)} placeholder={t('adminAccounts.form.fullNamePlaceholder')} maxLength={50} aria-invalid={Boolean(fieldErrors.fullName)} />
-          </FormField>
-          <FormField label={t('adminAccounts.form.phoneNumber')} error={fieldErrors.phoneNumber}>
-            <Input type="tel" value={form.phoneNumber} onChange={(event) => updateField('phoneNumber', event.target.value)} placeholder={t('adminAccounts.form.phoneNumberPlaceholder')} maxLength={15} aria-invalid={Boolean(fieldErrors.phoneNumber)} />
-          </FormField>
-
-          <div className="flex flex-col gap-1.5 text-xs font-medium sm:col-span-2">
-            <span>{t('adminAccounts.form.role')}</span>
-            <RoleSearchSelect
-              value={form.roleId}
-              onChange={(roleId) => updateField('roleId', roleId)}
-              placeholder={t('adminAccounts.filters.chooseRole')}
-              invalid={Boolean(fieldErrors.roleId)}
-              ariaLabel={t('adminAccounts.form.role')}
+            <TextField
+              id={`${formId}-username`}
+              label={t('adminAccounts.form.username')}
+              error={fieldErrors.username}
+              value={form.username}
+              onChange={(value) => updateField('username', value)}
+              placeholder={t('adminAccounts.form.usernamePlaceholder')}
+              maxLength={50}
+              autoComplete="off"
+              autoFocus={isCreate}
+              disabled={!isCreate}
             />
-            {fieldErrors.roleId ? <span className="font-normal text-destructive">{fieldErrors.roleId}</span> : null}
-          </div>
+            <TextField
+              id={`${formId}-email`}
+              label={t('adminAccounts.form.email')}
+              error={fieldErrors.email}
+              type="email"
+              value={form.email}
+              onChange={(value) => updateField('email', value)}
+              placeholder={t('adminAccounts.form.emailPlaceholder')}
+              maxLength={50}
+              autoComplete="off"
+              autoFocus={!isCreate}
+            />
+            <TextField
+              id={`${formId}-full-name`}
+              label={t('adminAccounts.form.fullName')}
+              error={fieldErrors.fullName}
+              value={form.fullName}
+              onChange={(value) => updateField('fullName', value)}
+              placeholder={t('adminAccounts.form.fullNamePlaceholder')}
+              maxLength={50}
+            />
+            <TextField
+              id={`${formId}-phone-number`}
+              label={t('adminAccounts.form.phoneNumber')}
+              error={fieldErrors.phoneNumber}
+              type="tel"
+              value={form.phoneNumber}
+              onChange={(value) => updateField('phoneNumber', value)}
+              placeholder={t('adminAccounts.form.phoneNumberPlaceholder')}
+              maxLength={15}
+            />
 
-          <FormField label={t('adminAccounts.form.password')} error={fieldErrors.password}>
-            <PasswordInput value={form.password} onChange={(value) => updateField('password', value)} placeholder={t('adminAccounts.form.passwordPlaceholder')} visible={showPassword} onToggle={() => setShowPassword((current) => !current)} />
-          </FormField>
-          <FormField label={t('adminAccounts.form.confirmPassword')} error={fieldErrors.confirmPassword}>
-            <PasswordInput value={form.confirmPassword} onChange={(value) => updateField('confirmPassword', value)} placeholder={t('adminAccounts.form.confirmPasswordPlaceholder')} visible={showPassword} onToggle={() => setShowPassword((current) => !current)} />
-          </FormField>
+            <Field className="sm:col-span-2" invalid={Boolean(fieldErrors.roleId)}>
+              <FieldLabel>{t('adminAccounts.form.role')}</FieldLabel>
+              <RoleSearchSelect
+                value={form.roleId}
+                selectedLabel={form.roleName || undefined}
+                onChange={(roleId, role) => {
+                  setForm((current) => ({
+                    ...current,
+                    roleId,
+                    roleName: role?.name ?? '',
+                  }))
+                  clearFieldError('roleId')
+                }}
+                placeholder={t('adminAccounts.filters.chooseRole')}
+                invalid={Boolean(fieldErrors.roleId)}
+                ariaLabel={t('adminAccounts.form.role')}
+              />
+              {fieldErrors.roleId ? <FieldError>{fieldErrors.roleId}</FieldError> : null}
+            </Field>
 
-          <div className="flex justify-end gap-2 border-t border-border pt-4 sm:col-span-2">
-            <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>{t('adminAccounts.cancel')}</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? t('adminAccounts.submitting') : t('adminAccounts.submit')}
-            </Button>
-          </div>
+            {isCreate ? (
+              <>
+                <PasswordField
+                  id={`${formId}-password`}
+                  label={t('adminAccounts.form.password')}
+                  error={fieldErrors.password}
+                  value={form.password}
+                  onChange={(value) => updateField('password', value)}
+                  placeholder={t('adminAccounts.form.passwordPlaceholder')}
+                  visible={showPassword}
+                  onToggle={() => setShowPassword((current) => !current)}
+                  showLabel={t('adminAccounts.form.showPassword')}
+                  hideLabel={t('adminAccounts.form.hidePassword')}
+                />
+                <PasswordField
+                  id={`${formId}-confirm-password`}
+                  label={t('adminAccounts.form.confirmPassword')}
+                  error={fieldErrors.confirmPassword}
+                  value={form.confirmPassword}
+                  onChange={(value) => updateField('confirmPassword', value)}
+                  placeholder={t('adminAccounts.form.confirmPasswordPlaceholder')}
+                  visible={showPassword}
+                  onToggle={() => setShowPassword((current) => !current)}
+                  showLabel={t('adminAccounts.form.showPassword')}
+                  hideLabel={t('adminAccounts.form.hidePassword')}
+                />
+              </>
+            ) : null}
+
+            <div className="flex justify-end gap-2 border-t border-border pt-4 sm:col-span-2">
+              <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>{t('adminAccounts.cancel')}</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? submittingLabel : submitLabel}
+              </Button>
+            </div>
+          </FieldGroup>
         </form>
       </CardContent>
     </Card>
   )
 }
 
-function FormField({ label, error, children }) {
+function TextField({ id, label, error, onChange, disabled = false, ...inputProps }) {
   return (
-    <label className="flex flex-col gap-1.5 text-xs font-medium">
-      {label}
-      {children}
-      {error ? <span className="font-normal text-destructive">{error}</span> : null}
-    </label>
+    <Field invalid={Boolean(error)} disabled={disabled}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
+        id={id}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        aria-invalid={Boolean(error)}
+        {...inputProps}
+      />
+      {error ? <FieldError>{error}</FieldError> : null}
+    </Field>
   )
 }
 
-function PasswordInput({ value, onChange, placeholder, visible, onToggle }) {
+function PasswordField({
+  id,
+  label,
+  error,
+  value,
+  onChange,
+  placeholder,
+  visible,
+  onToggle,
+  showLabel,
+  hideLabel,
+}) {
   const Icon = visible ? EyeSlashIcon : EyeIcon
 
   return (
-    <div className="relative">
-      <Input className="pr-10" type={visible ? 'text' : 'password'} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} maxLength={100} autoComplete="new-password" />
-      <button type="button" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={onToggle} tabIndex={-1}>
-        <Icon size={17} />
-      </button>
-    </div>
+    <Field invalid={Boolean(error)}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="relative">
+        <Input
+          id={id}
+          className="pr-10"
+          type={visible ? 'text' : 'password'}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          maxLength={100}
+          autoComplete="new-password"
+          aria-invalid={Boolean(error)}
+        />
+        <button
+          type="button"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          onClick={onToggle}
+          aria-label={visible ? hideLabel : showLabel}
+        >
+          <Icon aria-hidden="true" />
+        </button>
+      </div>
+      {error ? <FieldError>{error}</FieldError> : null}
+    </Field>
   )
 }
 
-function validateForm(form, t) {
+function validateForm(form, isCreate, t) {
   const errors = {}
   const username = form.username.trim()
   const email = form.email.trim()
 
-  if (!username) errors.username = t('adminAccounts.validation.usernameRequired')
-  else if (username.length > 50) errors.username = t('adminAccounts.validation.usernameTooLong')
+  if (isCreate && !username) errors.username = t('adminAccounts.validation.usernameRequired')
+  else if (isCreate && username.length > 50) errors.username = t('adminAccounts.validation.usernameTooLong')
   if (!email) errors.email = t('adminAccounts.validation.emailRequired')
   else if (email.length > 50) errors.email = t('adminAccounts.validation.emailTooLong')
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = t('adminAccounts.validation.emailInvalid')
   if (form.fullName.trim().length > 50) errors.fullName = t('adminAccounts.validation.fullNameTooLong')
   if (form.phoneNumber.trim().length > 15) errors.phoneNumber = t('adminAccounts.validation.phoneNumberTooLong')
   if (!form.roleId) errors.roleId = t('adminAccounts.validation.roleRequired')
-  if (!form.password) errors.password = t('adminAccounts.validation.passwordRequired')
-  else if (form.password.length < 8) errors.password = t('adminAccounts.validation.passwordTooShort')
-  else if (form.password.length > 100) errors.password = t('adminAccounts.validation.passwordTooLong')
-  if (!form.confirmPassword) errors.confirmPassword = t('adminAccounts.validation.confirmPasswordRequired')
-  else if (form.password !== form.confirmPassword) errors.confirmPassword = t('adminAccounts.validation.passwordsMismatch')
+
+  if (isCreate) {
+    if (!form.password) errors.password = t('adminAccounts.validation.passwordRequired')
+    else if (form.password.length < 8) errors.password = t('adminAccounts.validation.passwordTooShort')
+    else if (form.password.length > 100) errors.password = t('adminAccounts.validation.passwordTooLong')
+    if (!form.confirmPassword) errors.confirmPassword = t('adminAccounts.validation.confirmPasswordRequired')
+    else if (form.password !== form.confirmPassword) errors.confirmPassword = t('adminAccounts.validation.passwordsMismatch')
+  }
 
   return errors
 }

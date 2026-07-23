@@ -16,6 +16,13 @@ public interface IUserRepository
 
     Task<bool> PhoneNumberExistsExceptAdminAsync(string phoneNumber, Guid adminId, CancellationToken ct = default);
 
+    Task<bool> EmailExistsExceptCustomerAsync(string email, Guid customerId, CancellationToken ct = default);
+
+    Task<bool> PhoneNumberExistsExceptCustomerAsync(
+        string phoneNumber,
+        Guid customerId,
+        CancellationToken ct = default);
+
     void AddAdminUser(
         Guid userId,
         string username,
@@ -33,5 +40,14 @@ public interface IUserRepository
         CancellationToken ct = default);
 
     Task UpdateAdminStatusAsync(Guid adminId, string status, CancellationToken ct = default);
+
+    Task UpdateCustomerProfileAsync(
+        Guid customerId,
+        string email,
+        string? fullName,
+        string? phoneNumber,
+        CancellationToken ct = default);
+
+    Task UpdateCustomerStatusAsync(Guid customerId, string status, CancellationToken ct = default);
 
 }

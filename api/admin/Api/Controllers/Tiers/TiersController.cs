@@ -39,14 +39,28 @@ public sealed class TiersController : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = PermissionCodes.Tiers.View)]
-    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<TierResponseDto>>>> GetList(
+    public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<TierListItemResponseDto>>>> GetList(
         CancellationToken ct)
     {
         var result = await _sender.Send(new GetTierConfigsQuery(), ct);
 
-        return Ok(new ApiResponseDto<IReadOnlyCollection<TierResponseDto>>
+        return Ok(new ApiResponseDto<IReadOnlyCollection<TierListItemResponseDto>>
         {
-            Data = result.ToResponseDto()
+            Data = result.ToListItemResponseDto()
+        });
+    }
+
+    [HttpGet("{tierConfigId:guid}")]
+    [Authorize(Policy = PermissionCodes.Tiers.View)]
+    public async Task<ActionResult<ApiResponseDto<TierDetailResponseDto>>> GetById(
+        Guid tierConfigId,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetTierByIdQuery(tierConfigId), ct);
+
+        return Ok(new ApiResponseDto<TierDetailResponseDto>
+        {
+            Data = result.ToDetailResponseDto()
         });
     }
 
@@ -69,7 +83,10 @@ public sealed class TiersController : ControllerBase
             Data = result.ToResponseDto()
         };
 
-        return Created($"/api/admin/tiers/{response.Data.TierConfigId}", response);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { tierConfigId = response.Data.TierConfigId },
+            response);
     }
 
     [HttpPut("{tierConfigId:guid}")]

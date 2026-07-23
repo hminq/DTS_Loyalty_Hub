@@ -3,13 +3,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
-import { getAdminAccounts } from '../api/adminAccountsApi'
+import { getAdminAccounts, updateAdminAccountStatus } from '../api/adminAccountsApi'
+import { AdminAccountStatusDialog } from '../components/admin-accounts/AdminAccountStatusDialog'
 import { AdminAccountsFilters } from '../components/admin-accounts/AdminAccountsFilters'
 import { AdminAccountsTable } from '../components/admin-accounts/AdminAccountsTable'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
-import { Card } from '../components/ui/card'
+import { Card, CardContent } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 function AdminAccountsPage() {
@@ -30,12 +31,16 @@ function AdminAccountsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [statusAccount, setStatusAccount] = useState(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const canViewRoles = hasPermission(PermissionCodes.Roles.View)
   const canCreateAccount = hasPermission(PermissionCodes.AdminUsers.Create) && canViewRoles
+  const canUpdateStatus = hasPermission(PermissionCodes.AdminUsers.Disable)
   const hasActiveFilters = Boolean(keyword || status || roleId)
 
-  const updateSearchParams = useCallback((updates) => {
+  const updateSearchParams = useCallback((updates, replace = false) => {
     setSearchParams((current) => {
       const next = new URLSearchParams(current)
 
@@ -47,7 +52,7 @@ function AdminAccountsPage() {
       if (!next.has('page')) next.set('page', '1')
       if (!next.has('pageSize')) next.set('pageSize', String(pageSize))
       return next
-    })
+    }, { replace })
   }, [pageSize, setSearchParams])
 
   useEffect(() => {
@@ -72,7 +77,7 @@ function AdminAccountsPage() {
   }, [keyword, keywordInput, updateSearchParams])
 
   useEffect(() => {
-    let isCurrent = true
+    const controller = new AbortController()
 
     async function loadAccounts() {
       if (accounts.length === 0) setIsLoading(true)
@@ -80,15 +85,24 @@ function AdminAccountsPage() {
       setLoadError('')
 
       try {
-        const response = await getAdminAccounts({ page, pageSize, keyword, status, roleId })
-        if (!isCurrent) return
+        const response = await getAdminAccounts(
+          { page, pageSize, keyword, status, roleId },
+          controller.signal,
+        )
+        if (controller.signal.aborted) return
+
+        const nextMeta = response.meta ?? { page, pageSize, totalItems: 0, totalPages: 0 }
+        if (nextMeta.totalPages > 0 && page > nextMeta.totalPages) {
+          updateSearchParams({ page: nextMeta.totalPages }, true)
+          return
+        }
 
         setAccounts(response.data ?? [])
-        setMeta(response.meta ?? { page, pageSize, totalItems: 0, totalPages: 0 })
+        setMeta(nextMeta)
       } catch (error) {
-        if (isCurrent) setLoadError(error.message || t('errors.loadAdminAccounts'))
+        if (!controller.signal.aborted) setLoadError(error.message || t('errors.loadAdminAccounts'))
       } finally {
-        if (isCurrent) {
+        if (!controller.signal.aborted) {
           setIsLoading(false)
           setIsRefreshing(false)
         }
@@ -96,12 +110,21 @@ function AdminAccountsPage() {
     }
 
     loadAccounts()
-    return () => { isCurrent = false }
-  }, [keyword, page, pageSize, roleId, status])
+    return () => controller.abort()
+  }, [keyword, page, pageSize, refreshKey, roleId, status, t, updateSearchParams])
 
   function clearFilters() {
     setKeywordInput('')
     updateSearchParams({ keyword: '', status: '', roleId: '', page: 1 })
+  }
+
+  async function handleStatusChange(nextStatus) {
+    await updateAdminAccountStatus(statusAccount.adminId, nextStatus)
+    setStatusAccount(null)
+    setSuccessMessage(t(nextStatus === 'DISABLE'
+      ? 'adminAccounts.status.disableSuccess'
+      : 'adminAccounts.status.enableSuccess'))
+    setRefreshKey((current) => current + 1)
   }
 
   const showEmptyState = !isLoading && !loadError && accounts.length === 0
@@ -125,45 +148,64 @@ function AdminAccountsPage() {
           {loadError}
         </p>
       ) : null}
+      {successMessage ? (
+        <p className="mt-5 rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
+          {successMessage}
+        </p>
+      ) : null}
 
       <Card className="mt-5 overflow-visible rounded-xl border-border/80 shadow-none">
-        <AdminAccountsFilters
-          keyword={keywordInput}
-          onKeywordChange={setKeywordInput}
-          status={status}
-          onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
-          roleId={roleId}
-          onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
-          canFilterByRole={canViewRoles}
-          t={t}
-        />
-
-        {!showEmptyState ? (
-          <>
-            <AdminAccountsTable
-              accounts={accounts}
-              isLoading={isLoading}
-              isRefreshing={isRefreshing}
-              language={i18n.resolvedLanguage}
-              onView={(adminId) => navigate(`/admin-accounts/${adminId}`)}
-              t={t}
-            />
-            <ListPagination
-              meta={meta}
-              onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
-              onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
-            />
-          </>
-        ) : (
-          <EmptyState
-            filtered={hasActiveFilters}
-            canCreate={canCreateAccount}
-            onCreate={() => navigate('/admin-accounts/new')}
-            onClear={clearFilters}
+        <CardContent className="p-4">
+          <AdminAccountsFilters
+            keyword={keywordInput}
+            onKeywordChange={setKeywordInput}
+            status={status}
+            onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
+            roleId={roleId}
+            onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
+            canFilterByRole={canViewRoles}
             t={t}
           />
-        )}
+
+          {!showEmptyState ? (
+            <>
+              <AdminAccountsTable
+                accounts={accounts}
+                isLoading={isLoading}
+                isRefreshing={isRefreshing}
+                language={i18n.resolvedLanguage}
+                capabilities={{
+                  canView: true,
+                  canUpdateStatus,
+                }}
+                onView={(adminId) => navigate(`/admin-accounts/${adminId}`)}
+                onStatusChange={setStatusAccount}
+                t={t}
+              />
+              <ListPagination
+                meta={meta}
+                onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
+                onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
+              />
+            </>
+          ) : (
+            <EmptyState
+              filtered={hasActiveFilters}
+              canCreate={canCreateAccount}
+              onCreate={() => navigate('/admin-accounts/new')}
+              onClear={clearFilters}
+              t={t}
+            />
+          )}
+        </CardContent>
       </Card>
+
+      <AdminAccountStatusDialog
+        account={statusAccount}
+        open={Boolean(statusAccount)}
+        onClose={() => setStatusAccount(null)}
+        onConfirm={handleStatusChange}
+      />
 
     </>
   )

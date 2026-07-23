@@ -60,7 +60,7 @@ public sealed class GlobalExceptionHandler(
         };
 
         return (statusCode, ApiErrorResponseDto.Create(
-            exception.ErrorCode, 
+            exception.ErrorCode,
             messageResolver.Resolve(exception.ErrorCode, exception.MessageArguments)));
     }
 

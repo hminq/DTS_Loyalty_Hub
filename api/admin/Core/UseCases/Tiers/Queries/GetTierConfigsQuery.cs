@@ -4,4 +4,4 @@ using MediatR;
 namespace Core.UseCases.Tiers.Queries;
 
 public sealed record GetTierConfigsQuery()
-    : IRequest<IReadOnlyCollection<TierResult>>;
+    : IRequest<IReadOnlyCollection<TierListItemResult>>;

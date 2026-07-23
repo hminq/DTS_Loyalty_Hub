@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminSessionRepository, AdminSessionRepository>();
         services.AddScoped<IAdminPermissionChecker, AdminPermissionChecker>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
+        services.AddScoped<ICustomerUserRepository, CustomerUserRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IRoleReader, RoleReader>();

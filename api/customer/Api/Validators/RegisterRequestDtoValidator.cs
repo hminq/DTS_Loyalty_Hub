@@ -44,6 +44,8 @@ public sealed class RegisterRequestDtoValidator : AbstractValidator<RegisterRequ
             .WithErrorCode("FULLNAME_REQUIRED")
             .Length(ValidationConstants.MinFullNameLength, ValidationConstants.MaxFullNameLength)
             .WithErrorCode("FULLNAME_INVALID_LENGTH")
+            .Matches(ValidationConstants.FullNamePattern)
+            .WithErrorCode("FULLNAME_INVALID_FORMAT")
             .OverridePropertyName("fullName");
 
         RuleFor(request => request.Phone)

@@ -65,7 +65,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
     }
     private static void ValidatePriorityPointsOrder(
         Tier tier,
-        IReadOnlyCollection<TierResult> existingTiers)
+        IReadOnlyCollection<TierListItemResult> existingTiers)
     {
         if (existingTiers.Any(existingTier => existingTier.Priority == tier.Priority))
         {
@@ -88,7 +88,7 @@ public sealed class CreateTierCommandHandler : IRequestHandler<CreateTierCommand
 
     private static void ValidateTierName(
         Tier tier,
-        IReadOnlyCollection<TierResult> existingTiers)
+        IReadOnlyCollection<TierListItemResult> existingTiers)
     {
         if (existingTiers.Any(existingTier =>
             existingTier.Name.Equals(tier.Name, StringComparison.OrdinalIgnoreCase)))

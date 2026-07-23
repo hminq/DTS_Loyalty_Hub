@@ -18,7 +18,6 @@ public static class PermissionCodes
         CustomerUsers.Create,
         CustomerUsers.Update,
         CustomerUsers.Disable,
-        CustomerUsers.ResetPassword,
         Tiers.View,
         Tiers.Create,
         Tiers.Update,
@@ -77,7 +76,6 @@ public static class PermissionCodes
         public const string Create = "customer_user.create";
         public const string Update = "customer_user.update";
         public const string Disable = "customer_user.disable";
-        public const string ResetPassword = "customer_user.reset_password";
     }
 
     public static class VoucherDefinitions

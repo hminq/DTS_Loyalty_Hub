@@ -88,6 +88,49 @@ public class RegisterCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_NewUser_NormalizesProfileBeforeCheckingAndStoring()
+    {
+        var command = CreateCommand(
+            username: " customer01 ",
+            email: " Customer@Example.COM ",
+            fullName: " Nguyễn  Minh  Anh ",
+            phone: " +84901234567 ");
+        var created = new CreatedCustomerUser(Guid.NewGuid(), Guid.NewGuid());
+        var expiresAt = DateTime.UtcNow.AddMinutes(15);
+
+        SetupNoDuplicates();
+        _passwordVerifier.Setup(verifier => verifier.Hash(command.Password)).Returns("hashed-password");
+        _userRepository
+            .Setup(repository => repository.Add(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.Is<NewCustomerUser>(user =>
+                    user.Username == "customer01" &&
+                    user.Email == "customer@example.com" &&
+                    user.FullName == "Nguyễn Minh Anh" &&
+                    user.Phone == "+84901234567")))
+            .Returns(created);
+        _accessTokenService.Setup(service => service.CreateExpiresAt()).Returns(expiresAt);
+        _accessTokenService
+            .Setup(service => service.CreateAccessToken(
+                It.Is<CustomerTokenUser>(user => user.Username == "customer01"),
+                expiresAt))
+            .Returns(new AccessToken("token", expiresAt));
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.Customer.Username.Should().Be("customer01");
+        result.Customer.Email.Should().Be("customer@example.com");
+        result.Customer.FullName.Should().Be("Nguyễn Minh Anh");
+        _userRepository.Verify(repository => repository.ExistsByEmailAsync(
+            "customer@example.com",
+            It.IsAny<CancellationToken>()), Times.Once);
+        _userRepository.Verify(repository => repository.ExistsByPhoneAsync(
+            "+84901234567",
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_UsernameAlreadyExists_ThrowsDomainException()
     {
         var command = CreateCommand();

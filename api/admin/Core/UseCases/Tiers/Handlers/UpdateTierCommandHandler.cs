@@ -91,7 +91,7 @@ public sealed class UpdateTierCommandHandler : IRequestHandler<UpdateTierCommand
     private static void ValidatePriorityPointsOrder(
         decimal pointsRequired,
         int priority,
-        IReadOnlyCollection<TierResult> otherTiers)
+        IReadOnlyCollection<TierListItemResult> otherTiers)
     {
         if (otherTiers.Any(existingTier => existingTier.Priority == priority))
         {
@@ -114,7 +114,7 @@ public sealed class UpdateTierCommandHandler : IRequestHandler<UpdateTierCommand
 
     private static void ValidateTierName(
         string name,
-        IReadOnlyCollection<TierResult> otherTiers)
+        IReadOnlyCollection<TierListItemResult> otherTiers)
     {
         if (otherTiers.Any(existingTier =>
             existingTier.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
