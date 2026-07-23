@@ -666,6 +666,9 @@ export const vi = {
   notifications: {
     eyebrow: 'Cấu hình',
     title: 'Mẫu thông báo',
+    eventTypesTitle: 'Loại sự kiện thông báo',
+    eventTypesDescription: 'Chọn một loại sự kiện để quản lý các mẫu thông báo tương ứng.',
+    templatesForEvent: 'Mẫu thông báo: {{eventType}}',
     description: 'Quản lý các mẫu cho email, SMS và thông báo đẩy (push).',
     create: 'Tạo mẫu',
     createTitle: 'Tạo mẫu thông báo',
@@ -690,6 +693,7 @@ export const vi = {
       activate: 'Kích hoạt',
       deactivate: 'Hủy kích hoạt',
       edit: 'Chỉnh sửa',
+      manageTemplates: 'Quản lý mẫu',
     },
     filters: {
       search: 'Tìm kiếm mẫu...',

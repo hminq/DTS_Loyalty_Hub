@@ -1,7 +1,7 @@
 import { CaretLeftIcon, CopyIcon, CheckIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import {
   getNotificationTemplate,
@@ -13,20 +13,33 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Input } from '../components/ui/input'
+import { HighlightedInput } from '../components/ui/highlighted-input'
+import { HighlightedTextarea } from '../components/ui/highlighted-textarea'
 
 export function NotificationTemplateDesignerPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const eventTypeCode = searchParams.get('eventTypeCode')
   const isEditing = id !== 'new' && Boolean(id)
   const { t } = useTranslation()
   const navigate = useNavigate()
 
+  const handleBack = () => {
+    if (eventTypeCode) {
+      navigate(`/notification-templates/events/${eventTypeCode}`)
+    } else {
+      navigate('/notification-templates')
+    }
+  }
+
   const [formData, setFormData] = useState({
     name: '',
-    eventTypeCode: '',
+    notificationEventTypeId: '',
     channel: 'EMAIL',
     language: 'vi',
     titleTemplate: '',
     bodyTemplate: '',
+    isActive: true,
   })
   
   const [eventTypes, setEventTypes] = useState([])
@@ -34,6 +47,15 @@ export function NotificationTemplateDesignerPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
   const [copiedVariable, setCopiedVariable] = useState(null)
+  const [lastFocus, setLastFocus] = useState({ field: null, start: 0, end: 0 })
+
+  const handleSelect = (e) => {
+    setLastFocus({
+      field: e.target.name,
+      start: e.target.selectionStart,
+      end: e.target.selectionEnd
+    })
+  }
 
   useEffect(() => {
     let isCurrent = true
@@ -49,12 +71,21 @@ export function NotificationTemplateDesignerPage() {
           if (!isCurrent) return
           setFormData({
             name: template.name || '',
-            eventTypeCode: template.eventTypeCode || '',
+            notificationEventTypeId: template.notificationEventTypeId || '',
             channel: template.channel || 'EMAIL',
             language: template.language || 'vi',
             titleTemplate: template.titleTemplate || '',
             bodyTemplate: template.bodyTemplate || '',
+            isActive: template.isActive ?? true,
           })
+        } else if (eventTypeCode && types) {
+          const matchedType = types.find(t => t.eventTypeCode === eventTypeCode)
+          if (matchedType) {
+            setFormData(prev => ({
+              ...prev,
+              notificationEventTypeId: matchedType.notificationEventTypeId
+            }))
+          }
         }
       } catch (err) {
         if (isCurrent) setError(err.message || t('errors.loadTemplate', 'Failed to load template.'))
@@ -81,22 +112,46 @@ export function NotificationTemplateDesignerPage() {
       } else {
         await createNotificationTemplate(formData)
       }
-      navigate('/notification-templates')
+      handleBack()
     } catch (err) {
       setError(err.message || t('errors.saveTemplate', 'Failed to save template.'))
       setIsSaving(false)
     }
   }
 
-  const copyVariable = (varName) => {
-    const textToCopy = `{{${varName}}}`
-    navigator.clipboard.writeText(textToCopy)
+  const insertVariable = (varName) => {
+    const textToInsert = `{{${varName}}}`
+    
+    let field = lastFocus.field
+    let start = lastFocus.start
+    let end = lastFocus.end
+
+    // Default to bodyTemplate if no valid field is currently focused
+    if (!field || !['titleTemplate', 'bodyTemplate'].includes(field)) {
+      field = 'bodyTemplate'
+      start = (formData.bodyTemplate || '').length
+      end = (formData.bodyTemplate || '').length
+    }
+
+    const currentValue = formData[field] || ''
+    const newValue = currentValue.substring(0, start) + textToInsert + currentValue.substring(end)
+    
+    setFormData((prev) => ({ ...prev, [field]: newValue }))
+    
+    setLastFocus({
+      field,
+      start: start + textToInsert.length,
+      end: start + textToInsert.length
+    })
+
+    // Also copy to clipboard for convenience
+    navigator.clipboard.writeText(textToInsert).catch(() => {})
     setCopiedVariable(varName)
     setTimeout(() => setCopiedVariable(null), 2000)
   }
 
   // Extract variables for the currently selected event type
-  const selectedEventType = eventTypes.find((et) => et.eventTypeCode === formData.eventTypeCode)
+  const selectedEventType = eventTypes.find((et) => et.notificationEventTypeId === formData.notificationEventTypeId)
   let variables = []
   if (selectedEventType && selectedEventType.availableVariables) {
     try {
@@ -114,7 +169,7 @@ export function NotificationTemplateDesignerPage() {
   return (
     <>
       <div className="mb-6 flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/notification-templates')}>
+        <Button variant="ghost" size="icon" onClick={handleBack}>
           <CaretLeftIcon size={18} />
         </Button>
         <div>
@@ -152,25 +207,8 @@ export function NotificationTemplateDesignerPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2 text-sm font-medium">
-                  {t('notifications.fields.eventType', 'Event Type')}
-                  <select
-                    name="eventTypeCode"
-                    value={formData.eventTypeCode}
-                    onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="" disabled>{t('notifications.placeholders.selectEventType', 'Select Event Type')}</option>
-                    {eventTypes.map((type) => (
-                      <option key={type.eventTypeCode} value={type.eventTypeCode}>
-                        {type.displayName || type.eventTypeCode}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="grid gap-2 text-sm font-medium">
                     {t('notifications.fields.channel', 'Channel')}
                     <select
@@ -197,6 +235,18 @@ export function NotificationTemplateDesignerPage() {
                       <option value="en">English (en)</option>
                     </select>
                   </div>
+                  <div className="grid gap-2 text-sm font-medium">
+                    {t('notifications.fields.status', 'Trạng thái')}
+                    <select
+                      name="isActive"
+                      value={formData.isActive ? 'true' : 'false'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === 'true' }))}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="true">{t('common.active', 'Kích hoạt')}</option>
+                      <option value="false">{t('common.inactive', 'Ngừng hoạt động')}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -206,22 +256,27 @@ export function NotificationTemplateDesignerPage() {
             <CardContent className="pt-6 space-y-4">
               <div className="grid gap-2 text-sm font-medium">
                 {t('notifications.fields.titleTemplate', 'Title Template')}
-                <Input
+                <HighlightedInput
                   name="titleTemplate"
                   value={formData.titleTemplate}
                   onChange={handleChange}
+                  onSelect={handleSelect}
+                  onClick={handleSelect}
+                  onKeyUp={handleSelect}
                   placeholder={t('notifications.placeholders.titleTemplate', 'e.g. Welcome {{CustomerName}}!')}
                 />
               </div>
 
               <div className="grid gap-2 text-sm font-medium">
                 {t('notifications.fields.bodyTemplate', 'Body Template')}
-                <textarea
+                <HighlightedTextarea
                   name="bodyTemplate"
                   value={formData.bodyTemplate}
                   onChange={handleChange}
+                  onSelect={handleSelect}
+                  onClick={handleSelect}
+                  onKeyUp={handleSelect}
                   rows={10}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder={t('notifications.placeholders.bodyTemplate', 'Enter your message content here...')}
                 />
               </div>
@@ -240,7 +295,7 @@ export function NotificationTemplateDesignerPage() {
               </p>
             </div>
             <CardContent className="p-0">
-              {!formData.eventTypeCode ? (
+              {!formData.notificationEventTypeId ? (
                 <div className="p-6 text-center text-sm text-muted-foreground">
                   {t('notifications.variables.selectEventPrompt', 'Select an Event Type first to see available variables.')}
                 </div>
@@ -251,7 +306,11 @@ export function NotificationTemplateDesignerPage() {
               ) : (
                 <ul className="divide-y divide-border">
                   {variables.map((v, idx) => (
-                    <li key={idx} className="flex items-center justify-between px-6 py-3 transition-colors hover:bg-muted/30">
+                    <li 
+                      key={idx} 
+                      className="flex items-center justify-between px-6 py-3 transition-colors hover:bg-muted/30 cursor-pointer"
+                      onClick={() => insertVariable(v)}
+                    >
                       <code className="rounded bg-muted px-2 py-1 text-xs font-semibold text-primary">
                         {`{{${v}}}`}
                       </code>
@@ -259,8 +318,8 @@ export function NotificationTemplateDesignerPage() {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7"
-                        onClick={() => copyVariable(v)}
-                        title={t('common.copy', 'Copy')}
+                        onClick={(e) => { e.stopPropagation(); insertVariable(v); }}
+                        title={t('common.insert', 'Insert')}
                       >
                         {copiedVariable === v ? (
                           <CheckIcon size={14} className="text-success" />

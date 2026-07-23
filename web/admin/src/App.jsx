@@ -7,22 +7,9 @@ import { RequireAuth } from './components/auth/RequireAuth'
 import { RequirePermission } from './components/auth/RequirePermission'
 import { PermissionCodes } from './constants/permissionCodes'
 import { AppLayout } from './layouts/AppLayout'
-import { DashboardPage } from './pages/DashboardPage'
-import { LoginPage } from './pages/LoginPage'
-import { NotFoundPage } from './pages/NotFoundPage'
-import { FeaturePage } from './pages/FeaturePage'
-import { PermissionsPage } from './pages/PermissionsPage'
-import { RolesPage } from './pages/RolesPage'
-import { RoleDetailPage } from './pages/RoleDetailPage'
-import { CreateRolePage } from './pages/CreateRolePage'
-import { EditRolePage } from './pages/EditRolePage'
-import { SettingsPage } from './pages/SettingsPage'
-import { SupportPage } from './pages/SupportPage'
-import { AdminAccountsPage } from './pages/AdminAccountsPage'
-import { AdminAccountDetailPage } from './pages/AdminAccountDetailPage'
-import { CreateAdminAccountPage } from './pages/CreateAdminAccountPage'
 import { NotificationTemplatesPage } from './pages/NotificationTemplatesPage'
 import { NotificationTemplateDesignerPage } from './pages/NotificationTemplateDesignerPage'
+import { NotificationEventTypesPage } from './pages/NotificationEventTypesPage'
 
 const AdminAccountDetailPage = lazyNamed(() => import('./pages/AdminAccountDetailPage'), 'AdminAccountDetailPage')
 const AdminAccountsPage = lazyNamed(() => import('./pages/AdminAccountsPage'), 'AdminAccountsPage')
@@ -274,6 +261,14 @@ function App() {
         />
         <Route
           path="notification-templates"
+          element={
+            <RequirePermission permission={PermissionCodes.NotificationTemplates.View}>
+              <NotificationEventTypesPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates/events/:eventTypeCode"
           element={
             <RequirePermission permission={PermissionCodes.NotificationTemplates.View}>
               <NotificationTemplatesPage />

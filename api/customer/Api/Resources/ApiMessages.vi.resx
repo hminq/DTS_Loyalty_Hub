@@ -29,4 +29,5 @@
   <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Tên đăng nhập là bắt buộc.</value></data>
   <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Tên đăng nhập không được vượt quá {MaxLength} ký tự.</value></data>
   <data name="UNAUTHORIZED" xml:space="preserve"><value>Token khách hàng không hợp lệ hoặc bị thiếu.</value></data>
+  <data name="NO_ACTIVE_TEMPLATE" xml:space="preserve"><value>Không tìm thấy mẫu thông báo nào đang hoạt động cho sự kiện này.</value></data>
 </root>

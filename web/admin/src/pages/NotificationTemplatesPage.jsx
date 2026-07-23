@@ -1,7 +1,7 @@
-import { PlusIcon, FileTextIcon } from '@phosphor-icons/react'
+import { PlusIcon, FileTextIcon, CaretLeftIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom'
 
 import { getNotificationTemplates, toggleTemplateStatus, getNotificationEventTypes } from '../api/notificationsApi'
 import { NotificationTemplatesFilters } from '../components/notifications/NotificationTemplatesFilters'
@@ -10,8 +10,8 @@ import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
-
 function NotificationTemplatesPage() {
+  const { eventTypeCode } = useParams()
   const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -19,7 +19,6 @@ function NotificationTemplatesPage() {
   const requestedPageSize = readPositiveInteger(searchParams.get('pageSize'), 20)
   const pageSize = Math.min(requestedPageSize, 100)
   const keyword = searchParams.get('keyword') || ''
-  const eventTypeCode = searchParams.get('eventTypeCode') || ''
 
   const [keywordInput, setKeywordInput] = useState(keyword)
   const [templates, setTemplates] = useState([])
@@ -31,7 +30,7 @@ function NotificationTemplatesPage() {
   const [eventTypes, setEventTypes] = useState([])
   const [isLoadingEventTypes, setIsLoadingEventTypes] = useState(false)
 
-  const hasActiveFilters = Boolean(keyword || eventTypeCode)
+  const hasActiveFilters = Boolean(keyword)
 
   const updateSearchParams = useCallback((updates) => {
     setSearchParams((current) => {
@@ -119,8 +118,22 @@ function NotificationTemplatesPage() {
   async function handleToggleStatus(templateId) {
     try {
       await toggleTemplateStatus(templateId)
-      // Refresh local state or re-fetch
-      setTemplates((prev) => prev.map((t) => (t.templateId === templateId ? { ...t, isActive: !t.isActive } : t)))
+      // Optimistically update the list: if activating, deactivate others with same event/channel/lang
+      setTemplates((prev) => {
+        const toggled = prev.find(t => t.templateId === templateId)
+        if (!toggled) return prev
+        const activating = !toggled.isActive
+        
+        return prev.map((t) => {
+          if (t.templateId === templateId) {
+            return { ...t, isActive: activating }
+          }
+          if (activating && t.notificationEventTypeId === toggled.notificationEventTypeId && t.channel === toggled.channel && t.language === toggled.language) {
+            return { ...t, isActive: false }
+          }
+          return t
+        })
+      })
     } catch (error) {
       console.error('Failed to toggle status', error)
     }
@@ -137,17 +150,24 @@ function NotificationTemplatesPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={t('notifications.eyebrow', 'Configuration')}
-        title={t('notifications.title', 'Notification Templates')}
-        description={t('notifications.description', 'Manage templates for emails, SMS, and push notifications.')}
-        actions={
-          <Button size="sm" onClick={() => navigate('/notification-templates/new')}>
-            <PlusIcon size={15} weight="bold" />
-            {t('notifications.create', 'Create template')}
-          </Button>
-        }
-      />
+      <div className="mb-6 flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/notification-templates')}>
+          <CaretLeftIcon size={18} />
+        </Button>
+        <div className="flex-1">
+          <PageHeader
+            eyebrow={t('notifications.eyebrow', 'Cấu hình')}
+            title={t('notifications.templatesForEvent', { defaultValue: 'Mẫu thông báo: {{eventType}}', eventType: eventTypeCode })}
+            description={t('notifications.description', 'Manage templates for emails, SMS, and push notifications.')}
+            actions={
+              <Button size="sm" onClick={() => navigate(`/notification-templates/new?eventTypeCode=${eventTypeCode}`)}>
+                <PlusIcon size={15} weight="bold" />
+                {t('notifications.create', 'Create template')}
+              </Button>
+            }
+          />
+        </div>
+      </div>
 
       {loadError ? (
         <p className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
@@ -159,10 +179,6 @@ function NotificationTemplatesPage() {
         <NotificationTemplatesFilters
           keyword={keywordInput}
           onKeywordChange={setKeywordInput}
-          eventTypeCode={eventTypeCode}
-          onEventTypeChange={(value) => updateSearchParams({ eventTypeCode: value, page: 1 })}
-          eventTypes={eventTypes}
-          isLoadingEventTypes={isLoadingEventTypes}
           t={t}
         />
 
@@ -178,7 +194,7 @@ function NotificationTemplatesPage() {
               isLoading={isLoading}
               isRefreshing={isRefreshing}
               language={i18n.resolvedLanguage}
-              onView={(id) => navigate(`/notification-templates/${id}`)}
+              onView={(id) => navigate(`/notification-templates/${id}?eventTypeCode=${eventTypeCode}`)}
               onToggleStatus={handleToggleStatus}
               t={t}
             />
@@ -191,7 +207,7 @@ function NotificationTemplatesPage() {
         ) : (
           <EmptyState
             filtered={hasActiveFilters}
-            onCreate={() => navigate('/notification-templates/new')}
+            onCreate={() => navigate(`/notification-templates/new?eventTypeCode=${eventTypeCode}`)}
             onClear={clearFilters}
             t={t}
           />

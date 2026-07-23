@@ -16,20 +16,6 @@ function NotificationTemplatesFilters({ keyword, onKeywordChange, eventTypeCode,
           onChange={(e) => onKeywordChange(e.target.value)}
         />
       </div>
-
-      <select
-        className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        value={eventTypeCode}
-        onChange={(e) => onEventTypeChange(e.target.value)}
-        disabled={isLoadingEventTypes}
-      >
-        <option value="">{t('notifications.filters.allEventTypes', 'All Event Types')}</option>
-        {eventTypes.map((type) => (
-          <option key={type.eventTypeCode} value={type.eventTypeCode}>
-            {type.displayName || type.eventTypeCode}
-          </option>
-        ))}
-      </select>
     </div>
   )
 }

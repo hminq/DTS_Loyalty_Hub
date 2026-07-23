@@ -68,6 +68,16 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
 
         await _templateRepository.UpdateAsync(template, ct);
 
+        if (template.IsActive)
+        {
+            await _templateRepository.DeactivateOtherTemplatesAsync(
+                template.TemplateId, 
+                template.NotificationEventTypeId, 
+                template.Channel, 
+                template.Language, 
+                ct);
+        }
+
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,
             AuditActions.Update,

@@ -29,4 +29,5 @@
   <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Username is required.</value></data>
   <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Username must be {MaxLength} characters or fewer.</value></data>
   <data name="UNAUTHORIZED" xml:space="preserve"><value>Invalid or missing customer token.</value></data>
+  <data name="NO_ACTIVE_TEMPLATE" xml:space="preserve"><value>No active template found for this event.</value></data>
 </root>

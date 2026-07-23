@@ -666,6 +666,9 @@ export const en = {
   notifications: {
     eyebrow: 'Configuration',
     title: 'Notification Templates',
+    eventTypesTitle: 'Notification Event Types',
+    eventTypesDescription: 'Select an event type to manage its corresponding templates.',
+    templatesForEvent: 'Templates for: {{eventType}}',
     description: 'Manage templates for emails, SMS, and push notifications.',
     create: 'Create template',
     createTitle: 'Create Template',
@@ -690,6 +693,7 @@ export const en = {
       activate: 'Activate',
       deactivate: 'Deactivate',
       edit: 'Edit',
+      manageTemplates: 'Manage templates',
     },
     filters: {
       search: 'Search templates...',
