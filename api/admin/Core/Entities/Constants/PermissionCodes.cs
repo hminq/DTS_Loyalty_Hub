@@ -33,6 +33,7 @@ public static class PermissionCodes
         VoucherDefinitions.Create,
         VoucherDefinitions.Update,
         VoucherDefinitions.Delete,
+        CustomerVouchers.View
     ];
 
     public static IReadOnlySet<string> All => DefinedCodes;
@@ -103,6 +104,11 @@ public static class PermissionCodes
     public static class AuditLogs
     {
         public const string View = "audit_log.view";
+    }
+
+    public static class CustomerVouchers
+    {
+        public const string View = "customer_voucher.view";
     }
 
     public static class NotificationEventTypes

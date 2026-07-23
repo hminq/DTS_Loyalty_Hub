@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IRoleReader, RoleReader>();
         services.AddScoped<ITierRepository, TierRepository>();
         services.AddScoped<IVoucherDefinitionRepository, VoucherDefinitionRepository>();
+        services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
