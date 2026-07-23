@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { getPermissions } from '../api/permissionsApi'
 import { PermissionMatrix } from '../components/permissions/PermissionMatrix'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Card, CardContent } from '../components/ui/card'
 
 function PermissionsPage() {
   const { t } = useTranslation()
@@ -48,31 +48,29 @@ function PermissionsPage() {
         description={t('permissions.description')}
       />
 
-      <Card className="mt-6 rounded-xl border-border/80 shadow-none">
-        <CardContent className="p-4">
-          {errorMessage ? (
-            <p className="mb-3 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-[13px] font-medium text-destructive">
-              {errorMessage}
-            </p>
-          ) : null}
+      <DataTableCard className="mt-6">
+        {errorMessage ? (
+          <p className="p-4 text-[13px] font-medium text-destructive">
+            {errorMessage}
+          </p>
+        ) : null}
 
-          {isLoading ? (
-            <p className="text-[13px] text-muted-foreground">{t('permissions.loading')}</p>
-          ) : permissionGroups.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground">{t('permissions.empty')}</p>
-          ) : (
-            <PermissionMatrix
-              groups={permissionGroups}
-              readOnly
-              labels={{
-                group: t('permissions.matrix.group'),
-                defined: t('permissions.matrix.defined'),
-                notDefined: t('permissions.matrix.notDefined'),
-              }}
-            />
-          )}
-        </CardContent>
-      </Card>
+        {isLoading ? (
+          <p className="p-4 text-[13px] text-muted-foreground">{t('permissions.loading')}</p>
+        ) : permissionGroups.length === 0 ? (
+          <p className="p-4 text-[13px] text-muted-foreground">{t('permissions.empty')}</p>
+        ) : (
+          <PermissionMatrix
+            groups={permissionGroups}
+            readOnly
+            labels={{
+              group: t('permissions.matrix.group'),
+              defined: t('permissions.matrix.defined'),
+              notDefined: t('permissions.matrix.notDefined'),
+            }}
+          />
+        )}
+      </DataTableCard>
     </>
   )
 }

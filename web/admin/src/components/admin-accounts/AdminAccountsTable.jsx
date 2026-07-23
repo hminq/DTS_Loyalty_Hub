@@ -10,6 +10,7 @@ function AdminAccountsTable({
   language,
   capabilities,
   onView,
+  onEdit,
   onStatusChange,
   t,
 }) {
@@ -64,6 +65,11 @@ function AdminAccountsTable({
                   {capabilities.canView ? (
                     <Button variant="ghost" size="sm" onClick={() => onView(account.adminId)}>
                       {t('adminAccounts.actions.view')}
+                    </Button>
+                  ) : null}
+                  {capabilities.canEdit ? (
+                    <Button variant="outline" size="sm" onClick={() => onEdit(account.adminId)}>
+                      {t('adminAccounts.actions.edit')}
                     </Button>
                   ) : null}
                   {capabilities.canUpdateStatus ? (

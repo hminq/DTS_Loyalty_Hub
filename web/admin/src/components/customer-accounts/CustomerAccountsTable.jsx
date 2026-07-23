@@ -9,8 +9,10 @@ function CustomerAccountsTable({
   isLoading,
   isRefreshing,
   language,
+  canEdit,
   canUpdateStatus,
   onView,
+  onEdit,
   onStatusChange,
   t,
 }) {
@@ -69,6 +71,11 @@ function CustomerAccountsTable({
                   <Button variant="ghost" size="sm" onClick={() => onView(account.customerId)}>
                     {t('customerAccounts.actions.view')}
                   </Button>
+                  {canEdit ? (
+                    <Button variant="outline" size="sm" onClick={() => onEdit(account.customerId)}>
+                      {t('customerAccounts.actions.edit')}
+                    </Button>
+                  ) : null}
                   {canUpdateStatus ? (
                     <Button
                       variant={account.status === 'ENABLE' ? 'destructive' : 'default'}
@@ -91,4 +98,3 @@ function CustomerAccountsTable({
 }
 
 export { CustomerAccountsTable, formatCustomerDateTime }
-

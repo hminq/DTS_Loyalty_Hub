@@ -97,24 +97,28 @@ function Combobox({
       />
 
       <ComboboxPrimitive.Portal>
-        <ComboboxPrimitive.Positioner align="start" sideOffset={6} className="z-50">
-          <ComboboxPrimitive.Popup className="w-[var(--anchor-width)] min-w-56 rounded-lg border border-border bg-popover p-1.5 text-popover-foreground shadow-md outline-none">
-            <ComboboxPrimitive.InputGroup className="relative border-b border-border pb-1.5">
-              <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-[calc(50%+3px)] text-muted-foreground" aria-hidden="true" />
+        <ComboboxPrimitive.Positioner align="start" sideOffset={6} className="z-50" collisionAvoidance={{ side: 'none' }}>
+          <ComboboxPrimitive.Popup className="group flex flex-col w-[var(--anchor-width)] min-w-56 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-md outline-none data-[side=top]:flex-col-reverse">
+            <ComboboxPrimitive.InputGroup className="relative border-b border-border group-data-[side=top]:border-b-0 group-data-[side=top]:border-t">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <ComboboxPrimitive.Input
                 aria-label={ariaLabel}
-                className="h-8 w-full rounded-md bg-transparent pl-8 pr-2 text-[13px] outline-none placeholder:text-muted-foreground"
+                className="h-9 w-full bg-transparent pl-9 pr-3 text-[13px] outline-none placeholder:text-muted-foreground"
                 placeholder={searchPlaceholder}
               />
             </ComboboxPrimitive.InputGroup>
 
-            <ComboboxPrimitive.List className="max-h-56 overflow-y-auto py-1">
+            <ComboboxPrimitive.List className="max-h-56 overflow-y-auto p-1">
               {isLoading ? <ComboboxState><CircleNotchIcon className="animate-spin" />{loadingText}</ComboboxState> : null}
               {!isLoading && error ? <ComboboxState className="text-destructive">{error}</ComboboxState> : null}
               {!isLoading && !error ? (
                 <>
-                  <ComboboxPrimitive.Empty className="px-3 py-5 text-center text-xs text-muted-foreground">
-                    {emptyText}
+                  <ComboboxPrimitive.Empty>
+                    {emptyText ? (
+                      <div className="px-3 py-5 text-center text-xs text-muted-foreground">
+                        {emptyText}
+                      </div>
+                    ) : null}
                   </ComboboxPrimitive.Empty>
                   <ComboboxPrimitive.Collection>{(item, index) => (
                     <ComboboxPrimitive.Item

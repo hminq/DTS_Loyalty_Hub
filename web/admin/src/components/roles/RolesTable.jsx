@@ -7,7 +7,7 @@ function RolesTable({ roles, isLoading, language, capabilities, onView, onEdit, 
   const hasActions = capabilities.canView || capabilities.canEdit || capabilities.canDelete
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
+    <div className="relative overflow-x-auto">
       <table className="w-full border-collapse text-left text-[13px]">
         <thead className="bg-muted/70 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
@@ -21,10 +21,6 @@ function RolesTable({ roles, isLoading, language, capabilities, onView, onEdit, 
           {isLoading ? (
             <tr className="border-t border-border">
               <td className="px-3 py-5 text-muted-foreground" colSpan={hasActions ? 4 : 3}>{t('roles.loading')}</td>
-            </tr>
-          ) : roles.length === 0 ? (
-            <tr className="border-t border-border">
-              <td className="px-3 py-5 text-muted-foreground" colSpan={hasActions ? 4 : 3}>{t('roles.empty')}</td>
             </tr>
           ) : roles.map((role) => (
             <tr key={role.roleId} className="border-t border-border">

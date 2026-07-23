@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 
 import { getTierConfigs } from '../api/tiersApi'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { PageHeader } from '../components/layout/PageHeader'
 import { TierConfigsTable } from '../components/tiers/TierConfigsTable'
 import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 function TierConfigsPage() {
@@ -94,19 +94,17 @@ function TierConfigsPage() {
         </div>
       ) : null}
 
-      <Card className="mt-5 rounded-xl border-border/80 shadow-none overflow-hidden">
-        <CardContent className="p-0">
-          <TierConfigsTable
-            tiers={tiers}
-            isLoading={isLoading}
-            canEdit={canEdit}
-            onView={(id) => navigate(`/tiers/${id}`)}
-            onEdit={(id) => navigate(`/tiers/${id}/edit`)}
-            language={i18n.resolvedLanguage}
-            t={t}
-          />
-        </CardContent>
-      </Card>
+      <DataTableCard className="mt-5">
+        <TierConfigsTable
+          tiers={tiers}
+          isLoading={isLoading}
+          canEdit={canEdit}
+          onView={(id) => navigate(`/tiers/${id}`)}
+          onEdit={(id) => navigate(`/tiers/${id}/edit`)}
+          language={i18n.resolvedLanguage}
+          t={t}
+        />
+      </DataTableCard>
     </>
   )
 }

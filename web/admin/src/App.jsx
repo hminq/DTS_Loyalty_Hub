@@ -14,6 +14,7 @@ const AuditLogsPage = lazyNamed(() => import('./pages/AuditLogsPage'), 'AuditLog
 const CreateAdminAccountPage = lazyNamed(() => import('./pages/CreateAdminAccountPage'), 'CreateAdminAccountPage')
 const CreateRolePage = lazyNamed(() => import('./pages/CreateRolePage'), 'CreateRolePage')
 const CreateTierConfigPage = lazyNamed(() => import('./pages/CreateTierConfigPage'), 'CreateTierConfigPage')
+const CreateVoucherDefinitionPage = lazyNamed(() => import('./pages/CreateVoucherDefinitionPage'), 'CreateVoucherDefinitionPage')
 const CustomerAccountDetailPage = lazyNamed(() => import('./pages/CustomerAccountDetailPage'), 'CustomerAccountDetailPage')
 const CustomerAccountsPage = lazyNamed(() => import('./pages/CustomerAccountsPage'), 'CustomerAccountsPage')
 const CustomerPointTransactionsPage = lazyNamed(() => import('./pages/CustomerPointTransactionsPage'), 'CustomerPointTransactionsPage')
@@ -26,7 +27,6 @@ const EditAdminAccountPage = lazyNamed(() => import('./pages/EditAdminAccountPag
 const EditCustomerAccountPage = lazyNamed(() => import('./pages/EditCustomerAccountPage'), 'EditCustomerAccountPage')
 const EditRolePage = lazyNamed(() => import('./pages/EditRolePage'), 'EditRolePage')
 const EditTierConfigPage = lazyNamed(() => import('./pages/EditTierConfigPage'), 'EditTierConfigPage')
-const FeaturePage = lazyNamed(() => import('./pages/FeaturePage'), 'FeaturePage')
 const LoginPage = lazyNamed(() => import('./pages/LoginPage'), 'LoginPage')
 const NotFoundPage = lazyNamed(() => import('./pages/NotFoundPage'), 'NotFoundPage')
 const PermissionsPage = lazyNamed(() => import('./pages/PermissionsPage'), 'PermissionsPage')
@@ -36,6 +36,10 @@ const SettingsPage = lazyNamed(() => import('./pages/SettingsPage'), 'SettingsPa
 const SupportPage = lazyNamed(() => import('./pages/SupportPage'), 'SupportPage')
 const TierConfigDetailPage = lazyNamed(() => import('./pages/TierConfigDetailPage'), 'TierConfigDetailPage')
 const TierConfigsPage = lazyNamed(() => import('./pages/TierConfigsPage'), 'TierConfigsPage')
+const VoucherDefinitionDetailPage = lazyNamed(() => import('./pages/VoucherDefinitionDetailPage'), 'VoucherDefinitionDetailPage')
+const VoucherDefinitionsPage = lazyNamed(() => import('./pages/VoucherDefinitionsPage'), 'VoucherDefinitionsPage')
+const VoucherPoolsPage = lazyNamed(() => import('./pages/VoucherPoolsPage'), 'VoucherPoolsPage')
+const VoucherRedemptionsPage = lazyNamed(() => import('./pages/VoucherRedemptionsPage'), 'VoucherRedemptionsPage')
 
 function App() {
   return (
@@ -198,15 +202,48 @@ function App() {
           }
         />
         <Route path="customer-users" element={<Navigate to="/customer-accounts" replace />} />
+        <Route path="vouchers" element={<Navigate to="/voucher-definitions" replace />} />
+        <Route path="vouchers/configs" element={<Navigate to="/voucher-definitions" replace />} />
         <Route
           path="voucher-definitions"
           element={
             <RequirePermission permission={PermissionCodes.VoucherDefinitions.View}>
-              <FeaturePage
-                eyebrowKey="features.voucherDefinitions.eyebrow"
-                titleKey="features.voucherDefinitions.title"
-                descriptionKey="features.voucherDefinitions.description"
-              />
+              <VoucherDefinitionsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="voucher-definitions/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.VoucherDefinitions.View,
+              PermissionCodes.VoucherDefinitions.Create,
+            ]}>
+              <CreateVoucherDefinitionPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="voucher-definitions/:voucherDefinitionId"
+          element={
+            <RequirePermission permission={PermissionCodes.VoucherDefinitions.View}>
+              <VoucherDefinitionDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="vouchers/pools"
+          element={
+            <RequirePermission permission={PermissionCodes.VoucherDefinitions.View}>
+              <VoucherPoolsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="vouchers/redemptions"
+          element={
+            <RequirePermission permission={PermissionCodes.VoucherDefinitions.View}>
+              <VoucherRedemptionsPage />
             </RequirePermission>
           }
         />
