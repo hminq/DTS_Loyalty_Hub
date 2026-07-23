@@ -131,4 +131,6 @@
   <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và kết thúc là bắt buộc đối với hiệu lực cố định.</value></data>
   <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và số ngày hiệu lực là bắt buộc đối với hiệu lực động.</value></data>
   <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Tồn kho còn lại phải nằm trong khoảng từ 0 đến tổng tồn kho.</value></data>
+  <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Voucher cua khach hang khong ton tai.</value></data>
+  <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Ngay bat dau redeem phai truoc hoac bang ngay ket thuc redeem.</value></data>
 </root>

@@ -131,4 +131,6 @@
   <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and valid to are required for fixed validity.</value></data>
   <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and duration day are required for dynamic validity.</value></data>
   <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Remaining stock must be between zero and total stock.</value></data>
+  <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Customer voucher does not exist.</value></data>
+  <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Redeem from date must be earlier than or equal to redeem to date.</value></data>
 </root>

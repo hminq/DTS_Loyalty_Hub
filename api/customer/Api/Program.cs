@@ -35,6 +35,7 @@ builder.Services.AddMediatR(config =>
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentCustomerAccessor, CurrentCustomerAccessor>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 // Return the shared API validation shape for model binding and FluentValidation errors.
 builder.Services.Configure<ApiBehaviorOptions>(options =>
