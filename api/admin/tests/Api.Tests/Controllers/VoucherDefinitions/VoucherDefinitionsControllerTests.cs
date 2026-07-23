@@ -173,16 +173,12 @@ public sealed class VoucherDefinitionsControllerTests
 
     private VoucherDefinitionsController CreateController()
     {
-        var localizerMock = new Mock<Microsoft.Extensions.Localization.IStringLocalizer<VoucherDefinitionOptions>>();
-        var labelResolver = new Api.Localization.VoucherDefinitionOptionLabelResolver(localizerMock.Object);
-
         return new(
             _sender.Object,
             _adminContext.Object,
             _getValidator.Object,
             _createValidator.Object,
-            CreateValidationErrorMapper(),
-            labelResolver);
+            CreateValidationErrorMapper());
     }
 
     private static ValidationErrorMapper CreateValidationErrorMapper()

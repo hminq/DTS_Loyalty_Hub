@@ -105,8 +105,9 @@
   <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Loại phần thưởng voucher không hợp lệ.</value></data>
   <data name="VOUCHER_REWARD_TYPE_REQUIRED" xml:space="preserve"><value>Loại phần thưởng voucher là bắt buộc.</value></data>
   <data name="VOUCHER_REWARD_VALUE_MUST_BE_EMPTY" xml:space="preserve"><value>Giá trị phần thưởng phải để trống đối với voucher quà tặng.</value></data>
-  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Tổng tồn kho phải lớn hơn 0.</value></data>
-  <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Thời điểm bắt đầu phải trước thời điểm kết thúc.</value></data>
+  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Tổng tồn kho phải từ 1 đến 1.000.000.</value></data>
+  <data name="VOUCHER_VALID_FROM_NOT_FUTURE" xml:space="preserve"><value>Thời điểm bắt đầu phải nằm trong tương lai.</value></data>
+  <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Thời điểm kết thúc phải sau thời điểm bắt đầu ít nhất 30 phút.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_INVALID" xml:space="preserve"><value>Loại hiệu lực voucher không hợp lệ.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_REQUIRED" xml:space="preserve"><value>Loại hiệu lực voucher là bắt buộc.</value></data>
   <data name="PERMISSION_REQUIRED" xml:space="preserve"><value>Quyền là bắt buộc.</value></data>

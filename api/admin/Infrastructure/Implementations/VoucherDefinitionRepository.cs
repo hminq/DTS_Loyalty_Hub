@@ -51,7 +51,23 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
                 voucherDefinition.TotalStock,
                 voucherDefinition.RemainingStock,
                 voucherDefinition.CreatedAt,
-                voucherDefinition.DeletedAt))
+                voucherDefinition.DeletedAt,
+                voucherDefinition.VoucherPoolProvisioningJobs
+                    .OrderByDescending(job => job.CreatedAt)
+                    .ThenByDescending(job => job.JobId)
+                    .Select(job => new VoucherPoolProvisioningResult(
+                        job.JobId,
+                        job.JobType,
+                        job.Status,
+                        job.ExpectedCount,
+                        job.ProcessedCount,
+                        job.AttemptCount,
+                        job.ErrorCode,
+                        job.ErrorDetails,
+                        job.CreatedAt,
+                        job.StartedAt,
+                        job.CompletedAt))
+                    .FirstOrDefault()))
             .SingleOrDefaultAsync(ct);
     }
 

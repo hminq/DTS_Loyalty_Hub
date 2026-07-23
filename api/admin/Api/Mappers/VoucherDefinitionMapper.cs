@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Api.Dtos.Requests.VoucherDefinitions;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.VoucherDefinitions;
@@ -62,7 +63,26 @@ public static class VoucherDefinitionMapper
             TotalStock = result.TotalStock,
             RemainingStock = result.RemainingStock,
             CreatedAt = result.CreatedAt,
-            DeletedAt = result.DeletedAt
+            DeletedAt = result.DeletedAt,
+            PoolProvisioning = result.PoolProvisioning is null
+                ? null
+                : new VoucherPoolProvisioningResponseDto
+                {
+                    JobId = result.PoolProvisioning.JobId,
+                    JobType = result.PoolProvisioning.JobType,
+                    Status = result.PoolProvisioning.Status,
+                    ExpectedCount = result.PoolProvisioning.ExpectedCount,
+                    ProcessedCount = result.PoolProvisioning.ProcessedCount,
+                    AttemptCount = result.PoolProvisioning.AttemptCount,
+                    ErrorCode = result.PoolProvisioning.ErrorCode,
+                    ErrorDetails = string.IsNullOrWhiteSpace(result.PoolProvisioning.ErrorDetails)
+                        ? null
+                        : JsonSerializer.Deserialize<JsonElement>(
+                            result.PoolProvisioning.ErrorDetails),
+                    CreatedAt = result.PoolProvisioning.CreatedAt,
+                    StartedAt = result.PoolProvisioning.StartedAt,
+                    CompletedAt = result.PoolProvisioning.CompletedAt
+                }
         };
     }
 
@@ -100,14 +120,14 @@ public static class VoucherDefinitionMapper
     }
 
     public static VoucherDefinitionOptionsResponseDto ToOptionsResponseDto(
-        this VoucherDefinitionOptionsResult result,
-        Api.Localization.VoucherDefinitionOptionLabelResolver labelResolver)
+        this VoucherDefinitionOptionsResult result)
     {
         return new VoucherDefinitionOptionsResponseDto(
-            RewardTypes: result.RewardTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolveRewardType(v))).ToArray(),
-            ValidityTypes: result.ValidityTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolveValidityType(v))).ToArray(),
-            PublishTypes: result.PublishTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolvePublishType(v))).ToArray(),
-            GenerationTypes: result.GenerationTypes.Select(v => new VoucherDefinitionOptionResponseDto(v, labelResolver.ResolveGenerationType(v))).ToArray()
+            RewardTypes: result.RewardTypes.ToArray(),
+            ValidityTypes: result.ValidityTypes.ToArray(),
+            PublishTypes: result.PublishTypes.ToArray(),
+            GenerationTypes: result.GenerationTypes.ToArray(),
+            Constraints: new VoucherDefinitionConstraintsResponseDto(Core.Entities.Constants.VoucherDefinitionLimits.MaxTotalStock)
         );
     }
 }

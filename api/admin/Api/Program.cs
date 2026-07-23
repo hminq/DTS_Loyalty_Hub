@@ -52,7 +52,6 @@ builder.Services.AddLocalization(options => options.ResourcesPath = "Resources")
 builder.Services.AddSingleton<ApiMessageResolver>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ValidationErrorMapper>();
-builder.Services.AddScoped<Api.Localization.VoucherDefinitionOptionLabelResolver>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthenticatedAdminSessionAccessor, AuthenticatedAdminSessionAccessor>();
 builder.Services.Configure<RequestLocalizationOptions>(options =>

@@ -2,7 +2,6 @@ using Api.Authentication;
 using Api.Dtos.Requests.VoucherDefinitions;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.VoucherDefinitions;
-using Api.Localization;
 using Api.Mappers;
 using Core.Entities.Constants;
 using Core.UseCases.VoucherDefinitions.Queries;
@@ -23,22 +22,19 @@ public sealed class VoucherDefinitionsController : ControllerBase
     private readonly IValidator<GetVoucherDefinitionsRequestDto> _getVoucherDefinitionsValidator;
     private readonly IValidator<CreateVoucherDefinitionRequestDto> _createVoucherDefinitionValidator;
     private readonly ValidationErrorMapper _validationErrorMapper;
-    private readonly VoucherDefinitionOptionLabelResolver _labelResolver;
 
     public VoucherDefinitionsController(
         ISender sender,
         ICurrentAdminContext currentAdminContext,
         IValidator<GetVoucherDefinitionsRequestDto> getVoucherDefinitionsValidator,
         IValidator<CreateVoucherDefinitionRequestDto> createVoucherDefinitionValidator,
-        ValidationErrorMapper validationErrorMapper,
-        VoucherDefinitionOptionLabelResolver labelResolver)
+        ValidationErrorMapper validationErrorMapper)
     {
         _sender = sender;
         _currentAdminContext = currentAdminContext;
         _getVoucherDefinitionsValidator = getVoucherDefinitionsValidator;
         _createVoucherDefinitionValidator = createVoucherDefinitionValidator;
         _validationErrorMapper = validationErrorMapper;
-        _labelResolver = labelResolver;
     }
 
     [HttpGet]
@@ -67,7 +63,7 @@ public sealed class VoucherDefinitionsController : ControllerBase
 
         return Ok(new ApiResponseDto<VoucherDefinitionOptionsResponseDto>
         {
-            Data = result.ToOptionsResponseDto(_labelResolver)
+            Data = result.ToOptionsResponseDto()
         });
     }
 

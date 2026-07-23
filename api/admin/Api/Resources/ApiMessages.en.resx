@@ -105,8 +105,9 @@
   <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Voucher reward type is invalid.</value></data>
   <data name="VOUCHER_REWARD_TYPE_REQUIRED" xml:space="preserve"><value>Voucher reward type is required.</value></data>
   <data name="VOUCHER_REWARD_VALUE_MUST_BE_EMPTY" xml:space="preserve"><value>Reward value must be empty for gift vouchers.</value></data>
-  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Total stock must be greater than 0.</value></data>
-  <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Valid from must be earlier than valid to.</value></data>
+  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Total stock must be between 1 and 1,000,000.</value></data>
+  <data name="VOUCHER_VALID_FROM_NOT_FUTURE" xml:space="preserve"><value>Valid from must be in the future.</value></data>
+  <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Valid to must be at least 30 minutes after valid from.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_INVALID" xml:space="preserve"><value>Voucher validity type is invalid.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_REQUIRED" xml:space="preserve"><value>Voucher validity type is required.</value></data>
   <data name="PERMISSION_REQUIRED" xml:space="preserve"><value>Permission is required.</value></data>

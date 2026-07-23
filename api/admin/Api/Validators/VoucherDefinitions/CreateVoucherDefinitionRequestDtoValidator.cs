@@ -7,7 +7,7 @@ namespace Api.Validators.VoucherDefinitions;
 public sealed class CreateVoucherDefinitionRequestDtoValidator
     : AbstractValidator<CreateVoucherDefinitionRequestDto>
 {
-    public CreateVoucherDefinitionRequestDtoValidator()
+    public CreateVoucherDefinitionRequestDtoValidator(TimeProvider timeProvider)
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
@@ -54,7 +54,15 @@ public sealed class CreateVoucherDefinitionRequestDtoValidator
         RuleFor(request => request.TotalStock)
             .GreaterThan(0)
             .WithErrorCode("VOUCHER_TOTAL_STOCK_INVALID")
+            .LessThanOrEqualTo(VoucherDefinitionLimits.MaxTotalStock)
+            .WithErrorCode("VOUCHER_TOTAL_STOCK_INVALID")
             .OverridePropertyName("totalStock");
+
+        RuleFor(request => request.ValidFrom)
+            .Must(validFrom => validFrom > timeProvider.GetUtcNow().UtcDateTime)
+            .When(request => request.ValidFrom.HasValue)
+            .WithErrorCode("VOUCHER_VALID_FROM_NOT_FUTURE")
+            .OverridePropertyName("validFrom");
 
         RuleFor(request => request.BannerImageUrl)
             .Must(key => key!.StartsWith(BannerUploadTypes.VoucherDefinitionBannerPrefix))
@@ -134,7 +142,7 @@ public sealed class CreateVoucherDefinitionRequestDtoValidator
             .OverridePropertyName("validTo");
 
         RuleFor(request => request.ValidTo)
-            .GreaterThan(request => request.ValidFrom)
+            .Must((request, validTo) => validTo!.Value >= request.ValidFrom!.Value.AddMinutes(30))
             .When(request =>
                 IsType(request.ValidityType, VoucherValidityTypes.Fixed) &&
                 request.ValidFrom.HasValue &&
