@@ -1,15 +1,16 @@
-import { PlusIcon } from '@phosphor-icons/react'
+import { PlusIcon, ShieldStarIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { deleteRole, getRoles } from '../api/rolesApi'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { DeleteRoleDialog } from '../components/roles/DeleteRoleDialog'
 import { RolesTable } from '../components/roles/RolesTable'
+import { EmptyState } from '../components/data-list/EmptyState'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 function RolesPage() {
@@ -33,6 +34,9 @@ function RolesPage() {
   const canCreate = hasPermission(PermissionCodes.Roles.Create)
   const canEdit = hasPermission(PermissionCodes.Roles.Update)
   const canDelete = hasPermission(PermissionCodes.Roles.Delete)
+
+  const showEmptyState = !isLoading && roles.length === 0
+  const hasActiveFilters = Boolean(keyword)
 
   const updateSearchParams = useCallback((updates) => {
     setSearchParams((current) => {
@@ -119,7 +123,7 @@ function RolesPage() {
       />
 
       {successMessage ? (
-        <p className="mt-5 rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
+        <p className="mt-5 rounded-lg border border-success/20 bg-success/10 px-4 py-3 text-[13px] font-medium text-success">
           {successMessage}
         </p>
       ) : null}
@@ -134,24 +138,35 @@ function RolesPage() {
         </p>
       ) : null}
 
-      <Card className="mt-5 rounded-xl border-border/80 shadow-none">
-        <CardContent className="p-4">
-          <RolesTable
-            roles={roles}
-            isLoading={isLoading}
-            language={i18n.resolvedLanguage}
-            capabilities={{ canView: true, canEdit, canDelete }}
-            onView={(roleId) => navigate(`/roles/${roleId}`)}
-            onEdit={(roleId) => navigate(`/roles/${roleId}/edit`)}
-            onDelete={setRoleToDelete}
+      <DataTableCard className="mt-5">
+        {!showEmptyState ? (
+          <>
+            <RolesTable
+              roles={roles}
+              isLoading={isLoading}
+              language={i18n.resolvedLanguage}
+              capabilities={{ canView: true, canEdit, canDelete }}
+              onView={(roleId) => navigate(`/roles/${roleId}`)}
+              onEdit={(roleId) => navigate(`/roles/${roleId}/edit`)}
+              onDelete={setRoleToDelete}
+            />
+            <ListPagination
+              meta={meta}
+              onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
+              onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
+            />
+          </>
+        ) : (
+          <EmptyState
+            icon={ShieldStarIcon}
+            title={t(hasActiveFilters ? 'roles.noResultsTitle' : 'roles.emptyTitle')}
+            description={t(hasActiveFilters ? 'roles.noResultsDescription' : 'roles.emptyDescription')}
+            filtered={hasActiveFilters}
+            onClearSearch={() => updateSearchParams({ keyword: '', page: 1 })}
+            t={t}
           />
-          <ListPagination
-            meta={meta}
-            onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
-            onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
-          />
-        </CardContent>
-      </Card>
+        )}
+      </DataTableCard>
 
       <DeleteRoleDialog
         role={roleToDelete}

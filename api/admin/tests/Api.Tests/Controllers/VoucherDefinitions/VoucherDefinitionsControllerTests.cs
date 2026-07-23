@@ -97,19 +97,19 @@ public sealed class VoucherDefinitionsControllerTests
             PageSize = 10,
             Keyword = "welcome"
         };
-        var item = Result();
+        var item = ListItemResult();
         SetupValid(_getValidator);
         _sender.Setup(x => x.Send(
                 It.IsAny<GetVoucherDefinitionsQuery>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new PagedResult<VoucherDefinitionResult>([item], 2, 10, 21));
+            .ReturnsAsync(new PagedResult<VoucherDefinitionListItemResult>([item], 2, 10, 21));
         var controller = CreateController();
 
         var actionResult = await controller.GetList(request, CancellationToken.None);
 
         var ok = actionResult.Result.Should().BeOfType<OkObjectResult>().Which;
         var response = ok.Value.Should()
-            .BeOfType<ApiResponseDto<IReadOnlyCollection<VoucherDefinitionResponseDto>>>().Which;
+            .BeOfType<ApiResponseDto<IReadOnlyCollection<VoucherDefinitionListItemResponseDto>>>().Which;
         response.Data.Should().ContainSingle().Which.VoucherDefinitionId
             .Should().Be(item.VoucherDefinitionId);
         response.Meta.Should().NotBeNull();
@@ -171,12 +171,19 @@ public sealed class VoucherDefinitionsControllerTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    private VoucherDefinitionsController CreateController() => new(
-        _sender.Object,
-        _adminContext.Object,
-        _getValidator.Object,
-        _createValidator.Object,
-        CreateValidationErrorMapper());
+    private VoucherDefinitionsController CreateController()
+    {
+        var localizerMock = new Mock<Microsoft.Extensions.Localization.IStringLocalizer<VoucherDefinitionOptions>>();
+        var labelResolver = new Api.Localization.VoucherDefinitionOptionLabelResolver(localizerMock.Object);
+
+        return new(
+            _sender.Object,
+            _adminContext.Object,
+            _getValidator.Object,
+            _createValidator.Object,
+            CreateValidationErrorMapper(),
+            labelResolver);
+    }
 
     private static ValidationErrorMapper CreateValidationErrorMapper()
     {
@@ -221,6 +228,20 @@ public sealed class VoucherDefinitionsControllerTests
         PublishType = VoucherPublishTypes.Public,
         TotalStock = 100
     };
+
+    private static VoucherDefinitionListItemResult ListItemResult(
+        Guid? voucherDefinitionId = null,
+        string name = "Welcome voucher") => new(
+        voucherDefinitionId ?? Guid.NewGuid(),
+        "WELCOME10",
+        name,
+        VoucherRewardTypes.Fixed,
+        10,
+        VoucherPublishTypes.Public,
+        100,
+        100,
+        new DateTime(2026, 1, 1),
+        null);
 
     private static VoucherDefinitionResult Result(
         Guid? voucherDefinitionId = null,

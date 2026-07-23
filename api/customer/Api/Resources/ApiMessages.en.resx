@@ -30,4 +30,11 @@
   <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Username must be {MaxLength} characters or fewer.</value></data>
   <data name="UNAUTHORIZED" xml:space="preserve"><value>Invalid or missing customer token.</value></data>
   <data name="NO_ACTIVE_TEMPLATE" xml:space="preserve"><value>No active template found for this event.</value></data>
+  <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Customer voucher was not found.</value></data>
+  <data name="PAGE_INVALID" xml:space="preserve"><value>Page must be greater than or equal to 1.</value></data>
+  <data name="PAGE_SIZE_INVALID" xml:space="preserve"><value>Page size must be between 1 and 100.</value></data>
+  <data name="VOUCHER_NAME_TOO_LONG" xml:space="preserve"><value>Voucher name must be 200 characters or fewer.</value></data>
+  <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Voucher reward type is invalid.</value></data>
+  <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Redeem start time must be earlier than or equal to redeem end time.</value></data>
+  <data name="CAMPAIGN_NAME_TOO_LONG" xml:space="preserve"><value>Campaign name must be 200 characters or fewer.</value></data>
 </root>

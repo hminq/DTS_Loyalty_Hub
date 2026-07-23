@@ -7,4 +7,7 @@ namespace Core.UseCases.VoucherDefinitions.Queries;
 public sealed record GetVoucherDefinitionsQuery(
     int Page,
     int PageSize,
-    string? Keyword) : IRequest<PagedResult<VoucherDefinitionResult>>;
+    string? Keyword,
+    string? RewardType,
+    string? ValidityType,
+    string? PublishType) : IRequest<PagedResult<VoucherDefinitionListItemResult>>;

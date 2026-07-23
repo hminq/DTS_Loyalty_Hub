@@ -5,9 +5,9 @@ import { getCustomerVoucherRedemptions } from '../api/customerAccountsApi'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { CustomerDataPageHeader } from '../components/customer-accounts/CustomerDataPageHeader'
 import { CustomerVoucherRedemptionsTable } from '../components/customer-accounts/CustomerVoucherRedemptionsTable'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { useCustomerPagedResource } from '../hooks/useCustomerPagedResource'
 import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
 
 function CustomerVoucherRedemptionsPage() {
   const { customerId } = useParams()
@@ -32,37 +32,37 @@ function CustomerVoucherRedemptionsPage() {
 
   return (
     <CustomerDataPageHeader customerId={customerId} sectionLabel={t('customerAccounts.sections.voucherRedemptions')} t={t}>
-      <Card className="mt-5 rounded-xl border-border/80 shadow-none overflow-hidden">
-        <CardContent className="p-0">
-          {errorMessage ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4 text-[13px] font-medium text-destructive">
-              <p>{errorMessage}</p>
-              <Button variant="outline" size="sm" onClick={retry}>
-                {t('customerAccounts.retry')}
-              </Button>
-            </div>
-          ) : (
-            <>
-              <CustomerVoucherRedemptionsTable
-                redemptions={data}
-                isLoading={isLoading}
-                isRefreshing={isRefreshing}
-                language={i18n.resolvedLanguage}
-                t={t}
-              />
-              <div className="p-4 border-t border-border">
-                <ListPagination
-                  meta={meta}
-                  page={page}
-                  pageSize={pageSize}
-                  onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
-                />
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <DataTableCard className="mt-5">
+        {errorMessage ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 text-[13px] font-medium text-destructive">
+            <p>{errorMessage}</p>
+            <Button variant="outline" size="sm" onClick={retry}>
+              {t('customerAccounts.retry')}
+            </Button>
+          </div>
+        ) : !isLoading && data.length === 0 ? (
+          <div className="p-8 text-center text-[13px] text-muted-foreground">
+            {t('customerAccounts.voucherRedemptions.empty')}
+          </div>
+        ) : (
+          <>
+            <CustomerVoucherRedemptionsTable
+              redemptions={data}
+              isLoading={isLoading}
+              isRefreshing={isRefreshing}
+              language={i18n.resolvedLanguage}
+              t={t}
+            />
+            <ListPagination
+              meta={meta}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </>
+        )}
+      </DataTableCard>
     </CustomerDataPageHeader>
   )
 }

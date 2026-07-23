@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IRoleReader, RoleReader>();
         services.AddScoped<ITierRepository, TierRepository>();
         services.AddScoped<IVoucherDefinitionRepository, VoucherDefinitionRepository>();
+        services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
@@ -54,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
         services.AddScoped<IAuditLogWriter, AuditLogWriter>();
         services.AddScoped<IBannerStorage, S3BannerStorage>();
+        services.AddSingleton<IBannerReadUrlProvider, S3BannerReadUrlProvider>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SaveChangesBehavior<,>));
         

@@ -5,6 +5,12 @@ public static class VoucherValidityTypes
     public const string Fixed = "FIXED";
     public const string Dynamic = "DYNAMIC";
 
+    public static IReadOnlyCollection<string> All { get; } =
+    [
+        Fixed,
+        Dynamic
+    ];
+
     public static bool IsDefined(string value)
     {
         var normalizedValue = Normalize(value);

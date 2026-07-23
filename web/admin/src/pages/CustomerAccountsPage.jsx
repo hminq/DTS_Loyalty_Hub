@@ -8,10 +8,10 @@ import { getTierConfigs } from '../api/tiersApi'
 import { CustomerAccountsFilters } from '../components/customer-accounts/CustomerAccountsFilters'
 import { CustomerAccountStatusDialog } from '../components/customer-accounts/CustomerAccountStatusDialog'
 import { CustomerAccountsTable } from '../components/customer-accounts/CustomerAccountsTable'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 function CustomerAccountsPage() {
@@ -39,6 +39,7 @@ function CustomerAccountsPage() {
   const [tierError, setTierError] = useState('')
 
   const canFilterByTier = hasPermission(PermissionCodes.Tiers.View)
+  const canEditAccount = hasPermission(PermissionCodes.CustomerUsers.Update)
   const canUpdateStatus = hasPermission(PermissionCodes.CustomerUsers.Disable)
   const hasActiveFilters = Boolean(keyword || status || tierId)
 
@@ -191,22 +192,22 @@ function CustomerAccountsPage() {
         </p>
       ) : null}
 
-      <Card className="mt-5 overflow-visible rounded-xl border-border/80 shadow-none">
-        <CardContent className="p-4">
-          <CustomerAccountsFilters
-            keyword={keywordInput}
-            onKeywordChange={setKeywordInput}
-            status={status}
-            onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
-            tierId={tierId}
-            onTierChange={(value) => updateSearchParams({ tierId: value, page: 1 })}
-            canFilterByTier={canFilterByTier}
-            tierOptions={tierOptions}
-            isTierLoading={isTierLoading}
-            tierError={tierError}
-            t={t}
-          />
+      <div className="mt-5">
+        <CustomerAccountsFilters
+          keyword={keywordInput}
+          onKeywordChange={setKeywordInput}
+          status={status}
+          onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
+          tierId={tierId}
+          onTierChange={(value) => updateSearchParams({ tierId: value, page: 1 })}
+          canFilterByTier={canFilterByTier}
+          tierOptions={tierOptions}
+          isTierLoading={isTierLoading}
+          tierError={tierError}
+          t={t}
+        />
 
+        <DataTableCard>
           {!showEmptyState ? (
             <>
               <CustomerAccountsTable
@@ -214,8 +215,10 @@ function CustomerAccountsPage() {
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 language={i18n.resolvedLanguage}
+                canEdit={canEditAccount}
                 canUpdateStatus={canUpdateStatus}
                 onView={(customerId) => navigate(`/customer-accounts/${customerId}`)}
+                onEdit={(customerId) => navigate(`/customer-accounts/${customerId}/edit`)}
                 onStatusChange={setStatusAccount}
                 t={t}
               />
@@ -228,8 +231,8 @@ function CustomerAccountsPage() {
           ) : (
             <CustomerAccountsEmptyState filtered={hasActiveFilters} onClear={clearFilters} t={t} />
           )}
-        </CardContent>
-      </Card>
+        </DataTableCard>
+      </div>
 
       <CustomerAccountStatusDialog
         account={statusAccount}

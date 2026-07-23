@@ -5,9 +5,11 @@ import { useSearchParams } from 'react-router-dom'
 import { getAuditLogFilterOptions, getAuditLogs } from '../api/auditLogsApi'
 import { AuditLogsFilters, hasFilters } from '../components/audit-logs/AuditLogsFilters'
 import { AuditLogsTable } from '../components/audit-logs/AuditLogsTable'
+import { DataTableCard } from '../components/data-list/DataTableCard'
 import { ListPagination } from '../components/data-list/ListPagination'
+import { ClockIcon } from '@phosphor-icons/react'
+import { EmptyState } from '../components/data-list/EmptyState'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Card, CardContent } from '../components/ui/card'
 
 function AuditLogsPage() {
   const { i18n, t } = useTranslation()
@@ -87,18 +89,31 @@ function AuditLogsPage() {
     <>
       <PageHeader eyebrow={t('auditLogs.eyebrow')} title={t('auditLogs.title')} description={t('auditLogs.description')} />
       {errorMessage ? <p className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">{errorMessage}</p> : null}
-      <Card className="mt-5 overflow-hidden rounded-xl border-border/80 shadow-none">
+      <div className="mt-5">
         <AuditLogsFilters filters={filters} options={options} optionsError={optionsError} onApply={applyFilters} onClear={clearFilters} />
-        <CardContent className="p-4">
-          {isLoading && auditLogs.length > 0 ? <p className="mb-3 text-xs text-muted-foreground">{t('auditLogs.refreshing')}</p> : null}
-          <AuditLogsTable auditLogs={auditLogs} isLoading={isLoading} language={i18n.resolvedLanguage} hasActiveFilters={hasFilters(filters)} />
-          <ListPagination
-            meta={meta}
-            onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
-            onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
-          />
-        </CardContent>
-      </Card>
+        <DataTableCard>
+          {!isLoading && auditLogs.length === 0 ? (
+            <EmptyState
+              icon={ClockIcon}
+              title={t(hasFilters(filters) ? 'auditLogs.noResultsTitle' : 'auditLogs.emptyTitle')}
+              description={t(hasFilters(filters) ? 'auditLogs.noResultsDescription' : 'auditLogs.emptyDescription')}
+              filtered={hasFilters(filters)}
+              onClearSearch={clearFilters}
+              t={t}
+            />
+          ) : (
+            <>
+              {isLoading && auditLogs.length > 0 ? <p className="p-3 text-xs text-muted-foreground">{t('auditLogs.refreshing')}</p> : null}
+              <AuditLogsTable auditLogs={auditLogs} isLoading={isLoading} language={i18n.resolvedLanguage} />
+              <ListPagination
+                meta={meta}
+                onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
+                onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
+              />
+            </>
+          )}
+        </DataTableCard>
+      </div>
     </>
   )
 }

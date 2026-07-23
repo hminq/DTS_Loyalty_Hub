@@ -17,6 +17,6 @@ export async function getAuditLogs(params, signal) {
 }
 
 export async function getAuditLogFilterOptions(signal) {
-  const response = await httpClient.get('/audit-logs/filter-options', { signal })
+  const response = await httpClient.get('/audit-logs/options', { signal })
   return response.data.data
 }
