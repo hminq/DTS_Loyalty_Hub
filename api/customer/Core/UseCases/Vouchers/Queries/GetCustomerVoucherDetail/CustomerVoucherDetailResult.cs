@@ -2,6 +2,7 @@ namespace Core.UseCases.Vouchers.Queries.GetCustomerVoucherDetail;
 
 public sealed record CustomerVoucherDetailResult(
     Guid CustomerVoucherId,
+    string VoucherCode,
     Guid VoucherDefinitionId,
     string VoucherDefinitionName,
     string? VoucherDefinitionDescription,

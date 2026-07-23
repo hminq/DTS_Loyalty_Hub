@@ -23,6 +23,7 @@ public static class VoucherMapper
         return new CustomerVoucherDetailResponseDto
         {
             CusVoucherId = result.CustomerVoucherId,
+            VoucherCode = result.VoucherCode,
             VoucherDefId = result.VoucherDefinitionId,
             VoucherDefName = result.VoucherDefinitionName,
             VoucherDefDescription = result.VoucherDefinitionDescription,

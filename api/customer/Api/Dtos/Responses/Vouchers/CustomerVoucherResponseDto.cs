@@ -11,6 +11,7 @@ public sealed class CustomerVoucherResponseDto
 public sealed class CustomerVoucherDetailResponseDto
 {
     public Guid CusVoucherId { get; set; }
+    public string VoucherCode { get; set; } = string.Empty;
     public Guid VoucherDefId { get; set; }
     public string VoucherDefName { get; set; } = string.Empty;
     public string? VoucherDefDescription { get; set; }

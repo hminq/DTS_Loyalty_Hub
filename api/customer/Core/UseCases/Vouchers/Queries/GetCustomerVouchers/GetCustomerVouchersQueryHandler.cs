@@ -22,7 +22,7 @@ public sealed class GetCustomerVouchersQueryHandler
             request.CustomerId,
             NormalizePage(request.Page),
             NormalizePageSize(request.PageSize),
-            NormalizeText(request.Name),
+            NormalizeText(request.VoucherKeyword),
             NormalizeUppercase(request.RewardType),
             NormalizeDateTime(request.RedeemAtFrom),
             NormalizeDateTime(request.RedeemAtTo),

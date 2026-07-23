@@ -22,7 +22,7 @@ public sealed class GetVoucherRedemptionsQueryHandler
             request.CustomerId,
             request.Page < 1 ? 1 : request.Page,
             request.PageSize is < 1 or > 100 ? 20 : request.PageSize,
-            NormalizeText(request.Name),
+            NormalizeText(request.VoucherKeyword),
             NormalizeText(request.RewardType)?.ToUpperInvariant(),
             NormalizeDateTime(request.RedeemAtFrom),
             NormalizeDateTime(request.RedeemAtTo),

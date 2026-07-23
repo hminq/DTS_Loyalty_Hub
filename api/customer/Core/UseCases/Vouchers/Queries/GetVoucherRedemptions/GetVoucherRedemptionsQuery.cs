@@ -7,7 +7,7 @@ public sealed record GetVoucherRedemptionsQuery(
     Guid CustomerId,
     int Page,
     int PageSize,
-    string? Name,
+    string? VoucherKeyword,
     string? RewardType,
     DateTime? RedeemAtFrom,
     DateTime? RedeemAtTo,

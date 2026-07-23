@@ -21,7 +21,7 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
         Guid customerId,
         int page,
         int pageSize,
-        string? name,
+        string? voucherKeyword,
         string? rewardType,
         DateTime? redeemAtFrom,
         DateTime? redeemAtTo,
@@ -34,10 +34,10 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
                 voucher.CustomerId == customerId &&
                 voucher.VoucherDef.DeletedAt == null);
 
-        if (name is not null)
+        if (voucherKeyword is not null)
         {
             query = query.Where(voucher =>
-                EF.Functions.ILike(voucher.VoucherDef.Name, $"%{name}%"));
+                EF.Functions.ILike(voucher.VoucherDef.Name, $"%{voucherKeyword}%"));
         }
 
         if (rewardType is not null)
@@ -84,6 +84,7 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
                 voucher.VoucherDef.DeletedAt == null)
             .Select(voucher => new CustomerVoucherDetailResult(
                 voucher.CustomerVoucherId,
+                voucher.VoucherCode,
                 voucher.VoucherDefId,
                 voucher.VoucherDef.Name,
                 voucher.VoucherDef.Description,
@@ -99,7 +100,7 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
         Guid customerId,
         int page,
         int pageSize,
-        string? name,
+        string? voucherKeyword,
         string? rewardType,
         DateTime? redeemAtFrom,
         DateTime? redeemAtTo,
@@ -112,10 +113,10 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
                 redemption.CustomerId == customerId &&
                 redemption.VoucherDef.DeletedAt == null);
 
-        if (name is not null)
+        if (voucherKeyword is not null)
         {
             query = query.Where(redemption =>
-                EF.Functions.ILike(redemption.VoucherDef.Name, $"%{name}%"));
+                EF.Functions.ILike(redemption.VoucherDef.Name, $"%{voucherKeyword}%"));
         }
 
         if (rewardType is not null)

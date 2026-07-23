@@ -19,17 +19,17 @@ public sealed class CustomerVoucherFilterDtoValidator
             .WithErrorCode("PAGE_SIZE_INVALID")
             .OverridePropertyName("pageSize");
 
-        RuleFor(request => request.Name)
+        RuleFor(request => request.VoucherKeyword)
             .MaximumLength(200)
             .WithErrorCode("VOUCHER_NAME_TOO_LONG")
-            .When(request => request.Name is not null)
-            .OverridePropertyName("name");
+            .When(request => request.VoucherKeyword is not null)
+            .OverridePropertyName("voucherKeyword");
 
-        RuleFor(request => request.VoucherDefRewardType!)
+        RuleFor(request => request.RewardType!)
             .Must(VoucherRewardTypes.IsDefined)
             .WithErrorCode("VOUCHER_REWARD_TYPE_INVALID")
-            .When(request => !string.IsNullOrWhiteSpace(request.VoucherDefRewardType))
-            .OverridePropertyName("voucherDefRewardType");
+            .When(request => !string.IsNullOrWhiteSpace(request.RewardType))
+            .OverridePropertyName("rewardType");
 
         RuleFor(request => request.RedeemAtTo)
             .Must((request, redeemAtTo) =>

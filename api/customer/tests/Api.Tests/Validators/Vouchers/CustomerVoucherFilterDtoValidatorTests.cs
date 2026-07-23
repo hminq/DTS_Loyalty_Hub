@@ -15,8 +15,8 @@ public sealed class CustomerVoucherFilterDtoValidatorTests
         {
             Page = 1,
             PageSize = 100,
-            Name = "Voucher",
-            VoucherDefRewardType = "percent",
+            VoucherKeyword = "Voucher",
+            RewardType = "percent",
             RedeemAtFrom = new DateTime(2026, 7, 1),
             RedeemAtTo = new DateTime(2026, 7, 31)
         };
@@ -53,12 +53,12 @@ public sealed class CustomerVoucherFilterDtoValidatorTests
     {
         var request = new CustomerVoucherFilterDto
         {
-            VoucherDefRewardType = "UNKNOWN"
+            RewardType = "UNKNOWN"
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor("voucherDefRewardType")
+        result.ShouldHaveValidationErrorFor("rewardType")
             .WithErrorCode("VOUCHER_REWARD_TYPE_INVALID");
     }
 

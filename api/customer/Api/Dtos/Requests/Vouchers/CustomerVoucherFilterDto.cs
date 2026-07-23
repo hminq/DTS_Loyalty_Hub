@@ -2,8 +2,8 @@ namespace Api.Dtos.Requests.Vouchers;
 
 public sealed class CustomerVoucherFilterDto
 {
-    public string? Name { get; set; }
-    public string? VoucherDefRewardType { get; set; }
+    public string? VoucherKeyword { get; set; }
+    public string? RewardType { get; set; }
     public DateTime? RedeemAtFrom { get; set; }
     public DateTime? RedeemAtTo { get; set; }
     public int Page { get; set; } = 1;

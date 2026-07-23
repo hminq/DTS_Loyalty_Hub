@@ -20,6 +20,7 @@ public sealed class CustomerVoucherQueryHandlerTests
         var customerVoucherId = Guid.NewGuid();
         var expected = new CustomerVoucherDetailResult(
             customerVoucherId,
+            "VOUCHER-001",
             Guid.NewGuid(),
             "Voucher",
             "Description",

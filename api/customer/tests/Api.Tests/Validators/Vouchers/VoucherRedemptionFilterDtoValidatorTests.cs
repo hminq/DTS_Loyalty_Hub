@@ -15,8 +15,8 @@ public sealed class VoucherRedemptionFilterDtoValidatorTests
         {
             Page = 1,
             PageSize = 20,
-            Name = "Voucher",
-            VoucherDefRewardType = "GIFT",
+            VoucherKeyword = "Voucher",
+            RewardType = "GIFT",
             CampaignName = "Summer",
             RedeemAtFrom = new DateTime(2026, 7, 1),
             RedeemAtTo = new DateTime(2026, 7, 31)
@@ -32,13 +32,13 @@ public sealed class VoucherRedemptionFilterDtoValidatorTests
     {
         var request = new VoucherRedemptionFilterDto
         {
-            Name = new string('a', 201),
+            VoucherKeyword = new string('a', 201),
             CampaignName = new string('b', 201)
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor("name")
+        result.ShouldHaveValidationErrorFor("voucherKeyword")
             .WithErrorCode("VOUCHER_NAME_TOO_LONG");
         result.ShouldHaveValidationErrorFor("campaignName")
             .WithErrorCode("CAMPAIGN_NAME_TOO_LONG");
