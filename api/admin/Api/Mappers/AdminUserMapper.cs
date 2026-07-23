@@ -1,6 +1,7 @@
 using Api.Dtos.Requests.AdminUsers;
 using Api.Dtos.Responses;
 using Api.Dtos.Responses.AdminUsers;
+using Core.Entities;
 using Core.UseCases.AdminUsers.Commands;
 using Core.UseCases.AdminUsers.Queries;
 using Core.UseCases.AdminUsers.Results;
@@ -24,10 +25,10 @@ public static class AdminUserMapper
     {
         return new CreateAdminUserCommand(
             request.Username!.Trim(),
-            request.Email!.Trim(),
+            UserProfileRules.NormalizeEmail(request.Email!),
             request.Password!,
-            request.FullName,
-            request.PhoneNumber,
+            UserProfileRules.NormalizeOptionalFullName(request.FullName),
+            UserProfileRules.NormalizeOptionalPhoneNumber(request.PhoneNumber),
             request.RoleId,
             actorUserId);
     }
@@ -39,9 +40,9 @@ public static class AdminUserMapper
     {
         return new UpdateAdminUserCommand(
             adminId,
-            request.Email!.Trim(),
-            request.FullName,
-            request.PhoneNumber,
+            UserProfileRules.NormalizeEmail(request.Email!),
+            UserProfileRules.NormalizeOptionalFullName(request.FullName),
+            UserProfileRules.NormalizeOptionalPhoneNumber(request.PhoneNumber),
             request.RoleId,
             actorUserId);
     }

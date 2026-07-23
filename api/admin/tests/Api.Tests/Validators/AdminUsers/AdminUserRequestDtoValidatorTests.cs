@@ -46,6 +46,49 @@ public sealed class AdminUserRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor("phoneNumber").WithErrorCode("PHONE_NUMBER_TOO_LONG");
     }
 
+    [Theory]
+    [InlineData("A", "FULL_NAME_TOO_SHORT")]
+    [InlineData("Admin 123", "FULL_NAME_INVALID")]
+    [InlineData("Admin@User", "FULL_NAME_INVALID")]
+    public void Create_InvalidFullName_ReturnsExpectedError(string fullName, string errorCode)
+    {
+        var request = ValidCreateRequest();
+        request.FullName = fullName;
+
+        var result = new CreateAdminUserRequestDtoValidator().TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor("fullName").WithErrorCode(errorCode);
+    }
+
+    [Theory]
+    [InlineData("12345678")]
+    [InlineData("+12345678")]
+    [InlineData("01234abcde")]
+    [InlineData("0123 456 789")]
+    public void Create_InvalidPhoneNumber_ReturnsFormatError(string phoneNumber)
+    {
+        var request = ValidCreateRequest();
+        request.PhoneNumber = phoneNumber;
+
+        var result = new CreateAdminUserRequestDtoValidator().TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor("phoneNumber").WithErrorCode("PHONE_NUMBER_INVALID");
+    }
+
+    [Theory]
+    [InlineData("Nguyễn Văn An", "+84901234567")]
+    [InlineData("O'Neil Smith", "012345678901234")]
+    public void Create_ValidInternationalProfile_HasNoErrors(string fullName, string phoneNumber)
+    {
+        var request = ValidCreateRequest();
+        request.FullName = fullName;
+        request.PhoneNumber = phoneNumber;
+
+        var result = new CreateAdminUserRequestDtoValidator().TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
     [Fact]
     public void Update_ValidRequest_HasNoErrors()
     {
@@ -71,6 +114,22 @@ public sealed class AdminUserRequestDtoValidatorTests
 
         result.ShouldHaveValidationErrorFor("email").WithErrorCode("EMAIL_INVALID");
         result.ShouldHaveValidationErrorFor("roleId").WithErrorCode("ROLE_ID_REQUIRED");
+    }
+
+    [Fact]
+    public void Update_OptionalProfileFieldsMayBeEmpty()
+    {
+        var request = new UpdateAdminUserRequestDto
+        {
+            Email = "admin@example.com",
+            FullName = "   ",
+            PhoneNumber = null,
+            RoleId = Guid.NewGuid()
+        };
+
+        var result = new UpdateAdminUserRequestDtoValidator().TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Theory]

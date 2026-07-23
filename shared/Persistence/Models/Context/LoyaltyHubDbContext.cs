@@ -341,8 +341,6 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasConstraintName("fk_campaign_usages_customer");
         });
 
-        
-
         modelBuilder.Entity<Customer>(entity =>
         {
             entity.HasKey(e => e.CustomerId).HasName("customer_pkey");

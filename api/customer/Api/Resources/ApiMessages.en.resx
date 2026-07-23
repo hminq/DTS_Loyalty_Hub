@@ -16,6 +16,7 @@
   <data name="EMAIL_INVALID_LENGTH" xml:space="preserve"><value>Email must be between {MinLength} and {MaxLength} characters.</value></data>
   <data name="EMAIL_REQUIRED" xml:space="preserve"><value>Email is required.</value></data>
   <data name="FULLNAME_INVALID_LENGTH" xml:space="preserve"><value>Full name must be between {MinLength} and {MaxLength} characters.</value></data>
+  <data name="FULLNAME_INVALID_FORMAT" xml:space="preserve"><value>Full name contains invalid characters.</value></data>
   <data name="FULLNAME_REQUIRED" xml:space="preserve"><value>Full name is required.</value></data>
   <data name="PASSWORD_MISSING_DIGIT" xml:space="preserve"><value>Password must contain at least one digit.</value></data>
   <data name="PASSWORD_MISSING_UPPERCASE" xml:space="preserve"><value>Password must contain at least one uppercase letter.</value></data>

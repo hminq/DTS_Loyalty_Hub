@@ -6,7 +6,7 @@ using MediatR;
 namespace Core.UseCases.Tiers.Handlers;
 
 public sealed class GetTierConfigsQueryHandler
-    : IRequestHandler<GetTierConfigsQuery, IReadOnlyCollection<TierResult>>
+    : IRequestHandler<GetTierConfigsQuery, IReadOnlyCollection<TierListItemResult>>
 {
     private readonly ITierRepository _tierRepository;
 
@@ -16,7 +16,7 @@ public sealed class GetTierConfigsQueryHandler
         _tierRepository = tierRepository;
     }
 
-    public Task<IReadOnlyCollection<TierResult>> Handle(
+    public Task<IReadOnlyCollection<TierListItemResult>> Handle(
         GetTierConfigsQuery request,
         CancellationToken ct)
     {

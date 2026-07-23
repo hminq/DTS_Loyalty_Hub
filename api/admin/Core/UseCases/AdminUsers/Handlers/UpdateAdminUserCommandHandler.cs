@@ -1,4 +1,5 @@
 using Core.Abstractions;
+using Core.Entities;
 using Core.Exceptions;
 using Core.UseCases.AdminUsers.Commands;
 using Core.UseCases.AdminUsers.Results;
@@ -61,8 +62,8 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
                 "ROLE_NOT_FOUND",
                 DomainErrorType.Validation);
 
-        var email = request.Email.Trim();
-        var phoneNumber = NormalizeOptional(request.PhoneNumber);
+        var email = UserProfileRules.NormalizeEmail(request.Email);
+        var phoneNumber = UserProfileRules.NormalizeOptionalPhoneNumber(request.PhoneNumber);
 
         if (await _userRepository.EmailExistsExceptAdminAsync(email, request.AdminId, ct))
         {
@@ -79,7 +80,7 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
                 DomainErrorType.Conflict);
         }
 
-        var fullName = NormalizeOptional(request.FullName);
+        var fullName = UserProfileRules.NormalizeOptionalFullName(request.FullName);
         await _userRepository.UpdateAdminProfileAsync(request.AdminId, email, fullName, phoneNumber, ct);
         await _adminRepository.UpdateRoleAsync(request.AdminId, request.RoleId, ct);
 
@@ -104,10 +105,4 @@ public sealed class UpdateAdminUserCommandHandler : IRequestHandler<UpdateAdminU
         return updatedAdmin;
     }
 
-    private static string? NormalizeOptional(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value)
-            ? null
-            : value.Trim();
-    }
 }

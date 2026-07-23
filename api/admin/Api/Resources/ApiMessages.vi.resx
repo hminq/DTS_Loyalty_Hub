@@ -12,6 +12,8 @@
   <data name="ADMIN_ID_REQUIRED" xml:space="preserve"><value>Id quản trị viên là bắt buộc.</value></data>
   <data name="ADMIN_STATUS_INVALID" xml:space="preserve"><value>Trạng thái quản trị viên không hợp lệ.</value></data>
   <data name="ADMIN_USER_NOT_FOUND" xml:space="preserve"><value>Tài khoản quản trị viên không tồn tại.</value></data>
+  <data name="CUSTOMER_ID_REQUIRED" xml:space="preserve"><value>Id khách hàng là bắt buộc.</value></data>
+  <data name="CUSTOMER_USER_NOT_FOUND" xml:space="preserve"><value>Tài khoản khách hàng không tồn tại.</value></data>
   <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email đã tồn tại.</value></data>
   <data name="PHONE_NUMBER_ALREADY_EXISTS" xml:space="preserve"><value>Số điện thoại đã tồn tại.</value></data>
   <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Tên đăng nhập đã tồn tại.</value></data>
@@ -28,6 +30,7 @@
   <data name="EVENT_TYPE_NOT_FOUND" xml:space="preserve"><value>Loại sự kiện thông báo không tồn tại.</value></data>
   <data name="TEMPLATE_NOT_FOUND" xml:space="preserve"><value>Mẫu thông báo không tồn tại.</value></data>
   <data name="TIER_NAME_ALREADY_EXISTS" xml:space="preserve"><value>Hạng thành viên với tên này đã tồn tại.</value></data>
+  <data name="TIER_ID_INVALID" xml:space="preserve"><value>Id hạng thành viên không hợp lệ.</value></data>
   <data name="TIER_POINTS_REQUIRED_INVALID" xml:space="preserve"><value>Điểm yêu cầu không được âm.</value></data>
   <data name="TIER_POINTS_ORDER_INVALID" xml:space="preserve"><value>Điểm yêu cầu của hạng ưu tiên cao hơn phải lớn hơn hạng ưu tiên thấp hơn.</value></data>
   <data name="TIER_PRIORITY_ALREADY_EXISTS" xml:space="preserve"><value>Hạng thành viên với độ ưu tiên này đã tồn tại.</value></data>
@@ -53,6 +56,8 @@
   <data name="ENTITY_TYPE_TOO_LONG" xml:space="preserve"><value>Loại thực thể không được vượt quá 100 ký tự.</value></data>
   <data name="EVENT_TYPE_CODE_TOO_LONG" xml:space="preserve"><value>Mã loại sự kiện không được vượt quá 50 ký tự.</value></data>
   <data name="FULL_NAME_TOO_LONG" xml:space="preserve"><value>Họ tên không được vượt quá 50 ký tự.</value></data>
+  <data name="FULL_NAME_TOO_SHORT" xml:space="preserve"><value>Họ tên phải có ít nhất 2 ký tự.</value></data>
+  <data name="FULL_NAME_INVALID" xml:space="preserve"><value>Họ tên chứa ký tự không hợp lệ.</value></data>
   <data name="KEYWORD_TOO_LONG" xml:space="preserve"><value>Từ khóa không được vượt quá 100 ký tự.</value></data>
   <data name="LANGUAGE_REQUIRED" xml:space="preserve"><value>Ngôn ngữ là bắt buộc.</value></data>
   <data name="LANGUAGE_TOO_LONG" xml:space="preserve"><value>Ngôn ngữ không được vượt quá 10 ký tự.</value></data>
@@ -65,6 +70,7 @@
   <data name="PASSWORD_TOO_SHORT" xml:space="preserve"><value>Mật khẩu phải có ít nhất {MinLength} ký tự.</value></data>
   <data name="PERMISSION_ID_REQUIRED" xml:space="preserve"><value>Id quyền là bắt buộc.</value></data>
   <data name="PHONE_NUMBER_TOO_LONG" xml:space="preserve"><value>Số điện thoại không được vượt quá 15 ký tự.</value></data>
+  <data name="PHONE_NUMBER_INVALID" xml:space="preserve"><value>Số điện thoại phải có từ 9 đến 15 ký tự, chỉ chứa chữ số và có thể bắt đầu bằng dấu +.</value></data>
   <data name="ROLE_NAME_REQUIRED" xml:space="preserve"><value>Tên vai trò là bắt buộc.</value></data>
   <data name="ROLE_NAME_TOO_LONG" xml:space="preserve"><value>Tên vai trò không được vượt quá 100 ký tự.</value></data>
   <data name="ROLE_PERMISSION_IDS_REQUIRED" xml:space="preserve"><value>Danh sách id quyền là bắt buộc.</value></data>

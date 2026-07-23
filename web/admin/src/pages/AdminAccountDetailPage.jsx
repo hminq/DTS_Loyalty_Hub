@@ -1,131 +1,148 @@
-import { ArrowLeftIcon, CircleNotchIcon } from '@phosphor-icons/react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 
-import { getAdminAccount } from '../api/adminAccountsApi'
-import { formatDateTime } from '../components/admin-accounts/AdminAccountsTable'
+import {
+  getAdminAccount,
+  revokeAdminAccountSession,
+} from '../api/adminAccountsApi'
+import { getPermissions } from '../api/permissionsApi'
+import { AdminAccountDetails } from '../components/admin-accounts/AdminAccountDetails'
+import { RevokeAdminSessionDialog } from '../components/admin-accounts/RevokeAdminSessionDialog'
+import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { PermissionCodes } from '../constants/permissionCodes'
 
 function AdminAccountDetailPage() {
   const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
+  const { hasPermission } = useOutletContext()
   const { adminId } = useParams()
   const [account, setAccount] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage ?? '')
+  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false)
+  const [permissionGroups, setPermissionGroups] = useState([])
+  const [isPermissionsLoading, setIsPermissionsLoading] = useState(false)
+  const [permissionErrorMessage, setPermissionErrorMessage] = useState('')
+
+  const canEdit = hasPermission(PermissionCodes.AdminUsers.Update)
+    && hasPermission(PermissionCodes.Roles.View)
+  const canRevokeSession = hasPermission(PermissionCodes.AdminUsers.RevokeSession)
 
   useEffect(() => {
-    let isCurrent = true
+    if (location.state?.successMessage) {
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    const controller = new AbortController()
 
     async function loadAccount() {
+      setIsLoading(true)
+      setErrorMessage('')
+      setAccount(null)
+      setPermissionGroups([])
+      setPermissionErrorMessage('')
+
       try {
-        const result = await getAdminAccount(adminId)
-        if (isCurrent) setAccount(result)
+        const result = await getAdminAccount(adminId, controller.signal)
+        if (controller.signal.aborted) return
+        setAccount(result)
       } catch (error) {
-        if (isCurrent) setErrorMessage(error.message || t('errors.loadAdminAccount'))
+        if (!controller.signal.aborted) setErrorMessage(error.message || t('errors.loadAdminAccount'))
+        return
       } finally {
-        if (isCurrent) setIsLoading(false)
+        if (!controller.signal.aborted) setIsLoading(false)
+      }
+
+      setIsPermissionsLoading(true)
+      try {
+        const groups = await getPermissions()
+        if (!controller.signal.aborted) setPermissionGroups(groups ?? [])
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setPermissionErrorMessage(error.message || t('errors.loadPermissions'))
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsPermissionsLoading(false)
       }
     }
 
     loadAccount()
-    return () => { isCurrent = false }
-  }, [adminId])
+    return () => controller.abort()
+  }, [adminId, t])
+
+  async function handleRevokeSession() {
+    await revokeAdminAccountSession(adminId)
+    setRevokeDialogOpen(false)
+    setSuccessMessage(t('adminAccounts.revoke.success'))
+  }
 
   return (
     <>
       <PageHeader
-        eyebrow={t('adminAccounts.detail.eyebrow')}
+        breadcrumb={<Breadcrumb items={[
+          { label: t('adminAccounts.title'), to: '/admin-accounts' },
+          { label: account?.fullName || account?.username || t('adminAccounts.detail.titleFallback') },
+        ]} />}
         title={account?.fullName || account?.username || t('adminAccounts.detail.titleFallback')}
         description={account ? `@${account.username}` : undefined}
-        actions={(
-          <Button variant="outline" size="sm" onClick={() => navigate('/admin-accounts')}>
-            <ArrowLeftIcon size={14} />
-            {t('adminAccounts.detail.back')}
-          </Button>
-        )}
+        actions={account && (canEdit || canRevokeSession) ? (
+          <>
+            {canEdit ? (
+              <Button variant="outline" size="sm" onClick={() => navigate(`/admin-accounts/${adminId}/edit`)}>
+                {t('adminAccounts.actions.edit')}
+              </Button>
+            ) : null}
+            {canRevokeSession ? (
+              <Button variant="destructive" size="sm" onClick={() => setRevokeDialogOpen(true)}>
+                {t('adminAccounts.actions.revokeSession')}
+              </Button>
+            ) : null}
+          </>
+        ) : null}
       />
 
+      {successMessage ? (
+        <p className="mt-5 rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
+          {successMessage}
+        </p>
+      ) : null}
       {errorMessage ? (
         <p className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
           {errorMessage}
         </p>
       ) : null}
-      {location.state?.successMessage ? (
-        <p className="mt-5 rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
-          {location.state.successMessage}
-        </p>
-      ) : null}
 
       {isLoading ? (
-        <div className="mt-6 flex items-center gap-2 text-[13px] text-muted-foreground">
-          <CircleNotchIcon className="animate-spin" size={16} />
+        <div className="mt-5 flex items-center gap-2 text-[13px] text-muted-foreground">
+          <CircleNotchIcon className="animate-spin" aria-hidden="true" />
           {t('adminAccounts.detail.loading')}
         </div>
       ) : account ? (
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <DetailCard
-            title={t('adminAccounts.detail.identity')}
-            rows={[
-              [t('adminAccounts.detail.username'), account.username],
-              [t('adminAccounts.detail.email'), account.email],
-              [t('adminAccounts.detail.fullName'), account.fullName],
-              [t('adminAccounts.detail.phoneNumber'), account.phoneNumber],
-            ]}
-            emptyValue={t('adminAccounts.detail.emptyValue')}
-          />
-          <Card className="rounded-xl shadow-none">
-            <CardHeader className="border-b border-border p-4">
-              <CardTitle className="text-sm">{t('adminAccounts.detail.access')}</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 p-4">
-              <DetailRow label={t('adminAccounts.detail.role')} value={account.roleName} />
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-xs text-muted-foreground">{t('adminAccounts.detail.status')}</span>
-                <Badge variant={account.status === 'ENABLE' ? 'success' : 'secondary'}>
-                  {account.status === 'ENABLE'
-                    ? t('adminAccounts.filters.enabled')
-                    : t('adminAccounts.filters.disabled')}
-                </Badge>
-              </div>
-              <DetailRow
-                label={t('adminAccounts.detail.createdAt')}
-                value={formatDateTime(account.createdAt, i18n.resolvedLanguage)}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <AdminAccountDetails
+          account={account}
+          language={i18n.resolvedLanguage}
+          permissionGroups={permissionGroups}
+          isPermissionsLoading={isPermissionsLoading}
+          permissionErrorMessage={permissionErrorMessage}
+          t={t}
+        />
       ) : null}
+
+      <RevokeAdminSessionDialog
+        account={account}
+        open={revokeDialogOpen}
+        onClose={() => setRevokeDialogOpen(false)}
+        onConfirm={handleRevokeSession}
+      />
     </>
-  )
-}
-
-function DetailCard({ title, rows, emptyValue }) {
-  return (
-    <Card className="rounded-xl shadow-none">
-      <CardHeader className="border-b border-border p-4">
-        <CardTitle className="text-sm">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 p-4">
-        {rows.map(([label, value]) => (
-          <DetailRow key={label} label={label} value={value || emptyValue} />
-        ))}
-      </CardContent>
-    </Card>
-  )
-}
-
-function DetailRow({ label, value }) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-right text-[13px] font-medium">{value}</span>
-    </div>
   )
 }
 

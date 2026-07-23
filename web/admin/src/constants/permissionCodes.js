@@ -18,11 +18,11 @@ export const PermissionCodes = Object.freeze({
     Create: 'customer_user.create',
     Update: 'customer_user.update',
     Disable: 'customer_user.disable',
-    ResetPassword: 'customer_user.reset_password',
   }),
   Tiers: Object.freeze({
     View: 'tier.view',
     Create: 'tier.create',
+    Update: 'tier.update',
   }),
   AuditLogs: Object.freeze({
     View: 'audit_log.view',

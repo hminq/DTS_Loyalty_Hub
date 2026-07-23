@@ -6,20 +6,18 @@ using Microsoft.AspNetCore.Diagnostics;
 namespace Api;
 
 public sealed class GlobalExceptionHandler(
-    ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+    ILogger<GlobalExceptionHandler> logger,
+    ApiMessageResolver messageResolver) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
         CancellationToken ct)
     {
-        // Resolve the scoped ApiMessageResolver per-request from httpContext
-        var messageResolver = httpContext.RequestServices.GetRequiredService<ApiMessageResolver>();
-
         var (statusCode, errorResponse) = exception switch
         {
-            DomainException domainException => CreateDomainError(domainException, messageResolver),
-            _ => CreateUnknownError(messageResolver)
+            DomainException domainException => CreateDomainError(domainException),
+            _ => CreateUnknownError()
         };
 
         if (exception is DomainException handledDomainException)
@@ -49,8 +47,7 @@ public sealed class GlobalExceptionHandler(
     }
 
     private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateDomainError(
-        DomainException exception, 
-        ApiMessageResolver messageResolver)
+        DomainException exception)
     {
         var statusCode = exception.ErrorType switch
         {
@@ -63,12 +60,11 @@ public sealed class GlobalExceptionHandler(
         };
 
         return (statusCode, ApiErrorResponseDto.Create(
-            exception.ErrorCode, 
+            exception.ErrorCode,
             messageResolver.Resolve(exception.ErrorCode, exception.MessageArguments)));
     }
 
-    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateUnknownError(
-        ApiMessageResolver messageResolver)
+    private (int StatusCode, ApiErrorResponseDto ErrorResponse) CreateUnknownError()
     {
         return (
             StatusCodes.Status500InternalServerError,

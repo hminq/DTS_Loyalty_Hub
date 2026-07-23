@@ -8,6 +8,7 @@ const SEARCH_DEBOUNCE_MS = 300
 
 function RoleSearchSelect({
   value,
+  selectedLabel,
   onChange,
   placeholder,
   emptyOptionLabel,
@@ -56,7 +57,7 @@ function RoleSearchSelect({
   return (
     <Combobox
       value={value}
-      selectedLabel={value ? t('roleSelector.selectedFallback') : undefined}
+      selectedLabel={value ? (selectedLabel || t('roleSelector.selectedFallback')) : undefined}
       options={options}
       onValueChange={(nextValue, option) => onChange(nextValue, option?.source ?? null)}
       placeholder={placeholder}
