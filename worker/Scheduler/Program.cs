@@ -35,21 +35,39 @@ if (builder.Environment.IsDevelopment())
 }
 
 var scheduleOptions = TierExpirationScheduleOptions.FromConfiguration(builder.Configuration);
+var voucherPoolScheduleOptions =
+    VoucherPoolGenerationScheduleOptions.FromConfiguration(builder.Configuration);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(scheduleOptions);
+builder.Services.AddSingleton(voucherPoolScheduleOptions);
 builder.Services.AddQuartz(quartz =>
 {
-    var jobKey = new JobKey(nameof(ProcessExpiredCustomerTiersJob));
+    var tierExpirationJobKey = new JobKey(nameof(ProcessExpiredCustomerTiersJob));
 
-    quartz.AddJob<ProcessExpiredCustomerTiersJob>(job => job.WithIdentity(jobKey));
+    quartz.AddJob<ProcessExpiredCustomerTiersJob>(
+        job => job.WithIdentity(tierExpirationJobKey));
     quartz.AddTrigger(trigger => trigger
-        .ForJob(jobKey)
-        .WithIdentity($"{jobKey.Name}-trigger")
+        .ForJob(tierExpirationJobKey)
+        .WithIdentity($"{tierExpirationJobKey.Name}-trigger")
         .WithCronSchedule(
             scheduleOptions.Cron,
             cron => cron
                 .InTimeZone(TimeZoneInfo.FindSystemTimeZoneById(scheduleOptions.TimeZone))
+                .WithMisfireHandlingInstructionDoNothing()));
+
+    var voucherPoolJobKey = new JobKey(nameof(ProcessVoucherPoolGenerationJob));
+
+    quartz.AddJob<ProcessVoucherPoolGenerationJob>(
+        job => job.WithIdentity(voucherPoolJobKey));
+    quartz.AddTrigger(trigger => trigger
+        .ForJob(voucherPoolJobKey)
+        .WithIdentity($"{voucherPoolJobKey.Name}-trigger")
+        .WithCronSchedule(
+            voucherPoolScheduleOptions.Cron,
+            cron => cron
+                .InTimeZone(TimeZoneInfo.FindSystemTimeZoneById(
+                    voucherPoolScheduleOptions.TimeZone))
                 .WithMisfireHandlingInstructionDoNothing()));
 });
 builder.Services.AddQuartzHostedService(options =>

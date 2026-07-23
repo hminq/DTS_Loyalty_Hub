@@ -25,6 +25,13 @@ public static class DependencyInjection
 
         services.AddScoped<ICustomerTierRepository, CustomerTierRepository>();
         services.AddScoped<ICustomerTierMutationStore, CustomerTierMutationStore>();
+        services.AddScoped<VoucherPoolProvisioningStore>();
+        services.AddScoped<IVoucherPoolProvisioningRepository>(
+            provider => provider.GetRequiredService<VoucherPoolProvisioningStore>());
+        services.AddScoped<IVoucherPoolMutationStore>(
+            provider => provider.GetRequiredService<VoucherPoolProvisioningStore>());
+        services.AddSingleton<IVoucherCodeGenerator, CryptographicVoucherCodeGenerator>();
+        services.AddSingleton<IVoucherPoolGenerationFailureClassifier, VoucherPoolGenerationFailureClassifier>();
 
         services.AddMediatR(cfg =>
         {
