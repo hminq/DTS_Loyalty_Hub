@@ -12,10 +12,13 @@ public interface IVoucherDefinitionRepository
         Guid voucherDefinitionId,
         CancellationToken ct = default);
 
-    Task<PagedResult<VoucherDefinitionResult>> GetPagedAsync(
+    Task<PagedResult<VoucherDefinitionListItemResult>> GetPagedAsync(
         int page,
         int pageSize,
         string? keyword,
+        string? rewardType,
+        string? validityType,
+        string? publishType,
         CancellationToken ct = default);
 
     VoucherDefinition Add(VoucherDefinition voucherDefinition);

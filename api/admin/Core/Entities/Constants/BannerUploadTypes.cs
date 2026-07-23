@@ -8,6 +8,9 @@ public static class BannerUploadTypes
     public const long CampaignBannerMaxFileSize = 5 * 1024 * 1024;
     public const long VoucherDefinitionBannerMaxFileSize = 5 * 1024 * 1024;
 
+    public const string CampaignBannerPrefix = "campaigns/banners/";
+    public const string VoucherDefinitionBannerPrefix = "voucher_defs/banners/";
+
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
         CampaignBanner,

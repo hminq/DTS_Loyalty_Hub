@@ -28,14 +28,14 @@ public sealed class S3BannerStorage : IBannerStorage
 
         var prefix = uploadType switch
         {
-            BannerUploadTypes.CampaignBanner => "campaigns/banners",
-            BannerUploadTypes.VoucherDefinitionBanner => "voucher_defs/banners",
+            BannerUploadTypes.CampaignBanner => BannerUploadTypes.CampaignBannerPrefix,
+            BannerUploadTypes.VoucherDefinitionBanner => BannerUploadTypes.VoucherDefinitionBannerPrefix,
             _ => throw new DomainException(
                 "BANNER_UPLOAD_TYPE_INVALID",
                 DomainErrorType.Validation)
         };
 
-        var key = $"{prefix}/{Guid.NewGuid():N}{extension}";
+        var key = $"{prefix}{Guid.NewGuid():N}{extension}";
         await _s3Client.PutObjectAsync(new PutObjectRequest
         {
             BucketName = _options.Bucket,

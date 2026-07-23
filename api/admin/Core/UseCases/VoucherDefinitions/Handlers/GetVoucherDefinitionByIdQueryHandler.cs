@@ -10,11 +10,14 @@ public sealed class GetVoucherDefinitionByIdQueryHandler
     : IRequestHandler<GetVoucherDefinitionByIdQuery, VoucherDefinitionResult>
 {
     private readonly IVoucherDefinitionRepository _voucherDefinitionRepository;
+    private readonly IBannerReadUrlProvider _bannerReadUrlProvider;
 
     public GetVoucherDefinitionByIdQueryHandler(
-        IVoucherDefinitionRepository voucherDefinitionRepository)
+        IVoucherDefinitionRepository voucherDefinitionRepository,
+        IBannerReadUrlProvider bannerReadUrlProvider)
     {
         _voucherDefinitionRepository = voucherDefinitionRepository;
+        _bannerReadUrlProvider = bannerReadUrlProvider;
     }
 
     public async Task<VoucherDefinitionResult> Handle(
@@ -28,11 +31,21 @@ public sealed class GetVoucherDefinitionByIdQueryHandler
                 DomainErrorType.Validation);
         }
 
-        return await _voucherDefinitionRepository.GetByIdAsync(
+        var result = await _voucherDefinitionRepository.GetByIdAsync(
                 request.VoucherDefinitionId,
                 ct)
             ?? throw new DomainException(
                 "VOUCHER_DEFINITION_NOT_FOUND",
                 DomainErrorType.NotFound);
+
+        if (string.IsNullOrWhiteSpace(result.BannerImageUrl))
+        {
+            return result;
+        }
+
+        return result with
+        {
+            BannerImageUrl = _bannerReadUrlProvider.CreateReadUrl(result.BannerImageUrl)
+        };
     }
 }

@@ -98,6 +98,7 @@ public class VoucherDefinition
         Validate(
             code,
             name,
+            bannerImageUrl,
             rewardType,
             rewardValue,
             validityType,
@@ -155,6 +156,7 @@ public class VoucherDefinition
         Validate(
             code,
             name,
+            bannerImageUrl,
             rewardType,
             rewardValue,
             validityType,
@@ -190,6 +192,7 @@ public class VoucherDefinition
     private static void Validate(
         string? code,
         string name,
+        string? bannerImageUrl,
         string rewardType,
         decimal? rewardValue,
         string validityType,
@@ -201,12 +204,26 @@ public class VoucherDefinition
         int totalStock)
     {
         ValidateName(name);
+        ValidateBannerImageUrl(bannerImageUrl);
         ValidateGenerationType(generationType);
         ValidatePublishType(publishType, code);
         ValidateGenerationTypeForPublishType(generationType, publishType);
         ValidateRewardType(rewardType, rewardValue);
         ValidateValidityType(validityType, validFrom, validTo, durationDay);
         ValidateTotalStock(totalStock);
+    }
+
+    private static void ValidateBannerImageUrl(string? bannerImageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(bannerImageUrl))
+        {
+            return;
+        }
+
+        if (!bannerImageUrl.Trim().StartsWith(BannerUploadTypes.VoucherDefinitionBannerPrefix, StringComparison.Ordinal))
+        {
+            throw ValidationError("VOUCHER_BANNER_IMAGE_KEY_INVALID");
+        }
     }
 
     private static void ValidateName(string name)
@@ -303,6 +320,24 @@ public class VoucherDefinition
         {
             throw ValidationError("VOUCHER_REWARD_VALUE_MUST_BE_EMPTY");
         }
+
+        if (normalizedRewardType == VoucherRewardTypes.Fixed || normalizedRewardType == VoucherRewardTypes.Percent)
+        {
+            if (!rewardValue.HasValue)
+            {
+                throw ValidationError("VOUCHER_REWARD_VALUE_REQUIRED");
+            }
+
+            if (normalizedRewardType == VoucherRewardTypes.Fixed && rewardValue.Value <= 0)
+            {
+                throw ValidationError("VOUCHER_FIXED_REWARD_VALUE_INVALID");
+            }
+
+            if (normalizedRewardType == VoucherRewardTypes.Percent && (rewardValue.Value <= 0 || rewardValue.Value > 100))
+            {
+                throw ValidationError("VOUCHER_PERCENT_REWARD_VALUE_INVALID");
+            }
+        }
     }
 
     private static void ValidateValidityType(
@@ -352,7 +387,7 @@ public class VoucherDefinition
 
     private static void ValidateTotalStock(int totalStock)
     {
-        if (totalStock < 0)
+        if (totalStock <= 0)
         {
             throw ValidationError("VOUCHER_TOTAL_STOCK_INVALID");
         }

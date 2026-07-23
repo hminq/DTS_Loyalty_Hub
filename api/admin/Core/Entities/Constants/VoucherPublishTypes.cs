@@ -5,6 +5,12 @@ public static class VoucherPublishTypes
     public const string Public = "PUBLIC";
     public const string Private = "PRIVATE";
 
+    public static IReadOnlyCollection<string> All { get; } =
+    [
+        Public,
+        Private
+    ];
+
     public static bool IsDefined(string value)
     {
         var normalizedValue = Normalize(value);

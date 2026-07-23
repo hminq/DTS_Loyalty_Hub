@@ -33,8 +33,7 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
         return _dbContext.VoucherDefinitions
             .AsNoTracking()
             .Where(voucherDefinition =>
-                voucherDefinition.VoucherDefinitionId == voucherDefinitionId &&
-                voucherDefinition.DeletedAt == null)
+                voucherDefinition.VoucherDefinitionId == voucherDefinitionId)
             .Select(voucherDefinition => new VoucherDefinitionResult(
                 voucherDefinition.VoucherDefinitionId,
                 voucherDefinition.Code,
@@ -56,15 +55,17 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
             .SingleOrDefaultAsync(ct);
     }
 
-    public async Task<PagedResult<VoucherDefinitionResult>> GetPagedAsync(
+    public async Task<PagedResult<VoucherDefinitionListItemResult>> GetPagedAsync(
         int page,
         int pageSize,
         string? keyword,
+        string? rewardType,
+        string? validityType,
+        string? publishType,
         CancellationToken ct = default)
     {
         var query = _dbContext.VoucherDefinitions
-            .AsNoTracking()
-            .Where(voucherDefinition => voucherDefinition.DeletedAt == null);
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -74,6 +75,21 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
                 voucherDefinition.Code != null && EF.Functions.ILike(voucherDefinition.Code, pattern));
         }
 
+        if (rewardType != null)
+        {
+            query = query.Where(voucherDefinition => voucherDefinition.RewardType == rewardType);
+        }
+
+        if (validityType != null)
+        {
+            query = query.Where(voucherDefinition => voucherDefinition.ValidityType == validityType);
+        }
+
+        if (publishType != null)
+        {
+            query = query.Where(voucherDefinition => voucherDefinition.PublishType == publishType);
+        }
+
         var totalItems = await query.CountAsync(ct);
 
         var items = await query
@@ -81,19 +97,12 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
             .ThenBy(voucherDefinition => voucherDefinition.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(voucherDefinition => new VoucherDefinitionResult(
+            .Select(voucherDefinition => new VoucherDefinitionListItemResult(
                 voucherDefinition.VoucherDefinitionId,
                 voucherDefinition.Code,
                 voucherDefinition.Name,
-                voucherDefinition.Description,
-                voucherDefinition.BannerImageUrl,
                 voucherDefinition.RewardType,
                 voucherDefinition.RewardValue,
-                voucherDefinition.ValidityType,
-                voucherDefinition.ValidFrom,
-                voucherDefinition.ValidTo,
-                voucherDefinition.DurationDay,
-                voucherDefinition.GenerationType,
                 voucherDefinition.PublishType,
                 voucherDefinition.TotalStock,
                 voucherDefinition.RemainingStock,
@@ -101,7 +110,7 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
                 voucherDefinition.DeletedAt))
             .ToArrayAsync(ct);
 
-        return new PagedResult<VoucherDefinitionResult>(
+        return new PagedResult<VoucherDefinitionListItemResult>(
             items,
             page,
             pageSize,
