@@ -13,10 +13,10 @@ export function formatVoucherDateTime(value, language) {
 
 export function formatVoucherReward(type, value, language, t) {
   if (type === 'PERCENT') {
-    return value !== null && value !== undefined ? `${value}%` : '—'
+    return value !== null && value !== undefined ? `${formatVoucherNumber(value, language)}%` : '—'
   }
   if (type === 'FIXED') {
-    return value !== null && value !== undefined ? formatVoucherNumber(value, language) : '—'
+    return value !== null && value !== undefined ? `${formatVoucherNumber(value, language)}$` : '—'
   }
   if (type === 'GIFT') {
     return t ? t('voucherDefinitions.types.reward.GIFT') : 'Gift'

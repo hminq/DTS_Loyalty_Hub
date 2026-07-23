@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
@@ -6,6 +7,7 @@ import { createVoucherDefinition, getVoucherDefinitionOptions, uploadVoucherDefi
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { VoucherDefinitionForm } from '../components/voucher-definitions/VoucherDefinitionForm'
+import { mapVoucherDefinitionOptions } from '../components/voucher-definitions/voucherDefinitionOptions'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 export function CreateVoucherDefinitionPage() {
@@ -13,10 +15,15 @@ export function CreateVoucherDefinitionPage() {
   const navigate = useNavigate()
   const { hasPermission } = useOutletContext()
   
-  const [options, setOptions] = useState({})
+  const [rawOptions, setRawOptions] = useState({})
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [optionsError, setOptionsError] = useState('')
   const [optionsRetryKey, setOptionsRetryKey] = useState(0)
+
+  const options = React.useMemo(
+    () => mapVoucherDefinitionOptions(rawOptions, t),
+    [rawOptions, t]
+  )
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [apiError, setApiError] = useState(null)
@@ -34,7 +41,7 @@ export function CreateVoucherDefinitionPage() {
       try {
         const data = await getVoucherDefinitionOptions(controller.signal)
         if (controller.signal.aborted) return
-        setOptions(data)
+        setRawOptions(data)
       } catch (error) {
         if (controller.signal.aborted) return
         setOptionsError(error.message || t('voucherDefinitions.errors.loadOptions'))
@@ -46,7 +53,7 @@ export function CreateVoucherDefinitionPage() {
     loadOptions()
 
     return () => controller.abort()
-  }, [i18n.resolvedLanguage, optionsRetryKey, t])
+  }, [optionsRetryKey, t])
 
   const handleSubmit = async (formValues) => {
     setIsSubmitting(true)

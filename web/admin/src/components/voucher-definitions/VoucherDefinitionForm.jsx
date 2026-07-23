@@ -116,8 +116,10 @@ export function VoucherDefinitionForm({
 
     if (formValues.rewardType && formValues.rewardType !== 'GIFT') {
       const val = Number(formValues.rewardValue)
-      if (!formValues.rewardValue || Number.isNaN(val) || val <= 0 || (formValues.rewardType === 'PERCENT' && val > 100)) {
-        errors.rewardValue = t('voucherDefinitions.validation.rewardValueInvalid')
+      if (!formValues.rewardValue || Number.isNaN(val) || val <= 0) {
+        errors.rewardValue = t(`voucherDefinitions.validation.rewardValueInvalid${formValues.rewardType}`)
+      } else if (formValues.rewardType === 'PERCENT' && val > 100) {
+        errors.rewardValue = t('voucherDefinitions.validation.rewardValueInvalidPERCENT')
       }
     }
 
@@ -127,12 +129,17 @@ export function VoucherDefinitionForm({
 
     if (!formValues.validFrom) {
       errors.validFrom = t('voucherDefinitions.validation.validFromRequired')
+    } else {
+      const now = new Date()
+      if (new Date(formValues.validFrom) <= now) {
+        errors.validFrom = t('voucherDefinitions.validation.validFromNotFuture')
+      }
     }
 
     if (formValues.validityType === 'FIXED') {
       if (!formValues.validTo) {
         errors.validTo = t('voucherDefinitions.validation.validToRequired')
-      } else if (formValues.validFrom && new Date(formValues.validFrom) >= new Date(formValues.validTo)) {
+      } else if (formValues.validFrom && new Date(formValues.validTo).getTime() - new Date(formValues.validFrom).getTime() < 30 * 60 * 1000) {
         errors.validTo = t('voucherDefinitions.validation.validToRange')
       }
     } else if (formValues.validityType === 'DYNAMIC') {
@@ -150,9 +157,12 @@ export function VoucherDefinitionForm({
       errors.generationType = t('voucherDefinitions.validation.generationTypeRequired')
     }
 
+    const maxTotalStock = options?.constraints?.maxTotalStock
     const stock = Number(formValues.totalStock)
     if (!formValues.totalStock || Number.isNaN(stock) || !Number.isInteger(stock) || stock <= 0) {
       errors.totalStock = t('voucherDefinitions.validation.totalStockInvalid')
+    } else if (maxTotalStock && stock > maxTotalStock) {
+      errors.totalStock = t('voucherDefinitions.validation.totalStockMax', { max: maxTotalStock.toLocaleString() })
     }
 
     setFieldErrors(errors)
@@ -189,8 +199,17 @@ export function VoucherDefinitionForm({
   const isFixed = formValues.validityType === 'FIXED'
   const isDynamic = formValues.validityType === 'DYNAMIC'
 
+  const rewardValueSuffix =
+    formValues.rewardType === 'FIXED'
+      ? '$'
+      : formValues.rewardType === 'PERCENT'
+        ? '%'
+        : null
+
+  const maxRewardValue = formValues.rewardType === 'PERCENT' ? '100' : undefined
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {formLevelError ? (
         <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
           {formLevelError}
@@ -264,15 +283,27 @@ export function VoucherDefinitionForm({
 
                 <Field>
                   <FieldLabel required={!isGift}>{t('voucherDefinitions.detail.rewardValue')}</FieldLabel>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formValues.rewardValue}
-                    onChange={(e) => handleValueChange('rewardValue', e.target.value)}
-                    disabled={isSubmitting || isGift}
-                    invalid={!!fieldErrors.rewardValue}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="0.01"
+                      max={maxRewardValue}
+                      step="0.01"
+                      value={formValues.rewardValue}
+                      onChange={(e) => handleValueChange('rewardValue', e.target.value)}
+                      disabled={isSubmitting || isGift}
+                      invalid={!!fieldErrors.rewardValue}
+                      className={rewardValueSuffix ? 'pr-9' : undefined}
+                    />
+                    {rewardValueSuffix ? (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      >
+                        {rewardValueSuffix}
+                      </span>
+                    ) : null}
+                  </div>
                   <FieldError>{fieldErrors.rewardValue}</FieldError>
                 </Field>
               </div>
@@ -306,6 +337,7 @@ export function VoucherDefinitionForm({
                     value={formValues.validFrom}
                     onChange={(val) => handleValueChange('validFrom', val)}
                     disabled={isSubmitting}
+                    minDateTime={new Date()}
                   />
                   <FieldError>{fieldErrors.validFrom}</FieldError>
                 </Field>
@@ -331,6 +363,7 @@ export function VoucherDefinitionForm({
                       value={formValues.validTo}
                       onChange={(val) => handleValueChange('validTo', val)}
                       disabled={isSubmitting || !isFixed}
+                      minDateTime={formValues.validFrom ? new Date(formValues.validFrom) : new Date()}
                     />
                     <FieldError>{fieldErrors.validTo}</FieldError>
                   </Field>
@@ -406,6 +439,7 @@ export function VoucherDefinitionForm({
                 <Input
                   type="number"
                   min="1"
+                  max={options?.constraints?.maxTotalStock}
                   step="1"
                   value={formValues.totalStock}
                   onChange={(e) => handleValueChange('totalStock', e.target.value)}
