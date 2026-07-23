@@ -21,7 +21,7 @@ public sealed class CreateTierCommandHandlerTests
     {
         var command = new CreateTierCommand("Gold", 1000, 12, 2, Guid.NewGuid());
         _repository.Setup(x => x.GetListAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "Silver", 500, 1)]);
+             .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "Silver", 500, 1, 1)]);
         _repository.Setup(x => x.Add(It.IsAny<Tier>())).Returns((Tier tier) => tier);
         var handler = CreateHandler();
 
@@ -40,7 +40,7 @@ public sealed class CreateTierCommandHandlerTests
     public async Task Handle_DuplicateName_ThrowsWithoutMutation()
     {
         _repository.Setup(x => x.GetListAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "gold", 500, 1)]);
+             .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "gold", 500, 1, 1)]);
         var handler = CreateHandler();
 
         var action = () => handler.Handle(
@@ -56,7 +56,7 @@ public sealed class CreateTierCommandHandlerTests
     public async Task Handle_DuplicatePriority_ThrowsWithoutMutation()
     {
         _repository.Setup(x => x.GetListAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "Silver", 500, 2)]);
+             .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "Silver", 500, 1, 2)]);
         var handler = CreateHandler();
 
         var action = () => handler.Handle(
@@ -72,7 +72,7 @@ public sealed class CreateTierCommandHandlerTests
     public async Task Handle_InvalidPointOrdering_ThrowsWithoutMutation()
     {
         _repository.Setup(x => x.GetListAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "Gold", 1000, 2)]);
+             .ReturnsAsync([new TierListItemResult(Guid.NewGuid(), "Gold", 1000, 1, 2)]);
         var handler = CreateHandler();
 
         var action = () => handler.Handle(
