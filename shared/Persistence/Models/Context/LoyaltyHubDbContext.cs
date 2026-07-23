@@ -48,6 +48,8 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<VoucherPool> VoucherPools { get; set; }
 
+    public virtual DbSet<VoucherPoolProvisioningJob> VoucherPoolProvisioningJobs { get; set; }
+
     public virtual DbSet<VoucherRedemption> VoucherRedemptions { get; set; }
 
     public virtual DbSet<NotificationEventType> NotificationEventTypes { get; set; }
@@ -720,6 +722,8 @@ public partial class LoyaltyHubDbContext : DbContext
 
             entity.ToTable("voucher_pools");
 
+            entity.HasIndex(e => e.VoucherDefId, "idx_voucher_pools_definition");
+
             entity.HasIndex(e => e.VoucherCode, "uq_voucher_pools_code").IsUnique();
 
             entity.Property(e => e.VoucherPoolId)
@@ -740,6 +744,71 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasOne(d => d.VoucherDef).WithMany(p => p.VoucherPools)
                 .HasForeignKey(d => d.VoucherDefId)
                 .HasConstraintName("fk_voucher_pools_definition");
+        });
+
+        modelBuilder.Entity<VoucherPoolProvisioningJob>(entity =>
+        {
+            entity.HasKey(e => e.JobId).HasName("voucher_pool_provisioning_jobs_pkey");
+
+            entity.ToTable("voucher_pool_provisioning_jobs");
+
+            entity.HasIndex(
+                    e => new { e.VoucherDefId, e.CreatedAt },
+                    "idx_voucher_pool_jobs_definition")
+                .IsDescending(false, true);
+
+            entity.HasIndex(
+                e => new { e.Status, e.CreatedAt },
+                "idx_voucher_pool_jobs_polling");
+
+            entity.HasIndex(
+                    e => e.VoucherDefId,
+                    "uq_voucher_pool_jobs_active_definition")
+                .IsUnique()
+                .HasFilter("status IN ('PENDING', 'PROCESSING')");
+
+            entity.Property(e => e.JobId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("job_id");
+            entity.Property(e => e.AttemptCount)
+                .HasDefaultValue(0)
+                .HasColumnName("attempt_count");
+            entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.ErrorCode)
+                .HasMaxLength(100)
+                .HasColumnName("error_code");
+            entity.Property(e => e.ErrorDetails)
+                .HasColumnType("jsonb")
+                .HasColumnName("error_details");
+            entity.Property(e => e.ExpectedCount).HasColumnName("expected_count");
+            entity.Property(e => e.ImportFileKey).HasColumnName("import_file_key");
+            entity.Property(e => e.JobType)
+                .HasMaxLength(30)
+                .HasColumnName("job_type");
+            entity.Property(e => e.ProcessedCount)
+                .HasDefaultValue(0)
+                .HasColumnName("processed_count");
+            entity.Property(e => e.StartedAt).HasColumnName("started_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'PENDING'::character varying")
+                .HasColumnName("status");
+            entity.Property(e => e.VoucherDefId).HasColumnName("voucher_def_id");
+
+            entity.HasOne(d => d.CreatedByNavigation)
+                .WithMany(p => p.VoucherPoolProvisioningJobs)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_voucher_pool_provisioning_jobs_created_by");
+
+            entity.HasOne(d => d.VoucherDef)
+                .WithMany(p => p.VoucherPoolProvisioningJobs)
+                .HasForeignKey(d => d.VoucherDefId)
+                .HasConstraintName("fk_voucher_pool_provisioning_jobs_definition");
         });
 
         modelBuilder.Entity<VoucherRedemption>(entity =>

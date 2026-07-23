@@ -30,4 +30,6 @@ public partial class User
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual Customer? Customer { get; set; }
+
+    public virtual ICollection<VoucherPoolProvisioningJob> VoucherPoolProvisioningJobs { get; set; } = new List<VoucherPoolProvisioningJob>();
 }

@@ -42,5 +42,7 @@ public partial class VoucherDefinition
 
     public virtual ICollection<VoucherPool> VoucherPools { get; set; } = new List<VoucherPool>();
 
+    public virtual ICollection<VoucherPoolProvisioningJob> VoucherPoolProvisioningJobs { get; set; } = new List<VoucherPoolProvisioningJob>();
+
     public virtual ICollection<VoucherRedemption> VoucherRedemptions { get; set; } = new List<VoucherRedemption>();
 }
