@@ -8,6 +8,8 @@ public sealed class TierListItemResponseDto
 
     public decimal PointsRequired { get; set; }
 
+    public int CycleMonth { get; set; }
+
     public int Priority { get; set; }
 }
 
