@@ -54,7 +54,7 @@ public sealed class AuditLogsControllerTests
     }
 
     [Fact]
-    public async Task GetFilterOptions_ReturnsStandardResponseWrapper()
+    public async Task GetOptions_ReturnsStandardResponseWrapper()
     {
         var sender = new Mock<ISender>();
         sender.Setup(instance => instance.Send(
@@ -66,7 +66,7 @@ public sealed class AuditLogsControllerTests
             Mock.Of<IValidator<GetAuditLogsRequestDto>>(),
             null!);
 
-        var actionResult = await controller.GetFilterOptions(CancellationToken.None);
+        var actionResult = await controller.GetOptions(CancellationToken.None);
 
         var ok = actionResult.Result.Should().BeOfType<OkObjectResult>().Which;
         var response = ok.Value.Should().BeOfType<ApiResponseDto<AuditLogFilterOptionsResponseDto>>().Which;
@@ -77,7 +77,7 @@ public sealed class AuditLogsControllerTests
 
     [Theory]
     [InlineData(nameof(AuditLogsController.GetList))]
-    [InlineData(nameof(AuditLogsController.GetFilterOptions))]
+    [InlineData(nameof(AuditLogsController.GetOptions))]
     public void Endpoint_RequiresAuditLogViewPolicy(string methodName)
     {
         var attribute = typeof(AuditLogsController).GetMethod(methodName)!
