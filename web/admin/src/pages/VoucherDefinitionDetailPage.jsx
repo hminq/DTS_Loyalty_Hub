@@ -1,25 +1,36 @@
 import { CircleNotchIcon } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useOutletContext } from 'react-router-dom'
 
-import { getVoucherDefinition } from '../api/voucherDefinitionsApi'
+import {
+  createVoucherPoolImportJob,
+  createVoucherPoolImportUploadUrl,
+  getVoucherDefinition,
+  uploadVoucherPoolCsvToS3,
+} from '../api/voucherDefinitionsApi'
 import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
 import { VoucherDefinitionDetails } from '../components/voucher-definitions/VoucherDefinitionDetails'
+import { VoucherPoolImportDialog } from '../components/voucher-definitions/VoucherPoolImportDialog'
 import { Button } from '../components/ui/button'
+import { PermissionCodes } from '../constants/permissionCodes'
 
 function VoucherDefinitionDetailPage() {
   const { voucherDefinitionId } = useParams()
   const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
+  const { hasPermission } = useOutletContext()
+
+  const canImportVoucherCodes = hasPermission(PermissionCodes.VoucherDefinitions.Update)
 
   const [voucher, setVoucher] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState(location.state?.successMessage || '')
   const [refreshKey, setRefreshKey] = useState(0)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
 
   const returnSearch = location.state?.returnSearch
   const listTarget = returnSearch ? `/voucher-definitions?${returnSearch}` : '/voucher-definitions'
@@ -58,6 +69,52 @@ function VoucherDefinitionDetailPage() {
 
     return () => controller.abort()
   }, [voucherDefinitionId, refreshKey, navigate, listTarget, t])
+
+  const provisioningStatus = voucher?.poolProvisioning?.status
+  useEffect(() => {
+    if (provisioningStatus !== 'PENDING' && provisioningStatus !== 'PROCESSING') {
+      return undefined
+    }
+
+    let timerId
+    let cancelled = false
+    let controller
+
+    async function poll() {
+      if (document.visibilityState === 'hidden') {
+        timerId = window.setTimeout(poll, 5000)
+        return
+      }
+
+      controller = new AbortController()
+      try {
+        const data = await getVoucherDefinition(voucherDefinitionId, controller.signal)
+        if (!cancelled) setVoucher(data)
+      } catch (error) {
+        if (!cancelled && error.name !== 'CanceledError') {
+          setErrorMessage(error.message || t('voucherDefinitions.errors.loadDetail'))
+        }
+      }
+
+      if (!cancelled) timerId = window.setTimeout(poll, 3000)
+    }
+
+    timerId = window.setTimeout(poll, 3000)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timerId)
+      controller?.abort()
+    }
+  }, [provisioningStatus, voucherDefinitionId, t])
+
+  const handleImport = useCallback(async (file) => {
+    const upload = await createVoucherPoolImportUploadUrl(voucherDefinitionId, file)
+    await uploadVoucherPoolCsvToS3(upload, file)
+    await createVoucherPoolImportJob(voucherDefinitionId, upload.objectKey)
+    setImportDialogOpen(false)
+    setSuccessMessage(t('voucherDefinitions.import.accepted'))
+    setRefreshKey((key) => key + 1)
+  }, [voucherDefinitionId, t])
 
   return (
     <>
@@ -100,8 +157,20 @@ function VoucherDefinitionDetailPage() {
           {t('voucherDefinitions.loading')}
         </div>
       ) : voucher ? (
-        <VoucherDefinitionDetails voucher={voucher} language={i18n.resolvedLanguage} t={t} />
+        <VoucherDefinitionDetails
+          voucher={voucher}
+          language={i18n.resolvedLanguage}
+          canImportVoucherCodes={canImportVoucherCodes}
+          onImportVoucherCodes={() => setImportDialogOpen(true)}
+          t={t}
+        />
       ) : null}
+
+      <VoucherPoolImportDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+        onImport={handleImport}
+      />
     </>
   )
 }
