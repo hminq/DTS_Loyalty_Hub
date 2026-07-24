@@ -17,4 +17,5 @@ public sealed record VoucherDefinitionResult(
     int TotalStock,
     int RemainingStock,
     DateTime CreatedAt,
-    DateTime? DeletedAt);
+    DateTime? DeletedAt,
+    VoucherPoolProvisioningResult? PoolProvisioning = null);

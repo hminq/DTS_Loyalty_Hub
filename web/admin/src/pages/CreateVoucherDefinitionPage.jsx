@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react'
+import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
-import { createVoucherDefinition, getVoucherDefinitionOptions, uploadVoucherDefinitionBanner } from '../api/voucherDefinitionsApi'
+import {
+  createVoucherDefinition,
+  getVoucherDefinitionOptions,
+  getVoucherImportTemplate,
+  uploadVoucherDefinitionBanner,
+} from '../api/voucherDefinitionsApi'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { VoucherDefinitionForm } from '../components/voucher-definitions/VoucherDefinitionForm'
+import { mapVoucherDefinitionOptions } from '../components/voucher-definitions/voucherDefinitionOptions'
 import { PermissionCodes } from '../constants/permissionCodes'
 
 export function CreateVoucherDefinitionPage() {
@@ -13,14 +20,21 @@ export function CreateVoucherDefinitionPage() {
   const navigate = useNavigate()
   const { hasPermission } = useOutletContext()
   
-  const [options, setOptions] = useState({})
+  const [rawOptions, setRawOptions] = useState({})
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [optionsError, setOptionsError] = useState('')
   const [optionsRetryKey, setOptionsRetryKey] = useState(0)
 
+  const options = React.useMemo(
+    () => mapVoucherDefinitionOptions(rawOptions, t),
+    [rawOptions, t]
+  )
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [apiError, setApiError] = useState(null)
   const [uploadedBannerKey, setUploadedBannerKey] = useState(null)
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
+  const [templateDownloadError, setTemplateDownloadError] = useState('')
   
   const canUploadBanner = hasPermission(PermissionCodes.Media.Upload)
 
@@ -34,7 +48,7 @@ export function CreateVoucherDefinitionPage() {
       try {
         const data = await getVoucherDefinitionOptions(controller.signal)
         if (controller.signal.aborted) return
-        setOptions(data)
+        setRawOptions(data)
       } catch (error) {
         if (controller.signal.aborted) return
         setOptionsError(error.message || t('voucherDefinitions.errors.loadOptions'))
@@ -46,7 +60,7 @@ export function CreateVoucherDefinitionPage() {
     loadOptions()
 
     return () => controller.abort()
-  }, [i18n.resolvedLanguage, optionsRetryKey, t])
+  }, [optionsRetryKey, t])
 
   const handleSubmit = async (formValues) => {
     setIsSubmitting(true)
@@ -106,6 +120,27 @@ export function CreateVoucherDefinitionPage() {
     }
   }
 
+  const handleDownloadTemplate = async () => {
+    setIsDownloadingTemplate(true)
+    setTemplateDownloadError('')
+
+    try {
+      const template = await getVoucherImportTemplate()
+      const anchor = document.createElement('a')
+      anchor.href = template.downloadUrl
+      anchor.download = template.fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+    } catch (error) {
+      setTemplateDownloadError(
+        error.message || t('voucherDefinitions.errors.downloadImportTemplate'),
+      )
+    } finally {
+      setIsDownloadingTemplate(false)
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -137,6 +172,9 @@ export function CreateVoucherDefinitionPage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate('/voucher-definitions')}
             canUploadBanner={canUploadBanner}
+            isDownloadingTemplate={isDownloadingTemplate}
+            templateDownloadError={templateDownloadError}
+            onDownloadTemplate={handleDownloadTemplate}
             t={t}
           />
         )}

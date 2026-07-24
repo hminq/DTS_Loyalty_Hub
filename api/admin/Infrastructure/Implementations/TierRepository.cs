@@ -26,6 +26,7 @@ public sealed class TierRepository : ITierRepository
                 x.TierConfigId,
                 x.Name,
                 x.PointsRequired,
+                x.CycleMonth,
                 x.Priority))
             .ToListAsync(ct);
     }

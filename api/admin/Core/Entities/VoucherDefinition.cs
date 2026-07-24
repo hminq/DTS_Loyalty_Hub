@@ -93,7 +93,8 @@ public class VoucherDefinition
         int? durationDay,
         string generationType,
         string publishType,
-        int totalStock)
+        int totalStock,
+        DateTime now)
     {
         Validate(
             code,
@@ -107,7 +108,13 @@ public class VoucherDefinition
             durationDay,
             generationType,
             publishType,
-            totalStock);
+            totalStock,
+            now);
+
+        var normalizedPublishType = VoucherPublishTypes.Normalize(publishType);
+        var remainingStock = normalizedPublishType == VoucherPublishTypes.Public
+            ? totalStock
+            : 0;
 
         return new VoucherDefinition(
             Guid.NewGuid(),
@@ -122,10 +129,10 @@ public class VoucherDefinition
             validTo,
             durationDay,
             VoucherGenerationTypes.Normalize(generationType),
-            VoucherPublishTypes.Normalize(publishType),
+            normalizedPublishType,
             totalStock,
-            totalStock,
-            DateTime.UtcNow,
+            remainingStock,
+            now,
             null);
     }
 
@@ -165,7 +172,8 @@ public class VoucherDefinition
             durationDay,
             generationType,
             publishType,
-            totalStock);
+            totalStock,
+            null);
 
         ValidateRemainingStock(totalStock, remainingStock);
 
@@ -201,7 +209,8 @@ public class VoucherDefinition
         int? durationDay,
         string generationType,
         string publishType,
-        int totalStock)
+        int totalStock,
+        DateTime? now)
     {
         ValidateName(name);
         ValidateBannerImageUrl(bannerImageUrl);
@@ -209,8 +218,8 @@ public class VoucherDefinition
         ValidatePublishType(publishType, code);
         ValidateGenerationTypeForPublishType(generationType, publishType);
         ValidateRewardType(rewardType, rewardValue);
-        ValidateValidityType(validityType, validFrom, validTo, durationDay);
-        ValidateTotalStock(totalStock);
+        ValidateValidityType(validityType, validFrom, validTo, durationDay, now);
+        ValidateTotalStock(totalStock, generationType);
     }
 
     private static void ValidateBannerImageUrl(string? bannerImageUrl)
@@ -344,7 +353,8 @@ public class VoucherDefinition
         string validityType,
         DateTime? validFrom,
         DateTime? validTo,
-        int? durationDay)
+        int? durationDay,
+        DateTime? now)
     {
         if (string.IsNullOrWhiteSpace(validityType))
         {
@@ -358,6 +368,11 @@ public class VoucherDefinition
 
         var normalizedValidityType = VoucherValidityTypes.Normalize(validityType);
 
+        if (now.HasValue && validFrom.HasValue && validFrom.Value <= now.Value)
+        {
+            throw ValidationError("VOUCHER_VALID_FROM_NOT_FUTURE");
+        }
+
         if (normalizedValidityType == VoucherValidityTypes.Fixed)
         {
             if (!validFrom.HasValue || !validTo.HasValue)
@@ -365,7 +380,7 @@ public class VoucherDefinition
                 throw ValidationError("VOUCHER_FIXED_VALIDITY_REQUIRED");
             }
 
-            if (validFrom.Value >= validTo.Value)
+            if (validTo.Value < validFrom.Value.AddMinutes(30))
             {
                 throw ValidationError("VOUCHER_VALIDITY_RANGE_INVALID");
             }
@@ -385,11 +400,17 @@ public class VoucherDefinition
         }
     }
 
-    private static void ValidateTotalStock(int totalStock)
+    private static void ValidateTotalStock(int totalStock, string generationType)
     {
-        if (totalStock <= 0)
+        if (totalStock <= 0 || totalStock > VoucherDefinitionLimits.MaxTotalStock)
         {
             throw ValidationError("VOUCHER_TOTAL_STOCK_INVALID");
+        }
+
+        if (VoucherGenerationTypes.Normalize(generationType) == VoucherGenerationTypes.Imported &&
+            totalStock > VoucherDefinitionLimits.MaxImportedTotalStock)
+        {
+            throw ValidationError("VOUCHER_IMPORTED_TOTAL_STOCK_INVALID");
         }
     }
 

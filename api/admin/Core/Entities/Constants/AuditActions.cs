@@ -8,6 +8,7 @@ public static class AuditActions
     public const string UpdateStatus = "UPDATE_STATUS";
     public const string ToggleStatus = "TOGGLE_STATUS";
     public const string RevokeSession = "REVOKE_SESSION";
+    public const string Import = "IMPORT";
 
     public static IReadOnlyCollection<string> All { get; } =
     [
@@ -16,6 +17,7 @@ public static class AuditActions
         Delete,
         UpdateStatus,
         ToggleStatus,
-        RevokeSession
+        RevokeSession,
+        Import
     ];
 }

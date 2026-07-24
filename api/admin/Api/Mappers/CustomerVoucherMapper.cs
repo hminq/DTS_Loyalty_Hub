@@ -86,6 +86,49 @@ public static class CustomerVoucherMapper
         };
     }
 
+    public static CustomerRedeemDetailResponseDto ToResponseDto(this CustomerRedeemDetailResult result)
+    {
+        return new CustomerRedeemDetailResponseDto
+        {
+            VoucherRedemptionId = result.VoucherRedemptionId,
+            RedeemedAt = result.RedeemedAt,
+            Customer = new CustomerRedeemCustomerResponseDto
+            {
+                CustomerId = result.Customer.CustomerId,
+                Username = result.Customer.Username,
+                Email = result.Customer.Email,
+                Phone = result.Customer.Phone
+            },
+            Voucher = new CustomerRedeemVoucherResponseDto
+            {
+                CustomerVoucherId = result.Voucher.CustomerVoucherId,
+                VoucherDefinitionId = result.Voucher.VoucherDefinitionId,
+                VoucherPoolId = result.Voucher.VoucherPoolId,
+                Name = result.Voucher.Name,
+                Description = result.Voucher.Description,
+                BannerImageUrl = result.Voucher.BannerImageUrl,
+                VoucherCode = result.Voucher.VoucherCode,
+                RewardType = result.Voucher.RewardType,
+                RewardValue = result.Voucher.RewardValue,
+                GenerationType = result.Voucher.GenerationType,
+                ValidFrom = result.Voucher.ValidFrom,
+                ValidTo = result.Voucher.ValidTo
+            },
+            IssuanceSource = new CustomerRedeemIssuanceSourceResponseDto
+            {
+                CampaignId = result.IssuanceSource.CampaignId,
+                CampaignName = result.IssuanceSource.CampaignName,
+                CampaignEventType = result.IssuanceSource.CampaignEventType,
+                CampaignSessionId = result.IssuanceSource.CampaignSessionId,
+                SessionStart = result.IssuanceSource.SessionStart,
+                SessionEnd = result.IssuanceSource.SessionEnd,
+                SessionStatus = result.IssuanceSource.SessionStatus,
+                ActionId = result.IssuanceSource.ActionId,
+                ActionType = result.IssuanceSource.ActionType
+            }
+        };
+    }
+
     public static ApiResponseDto<IReadOnlyCollection<CustomerVoucherResponseDto>> ToPagedResponseDto(
         this PagedResult<CustomerVoucherResult> result)
     {

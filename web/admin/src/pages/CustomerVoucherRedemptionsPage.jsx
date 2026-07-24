@@ -42,7 +42,7 @@ function CustomerVoucherRedemptionsPage() {
           </div>
         ) : !isLoading && data.length === 0 ? (
           <div className="p-8 text-center text-[13px] text-muted-foreground">
-            {t('customerAccounts.voucherRedemptions.empty')}
+            {t('customerAccounts.redemptions.empty')}
           </div>
         ) : (
           <>

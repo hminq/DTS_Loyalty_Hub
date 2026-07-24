@@ -36,6 +36,7 @@ public static class TierMapper
             TierConfigId = result.TierConfigId,
             Name = result.Name,
             PointsRequired = result.PointsRequired,
+            CycleMonth = result.CycleMonth,
             Priority = result.Priority
         };
     }

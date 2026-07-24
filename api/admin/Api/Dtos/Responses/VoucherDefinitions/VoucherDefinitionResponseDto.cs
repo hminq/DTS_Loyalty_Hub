@@ -35,4 +35,6 @@ public sealed class VoucherDefinitionResponseDto
     public DateTime CreatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    public VoucherPoolProvisioningResponseDto? PoolProvisioning { get; set; }
 }

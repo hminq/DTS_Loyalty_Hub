@@ -202,4 +202,47 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
             pageSize,
             totalItems);
     }
+
+    public Task<CustomerRedeemDetailResult?> GetRedeemDetailAsync(
+        Guid voucherRedemptionId,
+        CancellationToken ct = default)
+    {
+        return _dbContext.VoucherRedemptions
+            .AsNoTracking()
+            .Where(redemption =>
+                redemption.VoucherRedemptionId == voucherRedemptionId &&
+                redemption.VoucherDef.DeletedAt == null)
+            .Select(redemption => new CustomerRedeemDetailResult(
+                redemption.VoucherRedemptionId,
+                redemption.RedeemedAt,
+                new CustomerRedeemCustomerResult(
+                    redemption.CustomerId,
+                    redemption.Customer.User.Username,
+                    redemption.Customer.User.Email,
+                    redemption.Customer.User.PhoneNumber),
+                new CustomerRedeemVoucherResult(
+                    redemption.CustomerVoucherId,
+                    redemption.VoucherDefId,
+                    redemption.VoucherPoolId,
+                    redemption.VoucherDef.Name,
+                    redemption.VoucherDef.Description,
+                    redemption.VoucherDef.BannerImageUrl,
+                    redemption.VoucherCode,
+                    redemption.VoucherDef.RewardType,
+                    redemption.VoucherDef.RewardValue,
+                    redemption.VoucherDef.GenerationType,
+                    redemption.CustomerVoucher.ValidFrom,
+                    redemption.CustomerVoucher.ValidTo),
+                new CustomerRedeemIssuanceSourceResult(
+                    redemption.CampaignId,
+                    redemption.Campaign == null ? null : redemption.Campaign.CampaignName,
+                    redemption.Campaign == null ? null : redemption.Campaign.EventType,
+                    redemption.CampaignSessionId,
+                    redemption.CampaignSession == null ? null : redemption.CampaignSession.SessionStart,
+                    redemption.CampaignSession == null ? null : redemption.CampaignSession.SessionEnd,
+                    redemption.CampaignSession == null ? null : redemption.CampaignSession.Status,
+                    redemption.ActionId,
+                    redemption.Action == null ? null : redemption.Action.ActionType)))
+            .SingleOrDefaultAsync(ct);
+    }
 }

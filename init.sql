@@ -145,7 +145,7 @@ CREATE TABLE voucher_definitions (
     deleted_at TIMESTAMPTZ,
 
     CONSTRAINT uq_voucher_definitions_code UNIQUE (code),
-    CONSTRAINT ck_voucher_definitions_total_stock CHECK (total_stock >= 0),
+    CONSTRAINT ck_voucher_definitions_total_stock CHECK (total_stock BETWEEN 1 AND 10000000),
     CONSTRAINT ck_voucher_definitions_remaining_stock CHECK (
         remaining_stock >= 0 AND remaining_stock <= total_stock
     ),
@@ -153,6 +153,89 @@ CREATE TABLE voucher_definitions (
     CONSTRAINT ck_voucher_definitions_valid_range CHECK (
         valid_from IS NULL OR valid_to IS NULL OR valid_from < valid_to
     )
+);
+
+CREATE TABLE voucher_pool_provisioning_jobs (
+    job_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    voucher_def_id UUID NOT NULL,
+    job_type VARCHAR(30) NOT NULL,
+    import_file_key TEXT,
+    expected_count INTEGER NOT NULL,
+    processed_count INTEGER NOT NULL DEFAULT 0,
+    status VARCHAR(25) NOT NULL DEFAULT 'PENDING',
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    error_code VARCHAR(100),
+    error_details JSONB,
+    created_by UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+
+    CONSTRAINT fk_voucher_pool_provisioning_jobs_definition
+        FOREIGN KEY (voucher_def_id)
+        REFERENCES voucher_definitions (voucher_definition_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_voucher_pool_provisioning_jobs_created_by
+        FOREIGN KEY (created_by)
+        REFERENCES users (user_id)
+        ON DELETE SET NULL,
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_type
+        CHECK (job_type IN ('AUTO_GENERATED', 'IMPORTED')),
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_status
+        CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED')),
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_expected_count
+        CHECK (expected_count BETWEEN 1 AND 10000000),
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_processed_count
+        CHECK (processed_count >= 0 AND processed_count <= expected_count),
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_attempt_count
+        CHECK (attempt_count >= 0),
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_import_file
+        CHECK (
+            (
+                job_type = 'IMPORTED'
+                AND NULLIF(BTRIM(import_file_key), '') IS NOT NULL
+            )
+            OR
+            (job_type = 'AUTO_GENERATED' AND import_file_key IS NULL)
+        ),
+    CONSTRAINT ck_voucher_pool_provisioning_jobs_error_details
+        CHECK (
+            error_details IS NULL
+            OR jsonb_typeof(error_details) = 'object'
+        )
+);
+
+CREATE INDEX idx_voucher_pool_jobs_polling
+    ON voucher_pool_provisioning_jobs (status, created_at);
+
+CREATE INDEX idx_voucher_pool_jobs_definition
+    ON voucher_pool_provisioning_jobs (voucher_def_id, created_at DESC);
+
+CREATE UNIQUE INDEX uq_voucher_pool_jobs_active_definition
+    ON voucher_pool_provisioning_jobs (voucher_def_id)
+    WHERE status IN ('PENDING', 'PROCESSING');
+
+CREATE TABLE voucher_pool_import_rows (
+    job_id UUID NOT NULL,
+    row_number INTEGER NOT NULL,
+    voucher_pool_id UUID NOT NULL,
+    voucher_code VARCHAR(200) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT pk_voucher_pool_import_rows
+        PRIMARY KEY (job_id, row_number),
+    CONSTRAINT uq_voucher_pool_import_rows_job_code
+        UNIQUE (job_id, voucher_code),
+    CONSTRAINT uq_voucher_pool_import_rows_pool_id
+        UNIQUE (voucher_pool_id),
+    CONSTRAINT fk_voucher_pool_import_rows_job
+        FOREIGN KEY (job_id)
+        REFERENCES voucher_pool_provisioning_jobs (job_id)
+        ON DELETE CASCADE,
+    CONSTRAINT ck_voucher_pool_import_rows_row_number
+        CHECK (row_number > 0),
+    CONSTRAINT ck_voucher_pool_import_rows_code
+        CHECK (NULLIF(BTRIM(voucher_code), '') IS NOT NULL)
 );
 
 CREATE TABLE voucher_pools (
@@ -167,6 +250,9 @@ CREATE TABLE voucher_pools (
     CONSTRAINT uq_voucher_pools_code UNIQUE (voucher_code),
     CONSTRAINT ck_voucher_pools_status CHECK (status IN ('AVAILABLE', 'CLAIMED', 'DISABLED'))
 );
+
+CREATE INDEX idx_voucher_pools_definition
+    ON voucher_pools (voucher_def_id);
 
 CREATE TABLE customer_vouchers (
     customer_voucher_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

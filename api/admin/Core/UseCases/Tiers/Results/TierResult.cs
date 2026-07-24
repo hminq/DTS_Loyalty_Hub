@@ -4,6 +4,7 @@ public sealed record TierListItemResult(
     Guid TierConfigId,
     string Name,
     decimal PointsRequired,
+    int CycleMonth,
     int Priority);
 
 public sealed record TierDetailResult(

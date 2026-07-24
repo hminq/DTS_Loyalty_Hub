@@ -13,6 +13,9 @@ import { NotificationEventTypesPage } from './pages/NotificationEventTypesPage'
 
 const AdminAccountDetailPage = lazyNamed(() => import('./pages/AdminAccountDetailPage'), 'AdminAccountDetailPage')
 const AdminAccountsPage = lazyNamed(() => import('./pages/AdminAccountsPage'), 'AdminAccountsPage')
+const AllCustomerVouchersPage = lazyNamed(() => import('./pages/AllCustomerVouchersPage'), 'AllCustomerVouchersPage')
+const CustomerVoucherDetailPage = lazyNamed(() => import('./pages/CustomerVoucherDetailPage'), 'CustomerVoucherDetailPage')
+const CustomerRedeemDetailPage = lazyNamed(() => import('./pages/CustomerRedeemDetailPage'), 'CustomerRedeemDetailPage')
 const AuditLogsPage = lazyNamed(() => import('./pages/AuditLogsPage'), 'AuditLogsPage')
 const CreateAdminAccountPage = lazyNamed(() => import('./pages/CreateAdminAccountPage'), 'CreateAdminAccountPage')
 const CreateRolePage = lazyNamed(() => import('./pages/CreateRolePage'), 'CreateRolePage')
@@ -243,10 +246,34 @@ function App() {
           }
         />
         <Route
+          path="vouchers/customer-vouchers"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerVouchers.View}>
+              <AllCustomerVouchersPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="vouchers/customer-vouchers/:customerVoucherId"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerVouchers.View}>
+              <CustomerVoucherDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
           path="vouchers/redemptions"
           element={
-            <RequirePermission permission={PermissionCodes.VoucherDefinitions.View}>
+            <RequirePermission permission={PermissionCodes.CustomerVouchers.View}>
               <VoucherRedemptionsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="vouchers/redemptions/:voucherRedemptionId"
+          element={
+            <RequirePermission permission={PermissionCodes.CustomerVouchers.View}>
+              <CustomerRedeemDetailPage />
             </RequirePermission>
           }
         />

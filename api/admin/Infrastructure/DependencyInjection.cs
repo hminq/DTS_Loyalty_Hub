@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IRoleReader, RoleReader>();
         services.AddScoped<ITierRepository, TierRepository>();
         services.AddScoped<IVoucherDefinitionRepository, VoucherDefinitionRepository>();
+        services.AddScoped<IVoucherPoolProvisioningJobWriter, VoucherPoolProvisioningJobWriter>();
         services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -56,6 +57,12 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogWriter, AuditLogWriter>();
         services.AddScoped<IBannerStorage, S3BannerStorage>();
         services.AddSingleton<IBannerReadUrlProvider, S3BannerReadUrlProvider>();
+        services.AddSingleton<IVoucherImportTemplateUrlProvider, S3VoucherImportTemplateUrlProvider>();
+        services.AddSingleton<S3VoucherPoolImportUploadUrlProvider>();
+        services.AddSingleton<IVoucherPoolImportUploadUrlProvider>(
+            provider => provider.GetRequiredService<S3VoucherPoolImportUploadUrlProvider>());
+        services.AddSingleton<IVoucherPoolImportObjectKeyPolicy>(
+            provider => provider.GetRequiredService<S3VoucherPoolImportUploadUrlProvider>());
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SaveChangesBehavior<,>));
         

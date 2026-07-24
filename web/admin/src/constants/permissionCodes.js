@@ -47,4 +47,7 @@ export const PermissionCodes = Object.freeze({
     Update: 'voucher_definition.update',
     Delete: 'voucher_definition.delete',
   }),
+  CustomerVouchers: Object.freeze({
+    View: 'customer_voucher.view',
+  }),
 })

@@ -3,6 +3,7 @@ using Api.Dtos.Responses;
 using Api.Dtos.Responses.CustomerVouchers;
 using Api.Mappers;
 using Core.Entities.Constants;
+using Core.UseCases.CustomerVouchers.Queries.GetCustomerRedeemDetail;
 using Core.UseCases.CustomerVouchers.Queries.GetCustomerVoucherDetail;
 using FluentValidation;
 using MediatR;
@@ -84,5 +85,19 @@ public sealed class CustomerVouchersController : ControllerBase
         var result = await _sender.Send(request.ToQuery(), ct);
 
         return Ok(result.ToPagedResponseDto());
+    }
+
+    [HttpGet("customer-redeems/{id:guid}")]
+    [Authorize(Policy = PermissionCodes.CustomerVouchers.View)]
+    public async Task<ActionResult<ApiResponseDto<CustomerRedeemDetailResponseDto>>> GetRedeemDetail(
+        Guid id,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetCustomerRedeemDetailQuery(id), ct);
+
+        return Ok(new ApiResponseDto<CustomerRedeemDetailResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
     }
 }

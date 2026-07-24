@@ -1,7 +1,8 @@
-import { ArrowUpRightIcon, TicketIcon } from '@phosphor-icons/react'
+import { ArrowUpRightIcon, MicrosoftExcelLogoIcon, TicketIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import {
   formatVoucherDateTime,
@@ -10,10 +11,22 @@ import {
   getVoucherRecordState,
 } from './voucherDefinitionFormatters'
 
-function VoucherDefinitionDetails({ voucher, language, t }) {
+function VoucherDefinitionDetails({ voucher, language, canImportVoucherCodes, onImportVoucherCodes, t }) {
   const [imageError, setImageError] = useState(false)
   const isDeleted = getVoucherRecordState(voucher.deletedAt) === 'DELETED'
   const hasImage = Boolean(voucher.bannerImageUrl) && !imageError
+
+  const isImportedPrivate = voucher.publishType === 'PRIVATE' && voucher.generationType === 'IMPORTED'
+  const provisioning = voucher.poolProvisioning
+  const canStartImport = !provisioning || provisioning.status === 'FAILED'
+  const showImportAction = isImportedPrivate && !isDeleted && canImportVoucherCodes && canStartImport
+  const provisioningBadgeVariant = provisioning?.status === 'COMPLETED'
+    ? 'success'
+    : provisioning?.status === 'FAILED'
+      ? 'destructive'
+      : provisioning?.status === 'PROCESSING'
+        ? 'warning'
+        : 'secondary'
 
   return (
     <div className="mt-5 flex flex-col gap-5">
@@ -61,9 +74,9 @@ function VoucherDefinitionDetails({ voucher, language, t }) {
       {/* 2. Details Grid */}
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Left Column */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 lg:contents">
           {/* General Info Card */}
-          <Card className="rounded-xl border-border/80 shadow-none">
+          <Card className="rounded-xl border-border/80 shadow-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
             <CardHeader className="p-4 pb-3">
               <CardTitle className="text-sm">{t('voucherDefinitions.detail.generalTitle')}</CardTitle>
             </CardHeader>
@@ -96,7 +109,7 @@ function VoucherDefinitionDetails({ voucher, language, t }) {
           </Card>
 
           {/* System Metadata Card */}
-          <Card className="rounded-xl border-border/80 shadow-none">
+          <Card className="rounded-xl border-border/80 shadow-none lg:col-start-1 lg:row-start-3 lg:self-start">
             <CardHeader className="p-4 pb-3">
               <CardTitle className="text-sm">{t('voucherDefinitions.detail.metadataTitle')}</CardTitle>
             </CardHeader>
@@ -113,11 +126,24 @@ function VoucherDefinitionDetails({ voucher, language, t }) {
               />
               <DetailItem
                 label={t('voucherDefinitions.detail.publishType')}
-                value={t(`voucherDefinitions.types.publish.${voucher.publishType}`, { defaultValue: voucher.publishType })}
+                value={
+                  <TypeBadge
+                    label={t(`voucherDefinitions.types.publish.${voucher.publishType}`, { defaultValue: voucher.publishType })}
+                    variant={voucher.publishType === 'PUBLIC' ? 'default' : 'secondary'}
+                  />
+                }
               />
               <DetailItem
                 label={t('voucherDefinitions.detail.generationType')}
-                value={t(`voucherDefinitions.types.generation.${voucher.generationType}`, { defaultValue: voucher.generationType })}
+                value={
+                  <TypeBadge
+                    label={t(`voucherDefinitions.types.generation.${voucher.generationType}`, { defaultValue: voucher.generationType })}
+                    variant={voucher.generationType === 'IMPORTED' ? 'outline' : 'secondary'}
+                    className={voucher.generationType === 'IMPORTED'
+                      ? 'border-[#217346]/30 bg-[#217346]/10 text-[#217346]'
+                      : ''}
+                  />
+                }
               />
               <div className="col-span-1" />
               
@@ -130,16 +156,21 @@ function VoucherDefinitionDetails({ voucher, language, t }) {
         </div>
 
         {/* Right Column */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 lg:contents">
           {/* Reward Rules Card */}
-          <Card className="rounded-xl border-border/80 shadow-none">
+          <Card className="rounded-xl border-border/80 shadow-none lg:col-start-2 lg:row-start-1">
             <CardHeader className="p-4 pb-3">
               <CardTitle className="text-sm">{t('voucherDefinitions.detail.rewardTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 px-4 pb-4 text-[13px] sm:grid-cols-2">
               <DetailItem
                 label={t('voucherDefinitions.detail.rewardType')}
-                value={t(`voucherDefinitions.types.reward.${voucher.rewardType}`, { defaultValue: voucher.rewardType })}
+                value={
+                  <TypeBadge
+                    label={t(`voucherDefinitions.types.reward.${voucher.rewardType}`, { defaultValue: voucher.rewardType })}
+                    variant={voucher.rewardType === 'PERCENT' ? 'warning' : 'secondary'}
+                  />
+                }
               />
               <DetailItem
                 label={t('voucherDefinitions.detail.rewardValue')}
@@ -149,7 +180,7 @@ function VoucherDefinitionDetails({ voucher, language, t }) {
           </Card>
 
           {/* Inventory Card */}
-          <Card className="rounded-xl border-border/80 shadow-none">
+          <Card className="rounded-xl border-border/80 shadow-none lg:col-start-2 lg:row-start-2">
             <CardHeader className="p-4 pb-3">
               <CardTitle className="text-sm">{t('voucherDefinitions.detail.inventoryTitle')}</CardTitle>
             </CardHeader>
@@ -159,30 +190,107 @@ function VoucherDefinitionDetails({ voucher, language, t }) {
             </CardContent>
           </Card>
 
-          {/* Validity Section */}
-          <Card className="rounded-xl border-border/80 shadow-none">
-            <CardHeader className="p-4 pb-3">
-              <CardTitle className="text-sm">{t('voucherDefinitions.detail.validityTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 px-4 pb-4 text-[13px] sm:grid-cols-2">
-              <DetailItem
-                label={t('voucherDefinitions.detail.validityType')}
-                value={t(`voucherDefinitions.types.validity.${voucher.validityType}`, { defaultValue: voucher.validityType })}
-              />
-              <DetailItem
-                label={t('voucherDefinitions.detail.durationDay')}
-                value={voucher.durationDay ? `${voucher.durationDay} ${t('voucherDefinitions.detail.days')}` : '—'}
-              />
-              <div className="sm:col-span-2 mt-1 grid gap-4 border-t border-border/50 pt-4 sm:grid-cols-2">
-                <DetailItem label={t('voucherDefinitions.detail.validFrom')} value={formatVoucherDateTime(voucher.validFrom, language)} />
-                <DetailItem label={t('voucherDefinitions.detail.validTo')} value={formatVoucherDateTime(voucher.validTo, language)} />
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col gap-5 lg:col-start-2 lg:row-start-3">
+            {isImportedPrivate ? (
+              <Card className="rounded-xl border-[#217346]/25 bg-[#217346]/[0.025] shadow-none">
+              <CardHeader className="p-4 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#217346]/10 text-[#217346]">
+                    <MicrosoftExcelLogoIcon size={20} weight="fill" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-sm">
+                      {t('voucherDefinitions.detail.voucherCodeImportTitle')}
+                    </CardTitle>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {t('voucherDefinitions.detail.voucherCodeImportDescription')}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 px-4 pb-4 text-[13px]">
+                {provisioning ? (
+                  <div className="rounded-lg border border-border/70 bg-background/70 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <Badge variant={provisioningBadgeVariant}>
+                        {t(`voucherDefinitions.import.status.${provisioning.status}`, {
+                          defaultValue: provisioning.status,
+                        })}
+                      </Badge>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {formatVoucherNumber(provisioning.processedCount, language)}
+                        {' / '}
+                        {formatVoucherNumber(provisioning.expectedCount, language)}
+                      </span>
+                    </div>
+                    {provisioning.status === 'PROCESSING' ? (
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
+                        <div
+                          className="h-full rounded-full bg-primary transition-[width]"
+                          style={{
+                            width: `${Math.min(100, (provisioning.processedCount / provisioning.expectedCount) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                    ) : null}
+                    {provisioning.status === 'FAILED' && provisioning.errorCode ? (
+                      <p className="mt-2 text-xs font-medium text-destructive">
+                        {t(`voucherDefinitions.import.errors.${provisioning.errorCode}`, {
+                          defaultValue: provisioning.errorCode,
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {showImportAction ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[#217346]/35 text-[#217346] shadow-sm hover:bg-[#217346]/10 hover:text-[#217346]"
+                    onClick={onImportVoucherCodes}
+                  >
+                    <MicrosoftExcelLogoIcon weight="fill" aria-hidden="true" />
+                    {t('voucherDefinitions.detail.importVoucherCodes')}
+                  </Button>
+                ) : null}
+              </CardContent>
+              </Card>
+            ) : null}
+
+            {/* Validity Section */}
+            <Card className="rounded-xl border-border/80 shadow-none">
+              <CardHeader className="p-4 pb-3">
+                <CardTitle className="text-sm">{t('voucherDefinitions.detail.validityTitle')}</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 px-4 pb-4 text-[13px] sm:grid-cols-2">
+                <DetailItem
+                  label={t('voucherDefinitions.detail.validityType')}
+                  value={
+                    <TypeBadge
+                      label={t(`voucherDefinitions.types.validity.${voucher.validityType}`, { defaultValue: voucher.validityType })}
+                      variant="outline"
+                    />
+                  }
+                />
+                <DetailItem
+                  label={t('voucherDefinitions.detail.durationDay')}
+                  value={voucher.durationDay ? `${voucher.durationDay} ${t('voucherDefinitions.detail.days')}` : '—'}
+                />
+                <div className="sm:col-span-2 mt-1 grid gap-4 border-t border-border/50 pt-4 sm:grid-cols-2">
+                  <DetailItem label={t('voucherDefinitions.detail.validFrom')} value={formatVoucherDateTime(voucher.validFrom, language)} />
+                  <DetailItem label={t('voucherDefinitions.detail.validTo')} value={formatVoucherDateTime(voucher.validTo, language)} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
   )
+}
+
+function TypeBadge({ label, variant, className = '' }) {
+  return <Badge variant={variant} className={className}>{label}</Badge>
 }
 
 function DetailItem({ label, value, code = false, className = '' }) {

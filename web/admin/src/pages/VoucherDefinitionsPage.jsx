@@ -1,5 +1,6 @@
 import { PlusIcon, TicketIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
+import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
@@ -9,6 +10,7 @@ import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { VoucherDefinitionsFilters } from '../components/voucher-definitions/VoucherDefinitionsFilters'
 import { VoucherDefinitionsTable } from '../components/voucher-definitions/VoucherDefinitionsTable'
+import { mapVoucherDefinitionOptions } from '../components/voucher-definitions/voucherDefinitionOptions'
 import { Button } from '../components/ui/button'
 import { PermissionCodes } from '../constants/permissionCodes'
 
@@ -36,10 +38,15 @@ function VoucherDefinitionsPage() {
   const [noticeMessage, setNoticeMessage] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   
-  const [options, setOptions] = useState({})
+  const [rawOptions, setRawOptions] = useState({})
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [optionsError, setOptionsError] = useState('')
   const [optionsRetryKey, setOptionsRetryKey] = useState(0)
+
+  const options = React.useMemo(
+    () => mapVoucherDefinitionOptions(rawOptions, t),
+    [rawOptions, t]
+  )
 
   const canCreate = hasPermission(PermissionCodes.VoucherDefinitions.Create)
 
@@ -102,7 +109,7 @@ function VoucherDefinitionsPage() {
       try {
         const data = await getVoucherDefinitionOptions(controller.signal)
         if (controller.signal.aborted) return
-        setOptions(data)
+        setRawOptions(data)
       } catch (error) {
         if (controller.signal.aborted) return
         setOptionsError(error.message || t('voucherDefinitions.errors.loadOptions'))
@@ -114,7 +121,7 @@ function VoucherDefinitionsPage() {
     loadOptions()
 
     return () => controller.abort()
-  }, [i18n.resolvedLanguage, optionsRetryKey, t])
+  }, [optionsRetryKey, t])
 
   useEffect(() => {
     const controller = new AbortController()
