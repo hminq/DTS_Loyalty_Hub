@@ -11,7 +11,9 @@ public sealed record StartOrResumeVoucherPoolGenerationResult(
     Guid? JobId,
     int ExpectedCount,
     int ProcessedCount,
-    bool Failed)
+    bool Failed,
+    string? JobType = null,
+    string? ImportFileKey = null)
 {
     public static StartOrResumeVoucherPoolGenerationResult NoWork { get; } =
         new(false, null, 0, 0, false);

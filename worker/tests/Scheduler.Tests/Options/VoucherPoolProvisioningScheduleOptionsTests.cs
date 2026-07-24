@@ -3,7 +3,7 @@ using Scheduler.Options;
 
 namespace Scheduler.Tests.Options;
 
-public sealed class VoucherPoolGenerationScheduleOptionsTests
+public sealed class VoucherPoolProvisioningScheduleOptionsTests
 {
     [Fact]
     public void FromConfiguration_ValidValues_ReturnsOptions()
@@ -13,7 +13,7 @@ public sealed class VoucherPoolGenerationScheduleOptionsTests
             timeZone: "Asia/Ho_Chi_Minh",
             batchSize: "5000");
 
-        var options = VoucherPoolGenerationScheduleOptions.FromConfiguration(
+        var options = VoucherPoolProvisioningScheduleOptions.FromConfiguration(
             configuration);
 
         Assert.Equal("0/10 * * * * ?", options.Cron);
@@ -34,7 +34,7 @@ public sealed class VoucherPoolGenerationScheduleOptionsTests
         var configuration = Configuration(cron, timeZone, batchSize);
 
         Assert.Throws<InvalidOperationException>(() =>
-            VoucherPoolGenerationScheduleOptions.FromConfiguration(configuration));
+            VoucherPoolProvisioningScheduleOptions.FromConfiguration(configuration));
     }
 
     private static IConfiguration Configuration(
@@ -45,9 +45,9 @@ public sealed class VoucherPoolGenerationScheduleOptionsTests
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["VOUCHER_POOL_GENERATION_CRON"] = cron,
-                ["VOUCHER_POOL_GENERATION_TIME_ZONE"] = timeZone,
-                ["VOUCHER_POOL_GENERATION_BATCH_SIZE"] = batchSize
+                ["VOUCHER_POOL_PROVISIONING_CRON"] = cron,
+                ["VOUCHER_POOL_PROVISIONING_TIME_ZONE"] = timeZone,
+                ["VOUCHER_POOL_PROVISIONING_BATCH_SIZE"] = batchSize
             })
             .Build();
     }

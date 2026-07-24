@@ -12,4 +12,5 @@ public sealed record VoucherPoolGenerationJob(
     int DefinitionRemainingStock,
     string DefinitionGenerationType,
     string DefinitionPublishType,
-    DateTime? StartedAt);
+    DateTime? StartedAt,
+    string? ImportFileKey = null);

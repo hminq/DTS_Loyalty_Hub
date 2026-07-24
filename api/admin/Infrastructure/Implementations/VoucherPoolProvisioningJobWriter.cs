@@ -21,6 +21,7 @@ public sealed class VoucherPoolProvisioningJobWriter : IVoucherPoolProvisioningJ
             JobId = job.JobId,
             VoucherDefId = job.VoucherDefinitionId,
             JobType = job.JobType,
+            ImportFileKey = job.ImportFileKey,
             ExpectedCount = job.ExpectedCount,
             ProcessedCount = job.ProcessedCount,
             Status = job.Status,

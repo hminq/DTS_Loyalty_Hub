@@ -105,7 +105,15 @@
   <data name="VOUCHER_REWARD_TYPE_INVALID" xml:space="preserve"><value>Loại phần thưởng voucher không hợp lệ.</value></data>
   <data name="VOUCHER_REWARD_TYPE_REQUIRED" xml:space="preserve"><value>Loại phần thưởng voucher là bắt buộc.</value></data>
   <data name="VOUCHER_REWARD_VALUE_MUST_BE_EMPTY" xml:space="preserve"><value>Giá trị phần thưởng phải để trống đối với voucher quà tặng.</value></data>
-  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Tổng tồn kho phải từ 1 đến 1.000.000.</value></data>
+  <data name="VOUCHER_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Tổng tồn kho phải từ 1 đến 10.000.000.</value></data>
+  <data name="VOUCHER_IMPORTED_TOTAL_STOCK_INVALID" xml:space="preserve"><value>Tổng tồn kho voucher IMPORTED phải từ 1 đến 100.000.</value></data>
+  <data name="VOUCHER_DEFINITION_IMPORT_NOT_ALLOWED" xml:space="preserve"><value>Cấu hình voucher này không thể nhập mã voucher.</value></data>
+  <data name="VOUCHER_POOL_IMPORT_ALREADY_ACTIVE" xml:space="preserve"><value>Đã có một yêu cầu nhập mã voucher đang hoạt động.</value></data>
+  <data name="VOUCHER_POOL_ALREADY_PROVISIONED" xml:space="preserve"><value>Voucher pool đã được khởi tạo.</value></data>
+  <data name="VOUCHER_POOL_IMPORT_FILE_REQUIRED" xml:space="preserve"><value>File CSV mã voucher là bắt buộc.</value></data>
+  <data name="VOUCHER_POOL_IMPORT_FILE_TYPE_INVALID" xml:space="preserve"><value>File import phải có phần mở rộng .csv.</value></data>
+  <data name="VOUCHER_POOL_IMPORT_FILE_SIZE_INVALID" xml:space="preserve"><value>File import phải có dữ liệu và không được lớn hơn 256 MiB.</value></data>
+  <data name="VOUCHER_POOL_IMPORT_FILE_KEY_INVALID" xml:space="preserve"><value>Object key của file nhập mã voucher không hợp lệ.</value></data>
   <data name="VOUCHER_VALID_FROM_NOT_FUTURE" xml:space="preserve"><value>Thời điểm bắt đầu phải nằm trong tương lai.</value></data>
   <data name="VOUCHER_VALIDITY_RANGE_INVALID" xml:space="preserve"><value>Thời điểm kết thúc phải sau thời điểm bắt đầu ít nhất 30 phút.</value></data>
   <data name="VOUCHER_VALIDITY_TYPE_INVALID" xml:space="preserve"><value>Loại hiệu lực voucher không hợp lệ.</value></data>

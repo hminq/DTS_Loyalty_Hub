@@ -127,7 +127,49 @@ public static class VoucherDefinitionMapper
             ValidityTypes: result.ValidityTypes.ToArray(),
             PublishTypes: result.PublishTypes.ToArray(),
             GenerationTypes: result.GenerationTypes.ToArray(),
-            Constraints: new VoucherDefinitionConstraintsResponseDto(Core.Entities.Constants.VoucherDefinitionLimits.MaxTotalStock)
+            Constraints: new VoucherDefinitionConstraintsResponseDto(
+                Core.Entities.Constants.VoucherDefinitionLimits.MaxTotalStock,
+                Core.Entities.Constants.VoucherDefinitionLimits.MaxImportedTotalStock)
         );
+    }
+
+    public static VoucherImportTemplateResponseDto ToResponseDto(
+        this VoucherImportTemplateResult result)
+    {
+        return new VoucherImportTemplateResponseDto(
+            result.DownloadUrl,
+            result.FileName,
+            result.ExpiresAt);
+    }
+
+    public static VoucherPoolImportUploadResponseDto ToResponseDto(
+        this VoucherPoolImportUploadResult result)
+    {
+        return new VoucherPoolImportUploadResponseDto(
+            result.ObjectKey,
+            result.UploadUrl,
+            result.Method,
+            result.ContentType,
+            result.ExpiresAt,
+            result.MaximumFileSizeBytes);
+    }
+
+    public static VoucherPoolProvisioningResponseDto ToResponseDto(
+        this VoucherPoolProvisioningResult result)
+    {
+        return new VoucherPoolProvisioningResponseDto
+        {
+            JobId = result.JobId,
+            JobType = result.JobType,
+            Status = result.Status,
+            ExpectedCount = result.ExpectedCount,
+            ProcessedCount = result.ProcessedCount,
+            AttemptCount = result.AttemptCount,
+            ErrorCode = result.ErrorCode,
+            ErrorDetails = null,
+            CreatedAt = result.CreatedAt,
+            StartedAt = result.StartedAt,
+            CompletedAt = result.CompletedAt
+        };
     }
 }

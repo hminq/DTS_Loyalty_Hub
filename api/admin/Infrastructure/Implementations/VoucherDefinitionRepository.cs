@@ -1,6 +1,7 @@
 using Core.Abstractions;
 using Core.UseCases.Common;
 using Core.UseCases.VoucherDefinitions.Results;
+using Core.Entities.Constants;
 using Microsoft.EntityFrameworkCore;
 using DomainVoucherDefinition = Core.Entities.VoucherDefinition;
 using PersistenceVoucherDefinition = Persistence.Models.VoucherDefinition;
@@ -24,6 +25,28 @@ public sealed class VoucherDefinitionRepository : IVoucherDefinitionRepository
         return _dbContext.VoucherDefinitions
             .AsNoTracking()
             .AnyAsync(voucherDefinition => voucherDefinition.Code == normalizedCode, ct);
+    }
+
+    public Task<bool> HasVoucherPoolsAsync(
+        Guid voucherDefinitionId,
+        CancellationToken ct = default)
+    {
+        return _dbContext.VoucherPools
+            .AsNoTracking()
+            .AnyAsync(pool => pool.VoucherDefId == voucherDefinitionId, ct);
+    }
+
+    public Task<bool> HasActiveProvisioningJobAsync(
+        Guid voucherDefinitionId,
+        CancellationToken ct = default)
+    {
+        return _dbContext.VoucherPoolProvisioningJobs
+            .AsNoTracking()
+            .AnyAsync(
+                job => job.VoucherDefId == voucherDefinitionId &&
+                       (job.Status == VoucherPoolProvisioningJobStatuses.Pending ||
+                        job.Status == VoucherPoolProvisioningJobStatuses.Processing),
+                ct);
     }
 
     public Task<VoucherDefinitionResult?> GetByIdAsync(

@@ -58,6 +58,13 @@ public sealed class CreateVoucherDefinitionRequestDtoValidator
             .WithErrorCode("VOUCHER_TOTAL_STOCK_INVALID")
             .OverridePropertyName("totalStock");
 
+        RuleFor(request => request.TotalStock)
+            .LessThanOrEqualTo(VoucherDefinitionLimits.MaxImportedTotalStock)
+            .When(request =>
+                IsType(request.GenerationType, VoucherGenerationTypes.Imported))
+            .WithErrorCode("VOUCHER_IMPORTED_TOTAL_STOCK_INVALID")
+            .OverridePropertyName("totalStock");
+
         RuleFor(request => request.ValidFrom)
             .Must(validFrom => validFrom > timeProvider.GetUtcNow().UtcDateTime)
             .When(request => request.ValidFrom.HasValue)

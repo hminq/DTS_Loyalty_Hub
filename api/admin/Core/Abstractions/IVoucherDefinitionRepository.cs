@@ -8,6 +8,14 @@ public interface IVoucherDefinitionRepository
 {
     Task<bool> ExistsByCodeAsync(string code, CancellationToken ct = default);
 
+    Task<bool> HasVoucherPoolsAsync(
+        Guid voucherDefinitionId,
+        CancellationToken ct = default);
+
+    Task<bool> HasActiveProvisioningJobAsync(
+        Guid voucherDefinitionId,
+        CancellationToken ct = default);
+
     Task<VoucherDefinitionResult?> GetByIdAsync(
         Guid voucherDefinitionId,
         CancellationToken ct = default);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Persistence.Models;
 
@@ -35,4 +36,6 @@ public partial class VoucherPoolProvisioningJob
     public virtual User? CreatedByNavigation { get; set; }
 
     public virtual VoucherDefinition VoucherDef { get; set; } = null!;
+
+    public virtual ICollection<VoucherPoolImportRow> VoucherPoolImportRows { get; set; } = new List<VoucherPoolImportRow>();
 }

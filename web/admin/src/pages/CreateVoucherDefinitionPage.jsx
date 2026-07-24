@@ -3,7 +3,12 @@ import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
-import { createVoucherDefinition, getVoucherDefinitionOptions, uploadVoucherDefinitionBanner } from '../api/voucherDefinitionsApi'
+import {
+  createVoucherDefinition,
+  getVoucherDefinitionOptions,
+  getVoucherImportTemplate,
+  uploadVoucherDefinitionBanner,
+} from '../api/voucherDefinitionsApi'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { VoucherDefinitionForm } from '../components/voucher-definitions/VoucherDefinitionForm'
@@ -28,6 +33,8 @@ export function CreateVoucherDefinitionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [apiError, setApiError] = useState(null)
   const [uploadedBannerKey, setUploadedBannerKey] = useState(null)
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
+  const [templateDownloadError, setTemplateDownloadError] = useState('')
   
   const canUploadBanner = hasPermission(PermissionCodes.Media.Upload)
 
@@ -113,6 +120,27 @@ export function CreateVoucherDefinitionPage() {
     }
   }
 
+  const handleDownloadTemplate = async () => {
+    setIsDownloadingTemplate(true)
+    setTemplateDownloadError('')
+
+    try {
+      const template = await getVoucherImportTemplate()
+      const anchor = document.createElement('a')
+      anchor.href = template.downloadUrl
+      anchor.download = template.fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+    } catch (error) {
+      setTemplateDownloadError(
+        error.message || t('voucherDefinitions.errors.downloadImportTemplate'),
+      )
+    } finally {
+      setIsDownloadingTemplate(false)
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -144,6 +172,9 @@ export function CreateVoucherDefinitionPage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate('/voucher-definitions')}
             canUploadBanner={canUploadBanner}
+            isDownloadingTemplate={isDownloadingTemplate}
+            templateDownloadError={templateDownloadError}
+            onDownloadTemplate={handleDownloadTemplate}
             t={t}
           />
         )}

@@ -28,8 +28,47 @@ export async function getVoucherDefinitionOptions(signal) {
   return response.data.data
 }
 
+export async function getVoucherImportTemplate() {
+  const response = await httpClient.get('/voucher-definitions/import-template')
+  return response.data.data
+}
+
 export async function createVoucherDefinition(payload) {
   const response = await httpClient.post('/voucher-definitions', payload)
+  return response.data.data
+}
+
+export async function createVoucherPoolImportUploadUrl(voucherDefinitionId, file) {
+  const response = await httpClient.post(
+    `/voucher-definitions/${voucherDefinitionId}/pool-imports/upload-url`,
+    {
+      fileName: file.name,
+      fileSizeBytes: file.size,
+    },
+  )
+  return response.data.data
+}
+
+export async function uploadVoucherPoolCsvToS3(upload, file, signal) {
+  const response = await fetch(upload.uploadUrl, {
+    method: upload.method,
+    headers: {
+      'Content-Type': upload.contentType,
+    },
+    body: file,
+    signal,
+  })
+
+  if (!response.ok) {
+    throw new Error(`S3_UPLOAD_FAILED_${response.status}`)
+  }
+}
+
+export async function createVoucherPoolImportJob(voucherDefinitionId, importFileKey) {
+  const response = await httpClient.post(
+    `/voucher-definitions/${voucherDefinitionId}/pool-imports`,
+    { importFileKey },
+  )
   return response.data.data
 }
 

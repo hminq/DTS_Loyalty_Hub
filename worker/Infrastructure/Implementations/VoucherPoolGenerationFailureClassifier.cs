@@ -3,6 +3,7 @@ using Core.Entities;
 using Core.Entities.Constants;
 using Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Infrastructure.Implementations;
 
@@ -17,7 +18,11 @@ public sealed class VoucherPoolGenerationFailureClassifier
                 new VoucherPoolGenerationFailure(
                     generationException.ErrorCode,
                     generationException.Retriable),
-            DbUpdateException =>
+            VoucherPoolImportException importException =>
+                new VoucherPoolGenerationFailure(
+                    importException.ErrorCode,
+                    importException.Retriable),
+            DbUpdateException or NpgsqlException =>
                 new VoucherPoolGenerationFailure(
                     VoucherPoolGenerationErrorCodes.DatabaseError,
                     true),
