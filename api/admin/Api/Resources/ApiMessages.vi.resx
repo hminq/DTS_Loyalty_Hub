@@ -137,5 +137,6 @@
   <data name="VOUCHER_PERCENT_REWARD_VALUE_INVALID" xml:space="preserve"><value>Phần trăm phần thưởng phải từ 1 đến 100.</value></data>
   <data name="VOUCHER_BANNER_IMAGE_KEY_INVALID" xml:space="preserve"><value>Đường dẫn ảnh banner không hợp lệ.</value></data>
   <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Không tìm thấy voucher của khách hàng.</value></data>
+  <data name="VOUCHER_REDEMPTION_NOT_FOUND" xml:space="preserve"><value>Không tìm thấy lịch sử cấp voucher yêu cầu.</value></data>
   <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Thời gian bắt đầu nhận voucher phải trước hoặc bằng thời gian kết thúc.</value></data>
 </root>

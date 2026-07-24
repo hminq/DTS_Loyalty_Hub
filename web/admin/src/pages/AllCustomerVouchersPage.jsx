@@ -1,22 +1,22 @@
-import { ClockCounterClockwiseIcon } from '@phosphor-icons/react'
+import { TicketIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { getCustomerRedeems } from '../api/customerVouchersApi'
-import { CustomerRedeemsTable } from '../components/customer-vouchers/CustomerRedeemsTable'
+import { getAllCustomerVouchers } from '../api/customerVouchersApi'
 import {
   CustomerVoucherHistoryFilters,
   hasCustomerVoucherFilters,
 } from '../components/customer-vouchers/CustomerVoucherHistoryFilters'
+import { CustomerVouchersTable } from '../components/customer-vouchers/CustomerVouchersTable'
 import { DataTableCard } from '../components/data-list/DataTableCard'
 import { EmptyState } from '../components/data-list/EmptyState'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 
-function VoucherRedemptionsPage() {
-  const { i18n, t } = useTranslation()
+function AllCustomerVouchersPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const page = readPositiveInteger(searchParams.get('page'), 1)
@@ -24,7 +24,6 @@ function VoucherRedemptionsPage() {
   const filters = useMemo(() => ({
     voucherKeyword: searchParams.get('voucherKeyword') || '',
     userKeyword: searchParams.get('userKeyword') || '',
-    campaignName: searchParams.get('campaignName') || '',
     rewardType: searchParams.get('rewardType') || '',
     redeemAtFrom: searchParams.get('redeemAtFrom') || '',
     redeemAtTo: searchParams.get('redeemAtTo') || '',
@@ -69,7 +68,7 @@ function VoucherRedemptionsPage() {
     else setIsLoading(true)
     setErrorMessage('')
 
-    getCustomerRedeems({ page, pageSize, ...filters }, controller.signal)
+    getAllCustomerVouchers({ page, pageSize, ...filters }, controller.signal)
       .then((response) => {
         if (controller.signal.aborted) return
 
@@ -84,7 +83,7 @@ function VoucherRedemptionsPage() {
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
-          setErrorMessage(error.message || t('voucherRedemptions.errors.loadList'))
+          setErrorMessage(error.message || t('customerVouchers.errors.loadList'))
         }
       })
       .finally(() => {
@@ -105,7 +104,6 @@ function VoucherRedemptionsPage() {
     updateSearchParams({
       voucherKeyword: '',
       userKeyword: '',
-      campaignName: '',
       rewardType: '',
       redeemAtFrom: '',
       redeemAtTo: '',
@@ -113,21 +111,15 @@ function VoucherRedemptionsPage() {
     })
   }
 
-  function viewRedemption(voucherRedemptionId) {
-    navigate(`/vouchers/redemptions/${voucherRedemptionId}`, {
-      state: { returnSearch: searchParams.toString() },
-    })
-  }
-
-  const filtered = hasCustomerVoucherFilters(filters, true)
+  const filtered = hasCustomerVoucherFilters(filters)
   const showEmptyState = !isLoading && items.length === 0
 
   return (
     <>
       <PageHeader
-        eyebrow={t('voucherRedemptions.eyebrow')}
-        title={t('voucherRedemptions.title')}
-        description={t('voucherRedemptions.description')}
+        eyebrow={t('customerVouchers.eyebrow')}
+        title={t('customerVouchers.title')}
+        description={t('customerVouchers.description')}
       />
 
       {errorMessage ? (
@@ -142,7 +134,6 @@ function VoucherRedemptionsPage() {
       <div className="mt-5">
         <CustomerVoucherHistoryFilters
           filters={filters}
-          includeCampaign
           onApply={applyFilters}
           onClear={clearFilters}
           presentation="popover"
@@ -151,22 +142,23 @@ function VoucherRedemptionsPage() {
         <DataTableCard>
           {showEmptyState ? (
             <EmptyState
-              icon={ClockCounterClockwiseIcon}
-              title={t(filtered ? 'voucherRedemptions.noResultsTitle' : 'voucherRedemptions.emptyTitle')}
-              description={t(filtered ? 'voucherRedemptions.noResultsDescription' : 'voucherRedemptions.emptyDescription')}
+              icon={TicketIcon}
+              title={t(filtered ? 'customerVouchers.noResultsTitle' : 'customerVouchers.emptyTitle')}
+              description={t(filtered ? 'customerVouchers.noResultsDescription' : 'customerVouchers.emptyDescription')}
               filtered={filtered}
               onClearSearch={clearFilters}
               t={t}
             />
           ) : (
             <>
-              <CustomerRedeemsTable
+              <CustomerVouchersTable
                 items={items}
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
-                language={i18n.resolvedLanguage}
+                onView={(voucher) => navigate(`/vouchers/customer-vouchers/${voucher.cusVoucherId}`, {
+                  state: { returnSearch: searchParams.toString() },
+                })}
                 t={t}
-                onView={viewRedemption}
               />
               <ListPagination
                 meta={meta}
@@ -177,6 +169,7 @@ function VoucherRedemptionsPage() {
           )}
         </DataTableCard>
       </div>
+
     </>
   )
 }
@@ -186,4 +179,4 @@ function readPositiveInteger(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
 
-export { VoucherRedemptionsPage }
+export { AllCustomerVouchersPage }

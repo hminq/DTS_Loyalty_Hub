@@ -30,4 +30,8 @@ public interface ICustomerVoucherRepository
         string? campaignName,
         string? userKeyword,
         CancellationToken ct = default);
+
+    Task<CustomerRedeemDetailResult?> GetRedeemDetailAsync(
+        Guid voucherRedemptionId,
+        CancellationToken ct = default);
 }
