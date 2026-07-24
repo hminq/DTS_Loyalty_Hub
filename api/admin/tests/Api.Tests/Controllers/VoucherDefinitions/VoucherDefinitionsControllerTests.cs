@@ -26,6 +26,8 @@ public sealed class VoucherDefinitionsControllerTests
     private readonly Mock<ICurrentAdminContext> _adminContext = new();
     private readonly Mock<IValidator<GetVoucherDefinitionsRequestDto>> _getValidator = new();
     private readonly Mock<IValidator<CreateVoucherDefinitionRequestDto>> _createValidator = new();
+    private readonly Mock<IValidator<CreateVoucherPoolImportUploadUrlRequestDto>> _importUploadValidator = new();
+    private readonly Mock<IValidator<CreateVoucherPoolImportJobRequestDto>> _importJobValidator = new();
 
     [Fact]
     public async Task Create_ValidRequest_SendsCommandWithActorAndReturnsCreatedAtAction()
@@ -171,6 +173,40 @@ public sealed class VoucherDefinitionsControllerTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task GetImportTemplate_ReturnsWrappedDownload()
+    {
+        var expected = new VoucherImportTemplateResult(
+            "https://example.test/template.csv",
+            "import-code-template.csv",
+            new DateTimeOffset(
+                2026,
+                7,
+                24,
+                10,
+                15,
+                0,
+                TimeSpan.Zero));
+        _sender.Setup(x => x.Send(
+                It.IsAny<GetVoucherImportTemplateQuery>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var controller = CreateController();
+
+        var actionResult = await controller.GetImportTemplate(
+            CancellationToken.None);
+
+        var ok = actionResult.Result.Should().BeOfType<OkObjectResult>().Which;
+        var response = ok.Value.Should()
+            .BeOfType<ApiResponseDto<VoucherImportTemplateResponseDto>>().Which;
+        response.Data.DownloadUrl.Should().Be(expected.DownloadUrl);
+        response.Data.FileName.Should().Be(expected.FileName);
+        response.Data.ExpiresAt.Should().Be(expected.ExpiresAt);
+        _sender.Verify(x => x.Send(
+            It.IsAny<GetVoucherImportTemplateQuery>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private VoucherDefinitionsController CreateController()
     {
         return new(
@@ -178,6 +214,8 @@ public sealed class VoucherDefinitionsControllerTests
             _adminContext.Object,
             _getValidator.Object,
             _createValidator.Object,
+            _importUploadValidator.Object,
+            _importJobValidator.Object,
             CreateValidationErrorMapper());
     }
 

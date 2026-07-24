@@ -46,6 +46,8 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<VoucherDefinition> VoucherDefinitions { get; set; }
 
+    public virtual DbSet<VoucherPoolImportRow> VoucherPoolImportRows { get; set; }
+
     public virtual DbSet<VoucherPool> VoucherPools { get; set; }
 
     public virtual DbSet<VoucherPoolProvisioningJob> VoucherPoolProvisioningJobs { get; set; }
@@ -809,6 +811,37 @@ public partial class LoyaltyHubDbContext : DbContext
                 .WithMany(p => p.VoucherPoolProvisioningJobs)
                 .HasForeignKey(d => d.VoucherDefId)
                 .HasConstraintName("fk_voucher_pool_provisioning_jobs_definition");
+        });
+
+        modelBuilder.Entity<VoucherPoolImportRow>(entity =>
+        {
+            entity.HasKey(e => new { e.JobId, e.RowNumber })
+                .HasName("pk_voucher_pool_import_rows");
+
+            entity.ToTable("voucher_pool_import_rows");
+
+            entity.HasIndex(
+                    e => new { e.JobId, e.VoucherCode },
+                    "uq_voucher_pool_import_rows_job_code")
+                .IsUnique();
+
+            entity.HasIndex(
+                    e => e.VoucherPoolId,
+                    "uq_voucher_pool_import_rows_pool_id")
+                .IsUnique();
+
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.RowNumber).HasColumnName("row_number");
+            entity.Property(e => e.VoucherPoolId).HasColumnName("voucher_pool_id");
+            entity.Property(e => e.VoucherCode)
+                .HasMaxLength(200)
+                .HasColumnName("voucher_code");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+            entity.HasOne(d => d.Job)
+                .WithMany(p => p.VoucherPoolImportRows)
+                .HasForeignKey(d => d.JobId)
+                .HasConstraintName("fk_voucher_pool_import_rows_job");
         });
 
         modelBuilder.Entity<VoucherRedemption>(entity =>

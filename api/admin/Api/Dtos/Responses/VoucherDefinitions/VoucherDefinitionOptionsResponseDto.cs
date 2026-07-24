@@ -8,4 +8,5 @@ public sealed record VoucherDefinitionOptionsResponseDto(
     VoucherDefinitionConstraintsResponseDto Constraints);
 
 public sealed record VoucherDefinitionConstraintsResponseDto(
-    int MaxTotalStock);
+    int MaxTotalStock,
+    int MaxImportedTotalStock);

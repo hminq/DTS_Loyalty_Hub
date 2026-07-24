@@ -219,7 +219,7 @@ public class VoucherDefinition
         ValidateGenerationTypeForPublishType(generationType, publishType);
         ValidateRewardType(rewardType, rewardValue);
         ValidateValidityType(validityType, validFrom, validTo, durationDay, now);
-        ValidateTotalStock(totalStock);
+        ValidateTotalStock(totalStock, generationType);
     }
 
     private static void ValidateBannerImageUrl(string? bannerImageUrl)
@@ -400,11 +400,17 @@ public class VoucherDefinition
         }
     }
 
-    private static void ValidateTotalStock(int totalStock)
+    private static void ValidateTotalStock(int totalStock, string generationType)
     {
         if (totalStock <= 0 || totalStock > VoucherDefinitionLimits.MaxTotalStock)
         {
             throw ValidationError("VOUCHER_TOTAL_STOCK_INVALID");
+        }
+
+        if (VoucherGenerationTypes.Normalize(generationType) == VoucherGenerationTypes.Imported &&
+            totalStock > VoucherDefinitionLimits.MaxImportedTotalStock)
+        {
+            throw ValidationError("VOUCHER_IMPORTED_TOTAL_STOCK_INVALID");
         }
     }
 

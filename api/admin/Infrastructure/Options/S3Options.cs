@@ -12,13 +12,17 @@ public sealed class S3Options
         string bucket,
         string accessKeyId,
         string secretAccessKey,
-        int presignedUrlExpirationMinutes)
+        int presignedUrlExpirationMinutes,
+        string importTemplateFileKey,
+        long voucherPoolImportMaximumFileSizeBytes)
     {
         Region = region;
         Bucket = bucket;
         AccessKeyId = accessKeyId;
         SecretAccessKey = secretAccessKey;
         PresignedUrlExpirationMinutes = presignedUrlExpirationMinutes;
+        ImportTemplateFileKey = importTemplateFileKey;
+        VoucherPoolImportMaximumFileSizeBytes = voucherPoolImportMaximumFileSizeBytes;
     }
 
     public string Region { get; }
@@ -26,6 +30,8 @@ public sealed class S3Options
     public string AccessKeyId { get; }
     public string SecretAccessKey { get; }
     public int PresignedUrlExpirationMinutes { get; }
+    public string ImportTemplateFileKey { get; }
+    public long VoucherPoolImportMaximumFileSizeBytes { get; }
 
     public static S3Options FromConfiguration(IConfiguration configuration)
     {
@@ -34,7 +40,9 @@ public sealed class S3Options
             ReadRequired(configuration, "AWS_S3_BUCKET"),
             ReadRequired(configuration, "AWS_ACCESS_KEY_ID"),
             ReadRequired(configuration, "AWS_SECRET_ACCESS_KEY"),
-            ReadExpirationMinutes(configuration));
+            ReadExpirationMinutes(configuration),
+            ReadRequired(configuration, "IMPORT_TEMPLATE_FILE_KEY"),
+            ReadPositiveLong(configuration, "VOUCHER_POOL_IMPORT_MAX_FILE_SIZE_BYTES"));
     }
 
     private static int ReadExpirationMinutes(IConfiguration configuration)
@@ -67,5 +75,16 @@ public sealed class S3Options
         }
 
         return value.Trim();
+    }
+
+    private static long ReadPositiveLong(IConfiguration configuration, string key)
+    {
+        if (!long.TryParse(configuration[key], out var value) || value <= 0)
+        {
+            throw new InvalidOperationException(
+                $"{key} must be a positive integer.");
+        }
+
+        return value;
     }
 }

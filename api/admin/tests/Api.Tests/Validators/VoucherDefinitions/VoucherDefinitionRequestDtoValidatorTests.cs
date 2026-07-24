@@ -171,6 +171,21 @@ public sealed class VoucherDefinitionRequestDtoValidatorTests
     }
 
     [Fact]
+    public void Create_ImportedStockAboveMaximum_ReturnsStockError()
+    {
+        var request = ValidPublicFixedRequest();
+        request.Code = null;
+        request.PublishType = VoucherPublishTypes.Private;
+        request.GenerationType = VoucherGenerationTypes.Imported;
+        request.TotalStock = VoucherDefinitionLimits.MaxImportedTotalStock + 1;
+
+        var result = _createValidator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor("totalStock")
+            .WithErrorCode("VOUCHER_IMPORTED_TOTAL_STOCK_INVALID");
+    }
+
+    [Fact]
     public void GetPaged_InvalidPagingAndKeyword_ReturnExpectedErrors()
     {
         var request = new GetVoucherDefinitionsRequestDto
