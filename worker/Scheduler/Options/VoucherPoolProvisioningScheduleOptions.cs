@@ -3,11 +3,11 @@ using Quartz;
 
 namespace Scheduler.Options;
 
-public sealed class VoucherPoolGenerationScheduleOptions
+public sealed class VoucherPoolProvisioningScheduleOptions
 {
-    private const string CronKey = "VOUCHER_POOL_GENERATION_CRON";
-    private const string TimeZoneKey = "VOUCHER_POOL_GENERATION_TIME_ZONE";
-    private const string BatchSizeKey = "VOUCHER_POOL_GENERATION_BATCH_SIZE";
+    private const string CronKey = "VOUCHER_POOL_PROVISIONING_CRON";
+    private const string TimeZoneKey = "VOUCHER_POOL_PROVISIONING_TIME_ZONE";
+    private const string BatchSizeKey = "VOUCHER_POOL_PROVISIONING_BATCH_SIZE";
     private const int MaximumBatchSize = 10_000;
 
     public string Cron { get; init; } = string.Empty;
@@ -16,7 +16,7 @@ public sealed class VoucherPoolGenerationScheduleOptions
 
     public int BatchSize { get; init; }
 
-    public static VoucherPoolGenerationScheduleOptions FromConfiguration(
+    public static VoucherPoolProvisioningScheduleOptions FromConfiguration(
         IConfiguration configuration)
     {
         var cron = configuration[CronKey];
@@ -54,7 +54,7 @@ public sealed class VoucherPoolGenerationScheduleOptions
                 $"Configuration '{BatchSizeKey}' must be an integer between 1 and {MaximumBatchSize}.");
         }
 
-        return new VoucherPoolGenerationScheduleOptions
+        return new VoucherPoolProvisioningScheduleOptions
         {
             Cron = cron,
             TimeZone = timeZone,

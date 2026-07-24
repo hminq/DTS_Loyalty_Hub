@@ -7,6 +7,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 
 namespace Infrastructure;
 
@@ -17,11 +20,23 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var databaseOptions = DatabaseOptions.FromConfiguration(configuration);
+        var voucherPoolImportOptions =
+            VoucherPoolImportOptions.FromConfiguration(configuration);
 
         services.AddDbContext<LoyaltyHubDbContext>(options =>
             options.UseNpgsql(databaseOptions.ConnectionString));
 
         services.AddSingleton(databaseOptions);
+        services.AddSingleton(voucherPoolImportOptions);
+        services.AddSingleton<IAmazonS3>(provider =>
+        {
+            var importOptions = provider.GetRequiredService<VoucherPoolImportOptions>();
+            return new AmazonS3Client(
+                new BasicAWSCredentials(
+                    importOptions.AccessKeyId,
+                    importOptions.SecretAccessKey),
+                RegionEndpoint.GetBySystemName(importOptions.Region));
+        });
 
         services.AddScoped<ICustomerTierRepository, CustomerTierRepository>();
         services.AddScoped<ICustomerTierMutationStore, CustomerTierMutationStore>();
@@ -30,6 +45,9 @@ public static class DependencyInjection
             provider => provider.GetRequiredService<VoucherPoolProvisioningStore>());
         services.AddScoped<IVoucherPoolMutationStore>(
             provider => provider.GetRequiredService<VoucherPoolProvisioningStore>());
+        services.AddScoped<IVoucherPoolImportStore>(
+            provider => provider.GetRequiredService<VoucherPoolProvisioningStore>());
+        services.AddScoped<IVoucherPoolImportFileReader, S3VoucherPoolImportFileReader>();
         services.AddSingleton<IVoucherCodeGenerator, CryptographicVoucherCodeGenerator>();
         services.AddSingleton<IVoucherPoolGenerationFailureClassifier, VoucherPoolGenerationFailureClassifier>();
 

@@ -36,7 +36,7 @@ if (builder.Environment.IsDevelopment())
 
 var scheduleOptions = TierExpirationScheduleOptions.FromConfiguration(builder.Configuration);
 var voucherPoolScheduleOptions =
-    VoucherPoolGenerationScheduleOptions.FromConfiguration(builder.Configuration);
+    VoucherPoolProvisioningScheduleOptions.FromConfiguration(builder.Configuration);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(scheduleOptions);
@@ -56,9 +56,9 @@ builder.Services.AddQuartz(quartz =>
                 .InTimeZone(TimeZoneInfo.FindSystemTimeZoneById(scheduleOptions.TimeZone))
                 .WithMisfireHandlingInstructionDoNothing()));
 
-    var voucherPoolJobKey = new JobKey(nameof(ProcessVoucherPoolGenerationJob));
+    var voucherPoolJobKey = new JobKey(nameof(ProcessVoucherPoolProvisioningJob));
 
-    quartz.AddJob<ProcessVoucherPoolGenerationJob>(
+    quartz.AddJob<ProcessVoucherPoolProvisioningJob>(
         job => job.WithIdentity(voucherPoolJobKey));
     quartz.AddTrigger(trigger => trigger
         .ForJob(voucherPoolJobKey)

@@ -12,7 +12,7 @@ using Scheduler.Options;
 
 namespace Scheduler.Tests.Jobs;
 
-public sealed class ProcessVoucherPoolGenerationJobTests
+public sealed class ProcessVoucherPoolProvisioningJobTests
 {
     private static readonly DateTimeOffset Now =
         new(2026, 7, 23, 3, 4, 5, TimeSpan.Zero);
@@ -95,26 +95,96 @@ public sealed class ProcessVoucherPoolGenerationJobTests
             CancellationToken.None), Times.Once);
     }
 
-    private static ProcessVoucherPoolGenerationJob CreateJob(
-        ISender sender,
-        IVoucherPoolGenerationFailureClassifier? classifier = null)
+    [Fact]
+    public async Task Execute_ImportedJob_StagesFinalPartialBatchAndCompletes()
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton(sender)
-            .BuildServiceProvider();
-        var options = new VoucherPoolGenerationScheduleOptions
+        var jobId = Guid.NewGuid();
+        var sender = new Mock<ISender>();
+        var reader = new Mock<IVoucherPoolImportFileReader>();
+        var context = Context();
+        sender.Setup(item => item.Send(
+                It.IsAny<StartOrResumeVoucherPoolGenerationCommand>(),
+                context.Object.CancellationToken))
+            .ReturnsAsync(new StartOrResumeVoucherPoolGenerationResult(
+                true,
+                jobId,
+                10,
+                0,
+                false,
+                VoucherPoolProvisioningJobTypes.Imported,
+                $"voucher_defs/{Guid.NewGuid():D}/imports/{Guid.NewGuid():D}.csv"));
+        sender.Setup(item => item.Send(
+                It.IsAny<StageVoucherPoolImportBatchCommand>(),
+                context.Object.CancellationToken))
+            .ReturnsAsync((IRequest<StageVoucherPoolImportBatchResult> request, CancellationToken _) =>
+            {
+                var command = (StageVoucherPoolImportBatchCommand)request;
+                return new StageVoucherPoolImportBatchResult(
+                    command.Rows.Count,
+                    command.StartProcessedCount + command.Rows.Count);
+            });
+        sender.Setup(item => item.Send(
+                It.IsAny<CompleteVoucherPoolImportCommand>(),
+                context.Object.CancellationToken))
+            .Returns(Task.CompletedTask);
+        reader.Setup(item => item.ReadAsync(
+                It.IsAny<string>(),
+                context.Object.CancellationToken))
+            .Returns(ImportRows(10));
+
+        var job = CreateJob(sender.Object, importReader: reader.Object);
+
+        await job.Execute(context.Object);
+
+        sender.Verify(item => item.Send(
+            It.Is<StageVoucherPoolImportBatchCommand>(command =>
+                command.Rows.Count == 4),
+            context.Object.CancellationToken), Times.Exactly(2));
+        sender.Verify(item => item.Send(
+            It.Is<StageVoucherPoolImportBatchCommand>(command =>
+                command.Rows.Count == 2 &&
+                command.StartProcessedCount == 8),
+            context.Object.CancellationToken), Times.Once);
+        sender.Verify(item => item.Send(
+            It.Is<CompleteVoucherPoolImportCommand>(command => command.JobId == jobId),
+            context.Object.CancellationToken), Times.Once);
+    }
+
+    private static ProcessVoucherPoolProvisioningJob CreateJob(
+        ISender sender,
+        IVoucherPoolGenerationFailureClassifier? classifier = null,
+        IVoucherPoolImportFileReader? importReader = null)
+    {
+        var services = new ServiceCollection().AddSingleton(sender);
+        if (importReader is not null)
+        {
+            services.AddSingleton(importReader);
+        }
+        var serviceProvider = services.BuildServiceProvider();
+        var options = new VoucherPoolProvisioningScheduleOptions
         {
             Cron = "0/10 * * * * ?",
             TimeZone = "Asia/Ho_Chi_Minh",
             BatchSize = 4
         };
 
-        return new ProcessVoucherPoolGenerationJob(
+        return new ProcessVoucherPoolProvisioningJob(
             serviceProvider.GetRequiredService<IServiceScopeFactory>(),
             classifier ?? Mock.Of<IVoucherPoolGenerationFailureClassifier>(),
             options,
             new FixedTimeProvider(Now),
-            NullLogger<ProcessVoucherPoolGenerationJob>.Instance);
+            NullLogger<ProcessVoucherPoolProvisioningJob>.Instance);
+    }
+
+    private static async IAsyncEnumerable<VoucherPoolImportRawRow> ImportRows(int count)
+    {
+        for (var rowNumber = 1; rowNumber <= count; rowNumber++)
+        {
+            yield return new VoucherPoolImportRawRow(
+                rowNumber,
+                $"CODE-{rowNumber}");
+            await Task.Yield();
+        }
     }
 
     private static Mock<IJobExecutionContext> Context()
