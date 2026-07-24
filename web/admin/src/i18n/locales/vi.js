@@ -3,6 +3,8 @@ export const vi = {
     adminPortal: 'Cổng quản trị',
     language: 'Ngôn ngữ',
     cancel: 'Hủy',
+    save: 'Lưu',
+    saving: 'Đang lưu...',
     clearFilters: 'Xóa bộ lọc',
     retry: 'Thử lại',
     refreshing: 'Đang làm mới...',
@@ -864,6 +866,7 @@ export const vi = {
     emptyTitle: 'Chưa có mẫu nào',
     emptyDescription: 'Hãy tạo mẫu thông báo đầu tiên để bắt đầu tương tác với khách hàng.',
     clearFilters: 'Xóa bộ lọc',
+  },
   voucherPools: {
     eyebrow: 'Cấu hình voucher',
     title: 'Kho mã voucher',

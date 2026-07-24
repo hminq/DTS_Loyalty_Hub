@@ -3,6 +3,8 @@ export const en = {
     adminPortal: 'Admin portal',
     language: 'Language',
     cancel: 'Cancel',
+    save: 'Save',
+    saving: 'Saving...',
     clearFilters: 'Clear filters',
     retry: 'Retry',
     refreshing: 'Refreshing...',
@@ -876,6 +878,7 @@ export const en = {
     emptyTitle: 'No templates yet',
     emptyDescription: 'Create your first notification template to start engaging customers.',
     clearFilters: 'Clear filters',
+  },
   voucherPools: {
     eyebrow: 'Voucher definitions',
     title: 'Voucher pools',
