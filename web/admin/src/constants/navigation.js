@@ -57,10 +57,16 @@ const navigationItems = [
         permission: PermissionCodes.VoucherDefinitions.View,
       },
       {
+        id: 'customer-vouchers',
+        labelKey: 'navigation.customerVouchers',
+        path: '/vouchers/customer-vouchers',
+        permission: PermissionCodes.CustomerVouchers.View,
+      },
+      {
         id: 'voucher-redemptions',
         labelKey: 'navigation.voucherRedemptions',
         path: '/vouchers/redemptions',
-        permission: PermissionCodes.VoucherDefinitions.View,
+        permission: PermissionCodes.CustomerVouchers.View,
       },
     ],
   },

@@ -2,6 +2,7 @@ using Core.Abstractions;
 using Core.Exceptions;
 using Core.UseCases.Common;
 using Core.UseCases.CustomerVouchers.Handlers;
+using Core.UseCases.CustomerVouchers.Queries.GetCustomerRedeemDetail;
 using Core.UseCases.CustomerVouchers.Queries.GetCustomerRedeems;
 using Core.UseCases.CustomerVouchers.Queries.GetCustomerVoucherDetail;
 using Core.UseCases.CustomerVouchers.Queries.GetCustomerVouchers;
@@ -90,6 +91,78 @@ public sealed class CustomerVoucherQueryHandlerTests
         var exception = await action.Should().ThrowAsync<DomainException>();
         exception.Which.ErrorCode.Should().Be("CUSTOMER_VOUCHER_NOT_FOUND");
         exception.Which.ErrorType.Should().Be(DomainErrorType.NotFound);
+    }
+
+    [Fact]
+    public async Task GetRedeemDetail_ForwardsRedemptionId()
+    {
+        var voucherRedemptionId = Guid.NewGuid();
+        var result = new CustomerRedeemDetailResult(
+            voucherRedemptionId,
+            new DateTime(2026, 7, 24, 9, 30, 0, DateTimeKind.Utc),
+            new CustomerRedeemCustomerResult(Guid.NewGuid(), "john_doe", "john@example.com", null),
+            new CustomerRedeemVoucherResult(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                null,
+                "Welcome Gift",
+                null,
+                null,
+                "WELCOME-0001",
+                "GIFT",
+                null,
+                "NONE",
+                new DateTime(2026, 7, 24, 9, 30, 0, DateTimeKind.Utc),
+                new DateTime(2026, 8, 24, 9, 30, 0, DateTimeKind.Utc)),
+            new CustomerRedeemIssuanceSourceResult(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+
+        _repository.Setup(repository => repository.GetRedeemDetailAsync(
+                voucherRedemptionId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+
+        var actual = await new GetCustomerRedeemDetailQueryHandler(_repository.Object)
+            .Handle(new GetCustomerRedeemDetailQuery(voucherRedemptionId), CancellationToken.None);
+
+        actual.Should().BeSameAs(result);
+        _repository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetRedeemDetail_WhenNotFound_ThrowsNotFound()
+    {
+        _repository.Setup(repository => repository.GetRedeemDetailAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerRedeemDetailResult?)null);
+
+        var action = () => new GetCustomerRedeemDetailQueryHandler(_repository.Object)
+            .Handle(new GetCustomerRedeemDetailQuery(Guid.NewGuid()), CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("VOUCHER_REDEMPTION_NOT_FOUND");
+        exception.Which.ErrorType.Should().Be(DomainErrorType.NotFound);
+    }
+
+    [Fact]
+    public async Task GetRedeemDetail_WhenIdEmpty_ThrowsNotFoundWithoutCallingRepository()
+    {
+        var action = () => new GetCustomerRedeemDetailQueryHandler(_repository.Object)
+            .Handle(new GetCustomerRedeemDetailQuery(Guid.Empty), CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("VOUCHER_REDEMPTION_NOT_FOUND");
+        exception.Which.ErrorType.Should().Be(DomainErrorType.NotFound);
+        _repository.VerifyNoOtherCalls();
     }
 
     [Fact]

@@ -137,5 +137,6 @@
   <data name="VOUCHER_PERCENT_REWARD_VALUE_INVALID" xml:space="preserve"><value>Percentage reward value must be between 1 and 100.</value></data>
   <data name="VOUCHER_BANNER_IMAGE_KEY_INVALID" xml:space="preserve"><value>Banner image key is invalid.</value></data>
   <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Customer voucher does not exist.</value></data>
+  <data name="VOUCHER_REDEMPTION_NOT_FOUND" xml:space="preserve"><value>The requested voucher redemption record was not found.</value></data>
   <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Redeem from date must be earlier than or equal to redeem to date.</value></data>
 </root>
