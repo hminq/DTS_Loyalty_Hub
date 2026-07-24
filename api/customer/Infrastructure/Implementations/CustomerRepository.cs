@@ -51,4 +51,29 @@ public sealed class CustomerRepository : ICustomerRepository
 
         return new ProfileAndWalletResult(profile, wallet);
     }
+
+    public async Task<CustomerWithTiersResult?> GetCustomerWithTiersAsync(
+        Guid customerId,
+        CancellationToken ct)
+    {
+        var customer = await _dbContext.Customers
+            .AsNoTracking()
+            .Include(c => c.User)
+            .Include(c => c.Tier)
+            .Include(c => c.NextTier)
+            .Where(c => c.CustomerId == customerId)
+            .FirstOrDefaultAsync(ct);
+
+        if (customer is null)
+        {
+            return null;
+        }
+
+        return new CustomerWithTiersResult(
+            FullName: customer.User.FullName,
+            CurrentTierName: customer.Tier?.Name,
+            CurrentTierPoint: customer.CurrentTierPoint,
+            NextTierName: customer.NextTier?.Name,
+            NextTierPoint: customer.NextTierPoint);
+    }
 }

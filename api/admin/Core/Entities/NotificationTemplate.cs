@@ -65,7 +65,7 @@ public class NotificationTemplate
             name.Trim(),
             titleTemplate.Trim(),
             bodyTemplate.Trim(),
-            true, // Default is active
+            false, // Default is inactive
             createdBy,
             DateTime.UtcNow,
             DateTime.UtcNow);

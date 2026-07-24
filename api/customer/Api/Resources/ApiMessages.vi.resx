@@ -29,6 +29,7 @@
   <data name="USERNAME_REQUIRED" xml:space="preserve"><value>Tên đăng nhập là bắt buộc.</value></data>
   <data name="USERNAME_TOO_LONG" xml:space="preserve"><value>Tên đăng nhập không được vượt quá {MaxLength} ký tự.</value></data>
   <data name="UNAUTHORIZED" xml:space="preserve"><value>Token khách hàng không hợp lệ hoặc bị thiếu.</value></data>
+  <data name="NO_ACTIVE_TEMPLATE" xml:space="preserve"><value>Không tìm thấy mẫu thông báo nào đang hoạt động cho sự kiện này.</value></data>
   <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Không tìm thấy voucher của khách hàng.</value></data>
   <data name="PAGE_INVALID" xml:space="preserve"><value>Trang phải lớn hơn hoặc bằng 1.</value></data>
   <data name="PAGE_SIZE_INVALID" xml:space="preserve"><value>Kích thước trang phải từ 1 đến 100.</value></data>

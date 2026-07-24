@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
+        services.AddScoped<INotificationTemplateQueryService, NotificationTemplateQueryService>();
+        services.AddScoped<ITemplateEngine, Infrastructure.Implementations.TemplateEngine>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SaveChangesBehavior<,>));
 

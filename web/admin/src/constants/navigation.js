@@ -5,6 +5,7 @@ import {
   IdentificationBadgeIcon,
   TicketIcon,
   UsersThreeIcon,
+  BellIcon,
 } from '@phosphor-icons/react'
 
 import { PermissionCodes } from './permissionCodes'
@@ -77,6 +78,13 @@ const navigationItems = [
     icon: ChartLineUpIcon,
     path: '/audit-logs',
     permission: PermissionCodes.AuditLogs.View,
+  },
+  {
+    id: 'notification-templates',
+    labelKey: 'navigation.notificationTemplates',
+    icon: BellIcon,
+    path: '/notification-templates',
+    permission: PermissionCodes.NotificationTemplates.View,
   },
 ]
 

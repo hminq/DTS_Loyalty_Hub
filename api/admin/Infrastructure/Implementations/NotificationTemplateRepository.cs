@@ -164,4 +164,25 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
         persistedTemplate.IsActive = template.IsActive;
         persistedTemplate.UpdatedAt = template.UpdatedAt;
     }
+
+    public async Task DeactivateOtherTemplatesAsync(Guid excludeTemplateId, Guid notificationEventTypeId, string channel, string language, CancellationToken ct = default)
+    {
+        var otherActiveTemplates = await _dbContext.NotificationTemplates
+            .Where(t => t.NotificationEventTypeId == notificationEventTypeId &&
+                        t.Channel == channel &&
+                        t.Language == language &&
+                        t.IsActive &&
+                        t.TemplateId != excludeTemplateId)
+            .ToListAsync(ct);
+
+        if (otherActiveTemplates.Any())
+        {
+            foreach (var t in otherActiveTemplates)
+            {
+                t.IsActive = false;
+                t.UpdatedAt = DateTime.UtcNow;
+            }
+            await _dbContext.SaveChangesAsync(ct);
+        }
+    }
 }

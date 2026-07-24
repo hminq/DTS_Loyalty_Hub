@@ -15,4 +15,5 @@ public interface INotificationTemplateRepository
     Task<NotificationTemplate?> GetEntityByIdAsync(Guid templateId, CancellationToken ct = default);
     NotificationTemplate Add(NotificationTemplate template);
     Task UpdateAsync(NotificationTemplate template, CancellationToken ct = default);
+    Task DeactivateOtherTemplatesAsync(Guid excludeTemplateId, Guid notificationEventTypeId, string channel, string language, CancellationToken ct = default);
 }
