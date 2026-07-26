@@ -156,4 +156,5 @@ jobs:
             cd "${{ secrets.VPS_APP_DIR }}"
             IMAGE_TAG="${{ github.sha }}" docker compose pull admin-api customer-api consumer scheduler nginx
             IMAGE_TAG="${{ github.sha }}" docker compose up -d
+            docker exec nginx nginx -s reload
             docker image prune -f
