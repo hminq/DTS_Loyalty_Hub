@@ -14,8 +14,13 @@ export const en = {
     pagination: {
       rowsPerPage: 'Rows per page',
       previous: 'Previous page',
-      next: 'Next page',
       page: 'Page {{page}} of {{totalPages}}',
+    },
+    filters: {
+      filter: 'Filter',
+      apply: 'Apply',
+      clearAll: 'Clear all',
+      removeFilter: 'Remove {{label}} filter',
     },
   },
   roleSelector: {
@@ -129,6 +134,10 @@ export const en = {
       view: 'View',
       edit: 'Edit',
       delete: 'Delete',
+    },
+    filters: {
+      searchLabel: 'Search roles',
+      searchPlaceholder: 'Search name or description',
     },
     form: {
       name: 'Role name',
@@ -618,9 +627,12 @@ export const en = {
       metadataTitle: 'Metadata',
       identityTitle: 'Identity & Metadata',
       rewardTitle: 'Reward Rules',
+      rulesTitle: 'Reward & validity rules',
       inventoryTitle: 'Inventory Stock',
       voucherCodeImportTitle: 'Voucher code import',
       voucherCodeImportDescription: 'Upload voucher codes from the completed CSV template.',
+      voucherCodeGenerationTitle: 'Voucher code generation',
+      voucherCodeGenerationDescription: 'Voucher codes are generated automatically in the background.',
       importVoucherCodes: 'Import voucher codes',
       importVoucherCodesUnavailable: 'CSV import will be enabled when the import service is connected.',
       validityTitle: 'Validity Rules',
@@ -676,6 +688,20 @@ export const en = {
         VOUCHER_POOL_IMPORT_S3_ERROR: 'The CSV could not be read from storage.',
         VOUCHER_POOL_IMPORT_DATABASE_ERROR: 'The import could not be saved.',
         VOUCHER_POOL_IMPORT_UNEXPECTED_ERROR: 'The import failed unexpectedly.',
+      },
+    },
+    generation: {
+      status: {
+        PENDING: 'Waiting to generate',
+        PROCESSING: 'Generating codes',
+        COMPLETED: 'Generation completed',
+        FAILED: 'Generation failed',
+      },
+      errors: {
+        VOUCHER_POOL_GENERATION_STATE_INVALID: 'The generation state is invalid.',
+        VOUCHER_POOL_GENERATION_CODE_COLLISION: 'Unique voucher codes could not be generated.',
+        VOUCHER_POOL_GENERATION_DATABASE_ERROR: 'The generated voucher codes could not be saved.',
+        VOUCHER_POOL_GENERATION_UNEXPECTED_ERROR: 'Code generation failed unexpectedly.',
       },
     },
     form: {

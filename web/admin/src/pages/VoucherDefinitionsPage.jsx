@@ -8,7 +8,7 @@ import { getVoucherDefinitionOptions, getVoucherDefinitions } from '../api/vouch
 import { DataTableCard } from '../components/data-list/DataTableCard'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
-import { VoucherDefinitionsFilters } from '../components/voucher-definitions/VoucherDefinitionsFilters'
+import { VoucherDefinitionsFilters, hasVoucherDefinitionFilters } from '../components/voucher-definitions/VoucherDefinitionsFilters'
 import { VoucherDefinitionsTable } from '../components/voucher-definitions/VoucherDefinitionsTable'
 import { mapVoucherDefinitionOptions } from '../components/voucher-definitions/voucherDefinitionOptions'
 import { Button } from '../components/ui/button'
@@ -29,7 +29,13 @@ function VoucherDefinitionsPage() {
   const validityType = searchParams.get('validityType') || ''
   const publishType = searchParams.get('publishType') || ''
 
-  const [keywordInput, setKeywordInput] = useState(keyword)
+  const filters = React.useMemo(() => ({
+    keyword,
+    rewardType,
+    validityType,
+    publishType,
+  }), [keyword, publishType, rewardType, validityType])
+
   const [items, setItems] = useState([])
   const [meta, setMeta] = useState({ page, pageSize, totalItems: 0, totalPages: 0 })
   const [isLoading, setIsLoading] = useState(true)
@@ -49,8 +55,7 @@ function VoucherDefinitionsPage() {
   )
 
   const canCreate = hasPermission(PermissionCodes.VoucherDefinitions.Create)
-
-  const hasActiveFilters = Boolean(keyword || rewardType || validityType || publishType)
+  const hasActiveFilters = hasVoucherDefinitionFilters(filters)
 
   const updateSearchParams = useCallback((updates, replace = false) => {
     setSearchParams((current) => {
@@ -68,10 +73,6 @@ function VoucherDefinitionsPage() {
   }, [pageSize, setSearchParams])
 
   useEffect(() => {
-    setKeywordInput(keyword)
-  }, [keyword])
-
-  useEffect(() => {
     if (location.state?.errorMessage) {
       setLoadError(location.state.errorMessage)
       window.history.replaceState({}, document.title)
@@ -87,17 +88,6 @@ function VoucherDefinitionsPage() {
       updateSearchParams({ page, pageSize }, true)
     }
   }, [page, pageSize, searchParams, updateSearchParams])
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const normalizedKeyword = keywordInput.trim()
-      if (normalizedKeyword !== keyword) {
-        updateSearchParams({ keyword: normalizedKeyword, page: 1 })
-      }
-    }, 300)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [keyword, keywordInput, updateSearchParams])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -161,10 +151,19 @@ function VoucherDefinitionsPage() {
     return () => controller.abort()
   }, [page, pageSize, keyword, rewardType, validityType, publishType, refreshKey, t, updateSearchParams])
 
-  const handleClearFilters = useCallback(() => {
-    setKeywordInput('')
-    updateSearchParams({ keyword: '', rewardType: '', validityType: '', publishType: '', page: 1 })
-  }, [updateSearchParams])
+  function applyFilters(nextFilters) {
+    updateSearchParams({ ...nextFilters, page: 1 })
+  }
+
+  function handleClearFilters() {
+    updateSearchParams({
+      keyword: '',
+      rewardType: '',
+      validityType: '',
+      publishType: '',
+      page: 1,
+    })
+  }
 
   const handleViewDetail = useCallback((id) => {
     navigate(`/voucher-definitions/${id}`, {
@@ -205,20 +204,14 @@ function VoucherDefinitionsPage() {
 
       <div className="mt-5">
         <VoucherDefinitionsFilters
-          keyword={keywordInput}
-          rewardType={rewardType}
-          validityType={validityType}
-          publishType={publishType}
+          filters={filters}
+          onApply={applyFilters}
+          onClear={handleClearFilters}
           options={options}
           isLoadingOptions={isLoadingOptions}
           optionsError={optionsError}
-          onKeywordChange={setKeywordInput}
-          onRewardTypeChange={(val) => updateSearchParams({ rewardType: val, page: 1 })}
-          onValidityTypeChange={(val) => updateSearchParams({ validityType: val, page: 1 })}
-          onPublishTypeChange={(val) => updateSearchParams({ publishType: val, page: 1 })}
           onRetryOptions={() => setOptionsRetryKey((k) => k + 1)}
-          onClearFilters={handleClearFilters}
-          t={t}
+          presentation="popover"
         />
 
         <DataTableCard>

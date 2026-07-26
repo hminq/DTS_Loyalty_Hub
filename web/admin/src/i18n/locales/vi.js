@@ -17,6 +17,12 @@ export const vi = {
       next: 'Trang sau',
       page: 'Trang {{page}} trên {{totalPages}}',
     },
+    filters: {
+      filter: 'Bộ lọc',
+      apply: 'Áp dụng',
+      clearAll: 'Xóa bộ lọc',
+      removeFilter: 'Xóa bộ lọc {{label}}',
+    },
   },
   roleSelector: {
     searchPlaceholder: 'Tìm vai trò',
@@ -129,6 +135,10 @@ export const vi = {
       view: 'Xem',
       edit: 'Chỉnh sửa',
       delete: 'Xóa',
+    },
+    filters: {
+      searchLabel: 'Tìm vai trò',
+      searchPlaceholder: 'Tìm theo tên hoặc mô tả',
     },
     form: {
       name: 'Tên vai trò',
@@ -618,9 +628,12 @@ export const vi = {
       metadataTitle: 'Metadata',
       identityTitle: 'Định danh & Dữ liệu',
       rewardTitle: 'Quy tắc phần thưởng',
+      rulesTitle: 'Phần thưởng và thời hạn',
       inventoryTitle: 'Tồn kho',
       voucherCodeImportTitle: 'Nhập mã voucher',
       voucherCodeImportDescription: 'Tải mã voucher lên từ mẫu CSV đã điền.',
+      voucherCodeGenerationTitle: 'Tạo mã voucher',
+      voucherCodeGenerationDescription: 'Mã voucher được tự động tạo ở chế độ nền.',
       importVoucherCodes: 'Nhập mã voucher',
       importVoucherCodesUnavailable: 'Chức năng nhập CSV sẽ được bật khi dịch vụ import được kết nối.',
       validityTitle: 'Thời hạn sử dụng',
@@ -676,6 +689,20 @@ export const vi = {
         VOUCHER_POOL_IMPORT_S3_ERROR: 'Không thể đọc CSV từ storage.',
         VOUCHER_POOL_IMPORT_DATABASE_ERROR: 'Không thể lưu dữ liệu import.',
         VOUCHER_POOL_IMPORT_UNEXPECTED_ERROR: 'Import thất bại ngoài dự kiến.',
+      },
+    },
+    generation: {
+      status: {
+        PENDING: 'Đang chờ tạo mã',
+        PROCESSING: 'Đang tạo mã',
+        COMPLETED: 'Tạo mã hoàn tất',
+        FAILED: 'Tạo mã thất bại',
+      },
+      errors: {
+        VOUCHER_POOL_GENERATION_STATE_INVALID: 'Trạng thái tạo mã không hợp lệ.',
+        VOUCHER_POOL_GENERATION_CODE_COLLISION: 'Không thể tạo đủ mã voucher duy nhất.',
+        VOUCHER_POOL_GENERATION_DATABASE_ERROR: 'Không thể lưu các mã voucher đã tạo.',
+        VOUCHER_POOL_GENERATION_UNEXPECTED_ERROR: 'Tạo mã thất bại ngoài dự kiến.',
       },
     },
     form: {
