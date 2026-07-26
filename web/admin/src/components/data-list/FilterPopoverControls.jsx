@@ -14,6 +14,7 @@ function FilterPopoverControls({
   onOpenChange,
   onRemoveFilter,
   removeFilterLabel,
+  triggerExtra = null,
 }) {
   const hasActiveFilters = activeFilters.length > 0
 
@@ -37,6 +38,8 @@ function FilterPopoverControls({
             {children}
           </PopoverContent>
         </Popover>
+
+        {triggerExtra}
 
         {hasActiveFilters ? (
           <Button type="button" variant="default" size="sm" onClick={onClearAll}>

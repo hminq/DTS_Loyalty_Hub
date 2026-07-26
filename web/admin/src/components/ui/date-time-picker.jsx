@@ -1,9 +1,9 @@
 import { CalendarBlankIcon } from '@phosphor-icons/react'
 import { format } from 'date-fns'
-import { DayPicker } from 'react-day-picker'
 
 import { cn } from '../../lib/utils'
 import { Button } from './button'
+import { Calendar } from './calendar'
 import { Input } from './input'
 import { Popover, PopoverContent, PopoverTrigger } from './popover'
 
@@ -14,7 +14,7 @@ function DateTimePicker({ value, onChange, placeholder, clearLabel, minDateTime,
     if (!date) return
     const next = new Date(date)
     next.setHours(selected?.getHours() ?? 0, selected?.getMinutes() ?? 0, 0, 0)
-    
+
     if (minDateTime && isSameDay(next, minDateTime)) {
       const minTimeMinutes = minDateTime.getHours() * 60 + minDateTime.getMinutes()
       const nextMinutes = next.getHours() * 60 + next.getMinutes()
@@ -22,21 +22,18 @@ function DateTimePicker({ value, onChange, placeholder, clearLabel, minDateTime,
         next.setHours(minDateTime.getHours(), minDateTime.getMinutes(), 0, 0)
       }
     }
-    
+
     onChange(next.toISOString())
   }
 
   function changeTime(event) {
-    if (!selected) return
+    if (!selected || !event.target.value) return
     const [hours, minutes] = event.target.value.split(':').map(Number)
     const next = new Date(selected)
     next.setHours(hours, minutes, 0, 0)
-    
+
     if (minDateTime && isSameDay(next, minDateTime) && next < minDateTime) {
-       // if time typed is earlier than minDateTime on the same day, we might reject or allow, 
-       // but typically we can rely on standard min attribute to prevent typing, though React allows controlled bypass. 
-       // So let's force it to minDateTime time if earlier.
-       next.setHours(minDateTime.getHours(), minDateTime.getMinutes(), 0, 0)
+      next.setHours(minDateTime.getHours(), minDateTime.getMinutes(), 0, 0)
     }
 
     onChange(next.toISOString())
@@ -57,16 +54,15 @@ function DateTimePicker({ value, onChange, placeholder, clearLabel, minDateTime,
           <CalendarBlankIcon aria-hidden="true" />
         </Button>}
       />
-      <PopoverContent className="w-auto p-3">
-        <DayPicker
+      <PopoverContent className="w-auto p-0">
+        <Calendar
           mode="single"
           selected={selected}
           onSelect={selectDate}
           defaultMonth={selected || minDateTime}
           disabled={minDateTime ? [{ before: new Date(minDateTime.getFullYear(), minDateTime.getMonth(), minDateTime.getDate()) }] : undefined}
-          classNames={calendarClassNames}
         />
-        <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+        <div className="mx-3 mb-3 flex items-center gap-2 border-t border-border pt-3">
           <Input
             type="time"
             className="h-8 min-w-0 flex-1 text-xs"
@@ -89,30 +85,11 @@ function parseUtc(value) {
 }
 
 function isSameDay(d1, d2) {
-  return d1.getDate() === d2.getDate() &&
-         d1.getMonth() === d2.getMonth() &&
-         d1.getFullYear() === d2.getFullYear()
-}
-
-const calendarClassNames = {
-  months: 'flex flex-col',
-  month: 'space-y-3',
-  month_caption: 'relative flex h-8 items-center justify-center',
-  caption_label: 'text-sm font-medium',
-  nav: 'absolute inset-x-0 top-0 flex h-8 items-center justify-between',
-  button_previous: 'size-8 rounded-md text-muted-foreground hover:bg-muted',
-  button_next: 'size-8 rounded-md text-muted-foreground hover:bg-muted',
-  month_grid: 'border-collapse',
-  weekdays: 'flex',
-  weekday: 'w-9 text-center text-[11px] font-normal text-muted-foreground',
-  week: 'mt-1 flex w-full',
-  day: 'relative size-9 p-0 text-center text-sm',
-  day_button: 'size-9 rounded-md text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30',
-  selected: '[&_button]:bg-primary [&_button]:text-primary-foreground [&_button]:hover:bg-primary',
-  today: '[&_button]:font-semibold [&_button]:text-primary',
-  outside: 'text-muted-foreground opacity-40',
-  disabled: 'text-muted-foreground opacity-30',
-  hidden: 'invisible',
+  return (
+    d1.getDate() === d2.getDate()
+    && d1.getMonth() === d2.getMonth()
+    && d1.getFullYear() === d2.getFullYear()
+  )
 }
 
 export { DateTimePicker }
