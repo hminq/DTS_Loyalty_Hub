@@ -72,6 +72,10 @@ public partial class LoyaltyHubDbContext : DbContext
 
             entity.ToTable("actions");
 
+            entity.HasIndex(e => new { e.ReferenceType, e.ReferenceId }, "ix_actions_reference");
+
+            entity.HasIndex(e => new { e.ReferenceType, e.ReferenceId, e.ExecuteOrder }, "uq_actions_reference_execute_order").IsUnique();
+
             entity.Property(e => e.ActionId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("action_id");
@@ -240,6 +244,8 @@ public partial class LoyaltyHubDbContext : DbContext
 
             entity.ToTable("campaigns");
 
+            entity.HasIndex(e => new { e.Status, e.EndDate }, "ix_campaigns_status_end_date");
+
             entity.Property(e => e.CampaignId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("campaign_id");
@@ -287,6 +293,10 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasKey(e => e.CampaignSessionId).HasName("campaign_sessions_pkey");
 
             entity.ToTable("campaign_sessions");
+
+            entity.HasIndex(e => new { e.Status, e.SessionEnd }, "ix_campaign_sessions_status_end");
+
+            entity.HasIndex(e => new { e.Status, e.SessionStart }, "ix_campaign_sessions_status_start");
 
             entity.HasIndex(e => new { e.CampaignId, e.SessionStart }, "uq_campaign_sessions_campaign_start").IsUnique();
 
