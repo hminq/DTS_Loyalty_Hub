@@ -14,7 +14,9 @@ const AllCustomerVouchersPage = lazyNamed(() => import('./pages/AllCustomerVouch
 const CustomerVoucherDetailPage = lazyNamed(() => import('./pages/CustomerVoucherDetailPage'), 'CustomerVoucherDetailPage')
 const CustomerRedeemDetailPage = lazyNamed(() => import('./pages/CustomerRedeemDetailPage'), 'CustomerRedeemDetailPage')
 const AuditLogsPage = lazyNamed(() => import('./pages/AuditLogsPage'), 'AuditLogsPage')
+const CampaignsPage = lazyNamed(() => import('./pages/CampaignsPage'), 'CampaignsPage')
 const CreateAdminAccountPage = lazyNamed(() => import('./pages/CreateAdminAccountPage'), 'CreateAdminAccountPage')
+const CreateCampaignPage = lazyNamed(() => import('./pages/CreateCampaignPage'), 'CreateCampaignPage')
 const CreateRolePage = lazyNamed(() => import('./pages/CreateRolePage'), 'CreateRolePage')
 const CreateTierConfigPage = lazyNamed(() => import('./pages/CreateTierConfigPage'), 'CreateTierConfigPage')
 const CreateVoucherDefinitionPage = lazyNamed(() => import('./pages/CreateVoucherDefinitionPage'), 'CreateVoucherDefinitionPage')
@@ -58,6 +60,22 @@ function App() {
         }
       >
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route
+          path="campaigns"
+          element={
+            <RequirePermission permission={PermissionCodes.Campaigns.View}>
+              <CampaignsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="campaigns/new"
+          element={
+            <RequirePermission permission={PermissionCodes.Campaigns.View}>
+              <CreateCampaignPage />
+            </RequirePermission>
+          }
+        />
         <Route
           path="roles"
           element={

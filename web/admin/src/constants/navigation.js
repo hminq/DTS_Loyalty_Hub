@@ -3,6 +3,7 @@ import {
   GiftIcon,
   HouseIcon,
   IdentificationBadgeIcon,
+  MegaphoneIcon,
   TicketIcon,
   UsersThreeIcon,
 } from '@phosphor-icons/react'
@@ -11,6 +12,13 @@ import { PermissionCodes } from './permissionCodes'
 
 const navigationItems = [
   { id: 'dashboard', labelKey: 'navigation.dashboard', icon: HouseIcon, path: '/dashboard' },
+  {
+    id: 'campaigns',
+    labelKey: 'navigation.campaigns',
+    icon: MegaphoneIcon,
+    path: '/campaigns',
+    permission: PermissionCodes.Campaigns.View,
+  },
   {
     id: 'role-permission',
     labelKey: 'navigation.rolePermissions',

@@ -50,4 +50,7 @@ export const PermissionCodes = Object.freeze({
   CustomerVouchers: Object.freeze({
     View: 'customer_voucher.view',
   }),
+  Campaigns: Object.freeze({
+    View: 'campaign.view',
+  }),
 })

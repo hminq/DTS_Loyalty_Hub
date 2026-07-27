@@ -75,6 +75,7 @@ function Combobox({
       onValueChange={select}
       itemToStringLabel={(item) => item?.label ?? ''}
       isItemEqualToValue={(item, selectedValue) => item?.value === selectedValue?.value}
+      isItemDisabled={(item) => Boolean(item?.disabled)}
       filter={shouldFilter ? undefined : null}
       autoComplete={shouldFilter ? 'list' : 'none'}
       disabled={disabled}
@@ -125,8 +126,9 @@ function Combobox({
                       key={item.key}
                       value={item}
                       index={index}
+                      disabled={Boolean(item.disabled)}
                       className={({ selected: isSelected }) => cn(
-                        'flex cursor-default items-center justify-between gap-2 rounded-sm px-2.5 py-2 text-[13px] outline-none data-[highlighted]:bg-muted',
+                        'flex cursor-default items-center justify-between gap-2 rounded-sm px-2.5 py-2 text-[13px] outline-none data-[highlighted]:bg-muted data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:text-muted-foreground',
                         isSelected && 'font-medium text-primary',
                       )}
                     >
