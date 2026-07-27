@@ -52,5 +52,8 @@ export const PermissionCodes = Object.freeze({
   }),
   Campaigns: Object.freeze({
     View: 'campaign.view',
+    Create: 'campaign.create',
+    Update: 'campaign.update',
+    Delete: 'campaign.delete',
   }),
 })

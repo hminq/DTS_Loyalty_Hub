@@ -1,6 +1,8 @@
 import { CircleNotchIcon } from '@phosphor-icons/react'
+import { Link } from 'react-router-dom'
 
 import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
 import {
   formatCampaignDateTime,
   formatCampaignNumber,
@@ -35,12 +37,13 @@ function CampaignsTable({
             <th className="px-4 py-2.5 text-right font-semibold">{t('campaigns.columns.actionCount')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.nextSession')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.updatedAt')}</th>
+            <th className="px-4 py-2.5 text-right font-semibold">{t('common.actions', { defaultValue: 'Actions' })}</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             <tr className="border-t border-border">
-              <td className="px-4 py-8 text-center text-muted-foreground" colSpan={8}>
+              <td className="px-4 py-8 text-center text-muted-foreground" colSpan={9}>
                 <span className="inline-flex items-center gap-2">
                   <CircleNotchIcon className="animate-spin" size={16} aria-hidden="true" />
                   {t('campaigns.loading')}
@@ -59,7 +62,12 @@ function CampaignsTable({
                   className="border-t border-border transition-colors hover:bg-muted/25"
                 >
                   <td className="px-4 py-3 font-medium text-foreground">
-                    {item.campaignName}
+                    <Link
+                      to={`/campaigns/${item.campaignId}`}
+                      className="block truncate font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      {item.campaignName}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {eventTypeLabel}
@@ -84,6 +92,18 @@ function CampaignsTable({
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatCampaignDateTime(item.updatedAt, language)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2.5 text-xs font-medium"
+                      asChild
+                    >
+                      <Link to={`/campaigns/${item.campaignId}`}>
+                        {t('common.detail', { defaultValue: 'Detail' })}
+                      </Link>
+                    </Button>
                   </td>
                 </tr>
               )

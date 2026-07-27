@@ -1,7 +1,7 @@
 import { MegaphoneIcon, PlusIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { getCampaignOptions, getCampaigns } from '../api/campaignsApi'
 import { CampaignsFilters, hasCampaignFilters } from '../components/campaigns/CampaignsFilters'
@@ -12,12 +12,17 @@ import { EmptyState } from '../components/data-list/EmptyState'
 import { ListPagination } from '../components/data-list/ListPagination'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
+import { PermissionCodes } from '../constants/permissionCodes'
 
 function CampaignsPage() {
   const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
+  const { hasPermission } = useOutletContext()
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const canCreate = hasPermission(PermissionCodes.Campaigns.Create)
+  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage ?? '')
 
   const page = readPositiveInteger(searchParams.get('page'), 1)
   const pageSize = Math.min(readPositiveInteger(searchParams.get('pageSize'), 20), 100)
@@ -66,8 +71,8 @@ function CampaignsPage() {
   }, [pageSize, setSearchParams])
 
   useEffect(() => {
-    if (location.state?.errorMessage) {
-      setLoadError(location.state.errorMessage)
+    if (location.state?.successMessage || location.state?.errorMessage) {
+      if (location.state?.errorMessage) setLoadError(location.state.errorMessage)
       window.history.replaceState({}, document.title)
     }
   }, [location.state])
@@ -170,13 +175,19 @@ function CampaignsPage() {
         eyebrow={t('campaigns.eyebrow')}
         title={t('campaigns.title')}
         description={t('campaigns.description')}
-        actions={(
+        actions={canCreate ? (
           <Button size="sm" onClick={() => navigate('/campaigns/new')}>
             <PlusIcon size={15} weight="bold" />
             {t('campaigns.create')}
           </Button>
-        )}
+        ) : null}
       />
+
+      {successMessage ? (
+        <div className="mt-5 rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
+          {successMessage}
+        </div>
+      ) : null}
 
       {loadError ? (
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">

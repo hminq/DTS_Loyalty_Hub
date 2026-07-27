@@ -35,7 +35,10 @@ function mapEventTypes(eventTypes = [], t) {
     return {
       value: code,
       label: t(`campaigns.eventTypes.${code}`, { defaultValue: code }),
-      sources: (item?.condition?.sources || []).map((src) => mapSupportedItem(src, 'sources', t)),
+      conditionOptions: (item?.condition?.options || []).map((option) => ({
+        ...mapSupportedItem(option, 'conditionOptions', t),
+        sources: Array.isArray(option?.sources) ? option.sources : [],
+      })),
       actionTypes: item?.actionTypes || [],
     }
   })
