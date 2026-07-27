@@ -193,6 +193,83 @@ export function CampaignActionCard({
               <Input type="number" value={index + 1} disabled readOnly />
             </Field>
           </div>
+
+          <div className="border-t border-border pt-4">
+            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('campaigns.form.actionLimitsTitle', {
+                defaultValue: 'Action execution limits',
+              })}
+            </h4>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                invalid={Boolean(fieldErrors[`${prefix}.totalCount`])}
+                disabled={isSubmitting}
+              >
+                <FieldLabel>
+                  {t('campaigns.form.actionLimitTotalLabel', {
+                    defaultValue: 'Total action execution limit',
+                  })}
+                </FieldLabel>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={action.totalCount ?? ''}
+                  onChange={(e) => updateField('totalCount', e.target.value)}
+                  placeholder={t('campaigns.detail.unlimited', {
+                    defaultValue: 'Unlimited',
+                  })}
+                  aria-invalid={Boolean(fieldErrors[`${prefix}.totalCount`])}
+                  disabled={isSubmitting}
+                />
+                {fieldErrors[`${prefix}.totalCount`] ? (
+                  <FieldError>{fieldErrors[`${prefix}.totalCount`]}</FieldError>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('campaigns.form.actionLimitTotalHelper', {
+                      defaultValue:
+                        'Maximum successful executions of this action across the campaign. Leave empty for unlimited.',
+                    })}
+                  </p>
+                )}
+              </Field>
+
+              <Field
+                invalid={Boolean(fieldErrors[`${prefix}.sessionCount`])}
+                disabled={isSubmitting}
+              >
+                <FieldLabel>
+                  {t('campaigns.form.actionLimitSessionLabel', {
+                    defaultValue: 'Action execution limit per session',
+                  })}
+                </FieldLabel>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={action.sessionCount ?? ''}
+                  onChange={(e) => updateField('sessionCount', e.target.value)}
+                  placeholder={t('campaigns.detail.unlimited', {
+                    defaultValue: 'Unlimited',
+                  })}
+                  aria-invalid={Boolean(fieldErrors[`${prefix}.sessionCount`])}
+                  disabled={isSubmitting}
+                />
+                {fieldErrors[`${prefix}.sessionCount`] ? (
+                  <FieldError>{fieldErrors[`${prefix}.sessionCount`]}</FieldError>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('campaigns.form.actionLimitSessionHelper', {
+                      defaultValue:
+                        'Maximum successful executions of this action in each session. Leave empty for unlimited.',
+                    })}
+                  </p>
+                )}
+              </Field>
+            </div>
+          </div>
         </FieldGroup>
       </CardContent>
     </Card>

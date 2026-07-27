@@ -95,13 +95,13 @@ function CampaignsTable({
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       className="h-7 px-2.5 text-xs font-medium"
                       asChild
                     >
                       <Link to={`/campaigns/${item.campaignId}`}>
-                        {t('common.detail', { defaultValue: 'Detail' })}
+                        {t('common.view', { defaultValue: 'View' })}
                       </Link>
                     </Button>
                   </td>

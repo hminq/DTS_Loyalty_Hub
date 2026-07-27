@@ -12,6 +12,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export function CampaignBannerField({
   file,
+  existingUrl = '',
   onChange,
   onClear,
   error,
@@ -83,11 +84,11 @@ export function CampaignBannerField({
         aria-invalid={Boolean(displayError)}
       />
 
-      {previewUrl ? (
+      {previewUrl || existingUrl ? (
         <div className="flex flex-col gap-3">
           <div className="relative overflow-hidden rounded-lg border bg-muted/30">
             <img
-              src={previewUrl}
+              src={previewUrl || existingUrl}
               alt={t('campaigns.form.bannerPreviewAlt')}
               className="h-[200px] w-full object-cover"
             />
@@ -107,9 +108,11 @@ export function CampaignBannerField({
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            {t('campaigns.form.bannerSelected')}
-          </p>
+          {previewUrl ? (
+            <p className="text-xs text-muted-foreground">
+              {t('campaigns.form.bannerSelected')}
+            </p>
+          ) : null}
         </div>
       ) : (
         <button

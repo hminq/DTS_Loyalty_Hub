@@ -1,3 +1,8 @@
+function toNullableInteger(value) {
+  if (value === '' || value == null) return null
+  return Number(value)
+}
+
 export function buildCampaignActionPayload(actionValues = {}, executeOrder = 1) {
   const actionType = actionValues.actionType || null
   const calculationType = actionValues.calculationType || null
@@ -17,17 +22,17 @@ export function buildCampaignActionPayload(actionValues = {}, executeOrder = 1) 
       maximumPoints: null,
     },
     executeOrder,
-    totalCount: null,
-    sessionCount: null,
-    totalAmount: null,
-    sessionAmount: null,
+    totalCount: toNullableInteger(actionValues.totalCount),
+    sessionCount: toNullableInteger(actionValues.sessionCount),
   }
 }
 
 function buildCampaignMetadataPayload(formValues = {}, options = {}) {
   const campaignName = formValues.campaignName?.trim() || null
   const description = formValues.description?.trim() || null
-  const bannerImageUrl = formValues.bannerImageUrl || null
+  // The write contract persists the S3 object key in the legacy bannerImageUrl field.
+  // Presigned bannerImageUrl values returned by reads must never be written back.
+  const bannerImageUrl = formValues.bannerImageKey || null
   const eventType = formValues.eventType || null
   const scheduleCron = formValues.scheduleCron?.trim() || null
 
@@ -112,6 +117,7 @@ export function mapCampaignDetailToFormValues(campaign = {}, options = {}) {
     campaignName: campaign.campaignName || '',
     description: campaign.description || '',
     bannerFile: null,
+    bannerImageKey: campaign.bannerImageKey || '',
     bannerImageUrl: campaign.bannerImageUrl || '',
     eventType,
     conditionOptionCode,
@@ -132,5 +138,7 @@ export function mapCampaignActionToFormValues(action = {}) {
     recipient: config.recipient || 'EVENT_CUSTOMER',
     amount: config.amount != null ? String(config.amount) : '50',
     executeOrder: action.executeOrder != null ? String(action.executeOrder) : '1',
+    totalCount: action.totalCount == null ? '' : String(action.totalCount),
+    sessionCount: action.sessionCount == null ? '' : String(action.sessionCount),
   }
 }

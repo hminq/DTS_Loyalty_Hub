@@ -11,6 +11,8 @@ function createDefaultAction() {
     calculationType: 'FIXED_AMOUNT',
     recipient: 'EVENT_CUSTOMER',
     amount: '50',
+    totalCount: '',
+    sessionCount: '',
   }
 }
 
@@ -32,6 +34,7 @@ export function CampaignDraftForm({
     campaignName: '',
     description: '',
     bannerFile: null,
+    bannerImageKey: '',
     bannerImageUrl: '',
     eventType: '',
     conditionOptionCode: '',

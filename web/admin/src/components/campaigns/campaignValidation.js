@@ -1,3 +1,44 @@
+function validateActionLimits(action = {}, prefix = '', t) {
+  const errors = {}
+  const keyTotal = prefix ? `${prefix}.totalCount` : 'totalCount'
+  const keySession = prefix ? `${prefix}.sessionCount` : 'sessionCount'
+
+  const total =
+    action.totalCount !== '' && action.totalCount != null
+      ? Number(action.totalCount)
+      : null
+  if (total !== null && (!Number.isInteger(total) || total < 0)) {
+    errors[keyTotal] = t('campaigns.errors.actionLimitTotalInvalid', {
+      defaultValue: 'Action total limit must be a non-negative integer.',
+    })
+  }
+
+  const session =
+    action.sessionCount !== '' && action.sessionCount != null
+      ? Number(action.sessionCount)
+      : null
+  if (session !== null && (!Number.isInteger(session) || session < 0)) {
+    errors[keySession] = t('campaigns.errors.actionLimitSessionInvalid', {
+      defaultValue: 'Action session limit must be a non-negative integer.',
+    })
+  }
+
+  if (
+    total !== null &&
+    session !== null &&
+    Number.isInteger(total) &&
+    Number.isInteger(session) &&
+    session > total
+  ) {
+    errors[keySession] = t('campaigns.errors.actionLimitSessionExceedsTotal', {
+      defaultValue:
+        'Per-session action limit cannot exceed the overall action limit.',
+    })
+  }
+
+  return errors
+}
+
 function validateSingleAction(action = {}, index, t) {
   const errors = {}
   const prefix = `actions[${index}]`
@@ -38,6 +79,8 @@ function validateSingleAction(action = {}, index, t) {
       })
     }
   }
+
+  Object.assign(errors, validateActionLimits(action, prefix, t))
 
   return errors
 }
@@ -222,6 +265,8 @@ export function validateCampaignAction(actionValues = {}, t) {
       defaultValue: 'Execution order must be a positive integer.',
     })
   }
+
+  Object.assign(errors, validateActionLimits(actionValues, '', t))
 
   return {
     isValid: Object.keys(errors).length === 0,

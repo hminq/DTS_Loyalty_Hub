@@ -89,3 +89,12 @@ export async function deleteCampaignAction(campaignId, actionId, signal) {
   const response = await httpClient.delete(`/campaigns/${encodeURIComponent(campaignId)}/actions/${encodeURIComponent(actionId)}`, { signal })
   return response.data.data
 }
+
+export async function activateCampaign(campaignId, signal) {
+  if (!campaignId) {
+    throw new Error('campaignId is required')
+  }
+  const response = await httpClient.post(`/campaigns/${encodeURIComponent(campaignId)}/activate`, {}, { signal })
+  return response.data.data
+}
+

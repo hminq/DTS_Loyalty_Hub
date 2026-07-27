@@ -13,10 +13,32 @@ export function formatCampaignDateTime(value, language) {
   }).format(date)
 }
 
+function describeQuartzCron(cron, t) {
+  if (!cron) return ''
+  const parts = cron.trim().split(/\s+/)
+  if (parts.length !== 6) return cron
+
+  const [, minute, hour, dayOfMonth, month, dayOfWeek] = parts
+  const mm = minute.padStart(2, '0')
+  const hh = hour.padStart(2, '0')
+  const timeStr = `${hh}:${mm}`
+
+  if (dayOfMonth === '*' && month === '*' && dayOfWeek === '?') {
+    return t ? t('campaigns.scheduleDaily', { time: timeStr, defaultValue: `Daily at ${timeStr}` }) : `Daily at ${timeStr}`
+  }
+
+  if (dayOfMonth === '?' && month === '*' && dayOfWeek !== '*') {
+    return t ? t('campaigns.scheduleWeekly', { days: dayOfWeek, time: timeStr, defaultValue: `Every ${dayOfWeek} at ${timeStr}` }) : `Every ${dayOfWeek} at ${timeStr}`
+  }
+
+  return cron
+}
+
 export function formatCampaignSchedule(cron, durationHour, t) {
   if (!cron) return '—'
-  if (durationHour === null || durationHour === undefined) return cron
-  return `${cron} (${durationHour} ${t('campaigns.hours', { count: durationHour })})`
+  const readable = describeQuartzCron(cron, t)
+  if (durationHour === null || durationHour === undefined) return readable || cron
+  return `${readable || cron} (${durationHour} ${t('campaigns.hours', { count: durationHour })})`
 }
 
 export function getCampaignStatusVariant(status) {

@@ -1,9 +1,15 @@
-import { CircleNotchIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
+import {
+  CircleNotchIcon,
+  PencilSimpleIcon,
+  RocketLaunchIcon,
+  TrashIcon,
+} from '@phosphor-icons/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 
 import { getCampaign, getCampaignOptions } from '../api/campaignsApi'
+import { ActivateCampaignDialog } from '../components/campaigns/ActivateCampaignDialog'
 import { CampaignActionsDetails } from '../components/campaigns/CampaignActionsDetails'
 import { CampaignDetails } from '../components/campaigns/CampaignDetails'
 import { CampaignSessionsDetails } from '../components/campaigns/CampaignSessionsDetails'
@@ -27,6 +33,7 @@ function CampaignDetailPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [retryKey, setRetryKey] = useState(0)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [activateOpen, setActivateOpen] = useState(false)
 
   const [successMessage, setSuccessMessage] = useState(
     location.state?.successMessage || '',
@@ -100,6 +107,18 @@ function CampaignDetailPage() {
 
   const actions = (
     <div className="flex items-center gap-2">
+      {canUpdate && isDraft ? (
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => setActivateOpen(true)}
+          className="gap-1.5 bg-success text-success-foreground shadow-sm transition-all hover:bg-success/90 hover:shadow"
+        >
+          <RocketLaunchIcon size={15} weight="bold" />
+          {t('campaigns.activate.button', { defaultValue: 'Activate Campaign' })}
+        </Button>
+      ) : null}
+
       {canUpdate && isDraft ? (
         <Button
           variant="outline"
@@ -201,6 +220,23 @@ function CampaignDetailPage() {
         }}
         onNotDraft={(msg) => {
           setErrorMessage(msg)
+          setRetryKey((k) => k + 1)
+        }}
+        t={t}
+      />
+
+      <ActivateCampaignDialog
+        open={activateOpen}
+        onOpenChange={setActivateOpen}
+        campaign={campaign}
+        onSuccess={(updatedCampaign) => {
+          setCampaign(updatedCampaign)
+          setSuccessMessage(
+            t('campaigns.activate.success', {
+              defaultValue:
+                'Campaign activated successfully! Scheduled sessions have been generated.',
+            }),
+          )
           setRetryKey((k) => k + 1)
         }}
         t={t}

@@ -20,6 +20,7 @@ export function PersistedCampaignActionCard({
   isReferralOnly = false,
   isSubmitting = false,
   externalError = '',
+  externalFieldErrors = {},
   onSave,
   onCancelNew,
   onDelete,
@@ -30,6 +31,8 @@ export function PersistedCampaignActionCard({
   const [formValues, setFormValues] = useState(() => mapCampaignActionToFormValues(action || {}))
   const [fieldErrors, setFieldErrors] = useState({})
   const [cardError, setCardError] = useState(externalError || '')
+
+  const allErrors = { ...externalFieldErrors, ...fieldErrors }
 
   function updateField(field, value) {
     setFormValues((prev) => ({ ...prev, [field]: value }))
@@ -96,10 +99,12 @@ export function PersistedCampaignActionCard({
         setIsEditing(false)
       }
     } catch (err) {
-      setCardError(
-        err.message ||
-          t('campaigns.actions.saveFailed', { defaultValue: 'Failed to save action.' }),
-      )
+      if (!err.details || err.details.length === 0) {
+        setCardError(
+          err.message ||
+            t('campaigns.actions.saveFailed', { defaultValue: 'Failed to save action.' }),
+        )
+      }
     }
   }
 
@@ -197,19 +202,32 @@ export function PersistedCampaignActionCard({
 
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.detail.limitsTitle', { defaultValue: 'Limits' })}
+                {t('campaigns.form.actionLimitsTitle', {
+                  defaultValue: 'Action execution limits',
+                })}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('campaigns.detail.totalLimit', { defaultValue: 'Total' })}:{' '}
-                {action.totalCount != null
-                  ? formatCampaignNumber(action.totalCount, language)
-                  : t('common.unlimited', { defaultValue: 'Unlimited' })}
-                {' / '}
-                {t('campaigns.detail.sessionLimit', { defaultValue: 'Session' })}:{' '}
-                {action.sessionCount != null
-                  ? formatCampaignNumber(action.sessionCount, language)
-                  : t('common.unlimited', { defaultValue: 'Unlimited' })}
-              </p>
+              <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                <div>
+                  <span className="font-medium">
+                    {t('campaigns.detail.actionTotalLimit', {
+                      defaultValue: 'Total action execution limit',
+                    })}:
+                  </span>{' '}
+                  {action.totalCount != null
+                    ? formatCampaignNumber(action.totalCount, language)
+                    : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
+                </div>
+                <div>
+                  <span className="font-medium">
+                    {t('campaigns.detail.actionSessionLimit', {
+                      defaultValue: 'Action execution limit per session',
+                    })}:
+                  </span>{' '}
+                  {action.sessionCount != null
+                    ? formatCampaignNumber(action.sessionCount, language)
+                    : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

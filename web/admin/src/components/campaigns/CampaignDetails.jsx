@@ -1,4 +1,5 @@
-import { ImageSquareIcon } from '@phosphor-icons/react'
+import { ArrowUpRightIcon, ImageSquareIcon } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
 
 import { Badge } from '../ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -11,6 +12,12 @@ import {
 import { resolveConditionOptionCode } from './campaignPayloads'
 
 export function CampaignDetails({ campaign, options = {}, language, t }) {
+  const [imageError, setImageError] = useState(false)
+
+  useEffect(() => {
+    setImageError(false)
+  }, [campaign?.bannerImageUrl])
+
   if (!campaign) return null
 
   const statusVariant = getCampaignStatusVariant(campaign.status)
@@ -32,183 +39,176 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
     : (campaign.condition?.sources || []).join(', ') || '—'
 
   const timeZone = options.schedule?.timeZone || 'UTC'
+  const hasBanner = Boolean(campaign.bannerImageUrl) && !imageError
 
   return (
-    <div className="grid gap-6">
-      {/* Identity & Banner */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle>
-            {t('campaigns.detail.identityTitle', { defaultValue: 'General information' })}
-          </CardTitle>
-          <Badge variant={statusVariant}>{statusLabel}</Badge>
-        </CardHeader>
-        <CardContent className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.form.campaignNameLabel', { defaultValue: 'Campaign name' })}
-              </p>
-              <p className="mt-1 text-base font-semibold text-foreground">
-                {campaign.campaignName || '—'}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.detail.campaignId', { defaultValue: 'Campaign ID' })}
-              </p>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
-                {campaign.campaignId || '—'}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.form.descriptionLabel', { defaultValue: 'Description' })}
-              </p>
-              <p className="mt-1 text-sm text-foreground">
-                {campaign.description || t('common.none', { defaultValue: 'None' })}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
-              {t('campaigns.form.bannerLabel', { defaultValue: 'Campaign banner' })}
-            </p>
-            {campaign.bannerImageUrl ? (
-              <div className="overflow-hidden rounded-lg border bg-muted/30">
-                <img
-                  src={campaign.bannerImageUrl}
-                  alt={campaign.campaignName || 'Campaign banner'}
-                  className="h-[180px] w-full object-cover"
-                />
+    <div className="grid gap-5">
+      <Card className="overflow-hidden rounded-xl border-border/80 shadow-none">
+        <CardContent className="p-0">
+          {hasBanner ? (
+            <div className="group relative w-full bg-muted/20">
+              <img
+                src={campaign.bannerImageUrl}
+                alt={campaign.campaignName || t('campaigns.form.bannerLabel')}
+                className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-[1.005] sm:h-60 md:h-72"
+                onError={() => setImageError(true)}
+              />
+              <div className="absolute bottom-3 right-3">
+                <a
+                  href={campaign.bannerImageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border/80 bg-background/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur transition-all hover:bg-background hover:shadow-md"
+                >
+                  {t('campaigns.detail.openBanner', {
+                    defaultValue: 'Open image in new tab',
+                  })}
+                  <ArrowUpRightIcon size={14} aria-hidden="true" />
+                </a>
               </div>
-            ) : (
-              <div className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/10 text-muted-foreground">
-                <ImageSquareIcon size={32} className="opacity-50" />
-                <p className="text-xs">
-                  {t('campaigns.detail.noBanner', { defaultValue: 'No banner image uploaded' })}
-                </p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="flex h-48 w-full flex-col items-center justify-center gap-2.5 bg-muted/30 text-muted-foreground sm:h-60">
+              <ImageSquareIcon size={36} className="opacity-40" aria-hidden="true" />
+              <p className="text-xs font-medium">
+                {t('campaigns.detail.noBanner', {
+                  defaultValue: 'No banner image uploaded for this campaign.',
+                })}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Event & Condition */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {t('campaigns.detail.eventConditionTitle', { defaultValue: 'Event & condition' })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">{eventTypeLabel}</p>
-          </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card className="rounded-xl border-border/80 shadow-none lg:row-span-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle>
+              {t('campaigns.detail.identityTitle', { defaultValue: 'General information' })}
+            </CardTitle>
+            <Badge variant={statusVariant}>{statusLabel}</Badge>
+          </CardHeader>
+          <CardContent className="grid gap-5">
+            <DetailItem
+              label={t('campaigns.form.campaignNameLabel', { defaultValue: 'Campaign name' })}
+              value={campaign.campaignName}
+              prominent
+            />
+            <DetailItem
+              label={t('campaigns.form.descriptionLabel', { defaultValue: 'Description' })}
+              value={campaign.description || t('common.none', { defaultValue: 'None' })}
+            />
+            <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
+              <DetailItem
+                label={t('campaigns.detail.campaignId', { defaultValue: 'Campaign ID' })}
+                value={campaign.campaignId}
+                mono
+              />
+              <DetailItem
+                label={t('common.createdAt', { defaultValue: 'Created at' })}
+                value={formatCampaignDateTime(campaign.createdAt, language)}
+                muted
+              />
+              <DetailItem
+                label={t('campaigns.columns.updatedAt', { defaultValue: 'Updated at' })}
+                value={formatCampaignDateTime(campaign.updatedAt, language)}
+                muted
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.conditionSourceLabel', { defaultValue: 'Campaign condition' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">{conditionLabel}</p>
-          </div>
-        </CardContent>
-      </Card>
+        <Card className="rounded-xl border-border/80 shadow-none">
+          <CardHeader>
+            <CardTitle>
+              {t('campaigns.detail.eventConditionTitle', { defaultValue: 'Event & eligibility' })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-5 sm:grid-cols-2">
+            <DetailItem
+              label={t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
+              value={eventTypeLabel}
+            />
+            <DetailItem
+              label={t('campaigns.form.conditionLabel', { defaultValue: 'Campaign condition' })}
+              value={conditionLabel}
+            />
+            <DetailItem
+              label={t('campaigns.form.userLimitTotalLabel', {
+                defaultValue: 'Max rewards per customer',
+              })}
+              value={
+                campaign.userLimitTotal != null
+                  ? formatCampaignNumber(campaign.userLimitTotal, language)
+                  : t('common.unlimited', { defaultValue: 'Unlimited' })
+              }
+            />
+            <DetailItem
+              label={t('campaigns.form.userLimitSessionLabel', {
+                defaultValue: 'Max rewards per customer per session',
+              })}
+              value={
+                campaign.userLimitSession != null
+                  ? formatCampaignNumber(campaign.userLimitSession, language)
+                  : t('common.unlimited', { defaultValue: 'Unlimited' })
+              }
+            />
+          </CardContent>
+        </Card>
 
-      {/* Active Range & Schedule */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {t('campaigns.form.scheduleTitle', { defaultValue: 'Schedule & active range' })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.startDateLabel', { defaultValue: 'Start date' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {formatCampaignDateTime(campaign.startDate, language)}
-            </p>
-          </div>
+        <Card className="rounded-xl border-border/80 shadow-none">
+          <CardHeader>
+            <CardTitle>
+              {t('campaigns.form.scheduleTitle', { defaultValue: 'Schedule & active range' })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-5 sm:grid-cols-2">
+            <DetailItem
+              label={t('campaigns.form.startDateLabel', { defaultValue: 'Start date' })}
+              value={formatCampaignDateTime(campaign.startDate, language)}
+            />
+            <DetailItem
+              label={t('campaigns.form.endDateLabel', { defaultValue: 'End date' })}
+              value={formatCampaignDateTime(campaign.endDate, language)}
+            />
+            <div className="sm:col-span-2">
+              <DetailItem
+                label={t('campaigns.form.scheduleCronLabel', { defaultValue: 'Schedule CRON' })}
+                value={`${formatCampaignSchedule(
+                  campaign.scheduleCron,
+                  campaign.durationHour,
+                  t,
+                )} (${timeZone})`}
+                mono
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
 
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.endDateLabel', { defaultValue: 'End date' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {formatCampaignDateTime(campaign.endDate, language)}
-            </p>
-          </div>
+function DetailItem({
+  label,
+  value,
+  mono = false,
+  muted = false,
+  prominent = false,
+}) {
+  const valueClass = [
+    'mt-1 break-words',
+    prominent ? 'text-base font-semibold text-foreground' : 'text-sm font-medium',
+    mono ? 'font-mono text-xs' : '',
+    muted ? 'text-muted-foreground' : 'text-foreground',
+  ].filter(Boolean).join(' ')
 
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.scheduleCronLabel', { defaultValue: 'Schedule CRON' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {formatCampaignSchedule(campaign.scheduleCron, campaign.durationHour, t)} ({timeZone})
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Limits & Timestamps */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {t('campaigns.detail.limitsTimestampsTitle', {
-              defaultValue: 'Limits & timestamps',
-            })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.userLimitTotalLabel', { defaultValue: 'Total user limit' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {campaign.userLimitTotal != null
-                ? formatCampaignNumber(campaign.userLimitTotal, language)
-                : t('common.unlimited', { defaultValue: 'Unlimited' })}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.form.userLimitSessionLabel', { defaultValue: 'Session user limit' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {campaign.userLimitSession != null
-                ? formatCampaignNumber(campaign.userLimitSession, language)
-                : t('common.unlimited', { defaultValue: 'Unlimited' })}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('common.createdAt', { defaultValue: 'Created at' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">
-              {formatCampaignDateTime(campaign.createdAt, language)}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {t('campaigns.columns.updatedAt', { defaultValue: 'Updated at' })}
-            </p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">
-              {formatCampaignDateTime(campaign.updatedAt, language)}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </p>
+      <p className={valueClass}>{value || '—'}</p>
     </div>
   )
 }

@@ -1,15 +1,14 @@
 import { useState } from 'react'
 
 import { deleteCampaign } from '../../api/campaignsApi'
-import { Button } from '../ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog'
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '../ui/alert-dialog'
+import { Button } from '../ui/button'
 
 export function DeleteCampaignDialog({
   open,
@@ -58,27 +57,25 @@ export function DeleteCampaignDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(val) => (!isDeleting ? onOpenChange(val) : null)}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {t('campaigns.deleteTitle', { defaultValue: 'Delete campaign' })}
-          </DialogTitle>
-          <DialogDescription>
-            {t('campaigns.deleteDescription', {
-              name: campaign.campaignName || campaign.campaignId,
-              defaultValue: `Are you sure you want to delete campaign "${campaign.campaignName || campaign.campaignId}"? All draft configuration and reward actions will be permanently deleted. This action cannot be undone.`,
-            })}
-          </DialogDescription>
-        </DialogHeader>
+    <AlertDialog open={open} onOpenChange={(val) => (!isDeleting ? onOpenChange(val) : null)}>
+      <AlertDialogContent>
+        <AlertDialogTitle>
+          {t('campaigns.deleteTitle', { defaultValue: 'Delete campaign' })}
+        </AlertDialogTitle>
+        <AlertDialogDescription>
+          {t('campaigns.deleteDescription', {
+            name: campaign.campaignName || campaign.campaignId,
+            defaultValue: `Are you sure you want to delete campaign "${campaign.campaignName || campaign.campaignId}"? All draft configuration and reward actions will be permanently deleted. This action cannot be undone.`,
+          })}
+        </AlertDialogDescription>
 
         {errorMessage ? (
-          <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs font-medium text-destructive">
+          <div className="mt-3 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs font-medium text-destructive">
             {errorMessage}
           </div>
         ) : null}
 
-        <DialogFooter>
+        <AlertDialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -97,8 +94,8 @@ export function DeleteCampaignDialog({
               ? t('campaigns.deleting', { defaultValue: 'Deleting...' })
               : t('campaigns.deleteConfirm', { defaultValue: 'Delete campaign' })}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

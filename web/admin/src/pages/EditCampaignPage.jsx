@@ -129,7 +129,7 @@ function EditCampaignPage() {
     setIsSubmitting(true)
 
     try {
-      let bannerKey = formValues.bannerImageUrl || null
+      let bannerKey = formValues.bannerImageKey || null
       if (formValues.bannerFile) {
         const uploaded = await uploadCampaignBanner(formValues.bannerFile)
         if (!uploaded?.key) {
@@ -145,7 +145,7 @@ function EditCampaignPage() {
       const payload = buildCampaignUpdatePayload(
         {
           ...formValues,
-          bannerImageUrl: bannerKey,
+          bannerImageKey: bannerKey,
         },
         options,
       )
@@ -274,7 +274,7 @@ function EditCampaignPage() {
             <CampaignEditMetadataForm
               initialValues={initialFormValues}
               options={options}
-              canUploadBanner={hasPermission(PermissionCodes.Campaigns.Create)}
+              canUploadBanner={hasPermission(PermissionCodes.Media.Upload)}
               isSubmitting={isSubmitting || !isDraft || !canUpdate}
               formError={formError}
               fieldErrors={fieldErrors}

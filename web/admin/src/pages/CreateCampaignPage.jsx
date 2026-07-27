@@ -83,7 +83,7 @@ function CreateCampaignPage() {
     setIsSubmitting(true)
 
     try {
-      let bannerKey = formValues.bannerImageUrl || null
+      let bannerKey = formValues.bannerImageKey || null
       if (formValues.bannerFile) {
         const uploaded = await uploadCampaignBanner(formValues.bannerFile)
         if (!uploaded?.key) {
@@ -98,7 +98,7 @@ function CreateCampaignPage() {
 
       const payload = buildCampaignCreatePayload({
         ...formValues,
-        bannerImageUrl: bannerKey,
+        bannerImageKey: bannerKey,
       }, options)
 
       await createCampaign(payload)

@@ -1,6 +1,7 @@
 import { GiftIcon, PlusIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 
+import { toFieldErrorMap } from '../../api'
 import {
   createCampaignAction,
   updateCampaignAction,
@@ -24,6 +25,7 @@ export function CampaignActionManager({
 }) {
   const [isAddingNew, setIsAddingNew] = useState(false)
   const [cardErrors, setCardErrors] = useState({})
+  const [cardFieldErrors, setCardFieldErrors] = useState({})
   const [globalError, setGlobalError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -38,6 +40,7 @@ export function CampaignActionManager({
     setGlobalError('')
     setSuccessMessage('')
     setCardErrors({})
+    setCardFieldErrors({})
   }
 
   async function handleSaveAction(actionId, payload) {
@@ -63,13 +66,16 @@ export function CampaignActionManager({
         onActionsChanged()
       }
     } catch (error) {
-      const msg =
-        error.message ||
-        t('campaigns.actions.saveFailed', { defaultValue: 'Failed to save action.' })
-      if (actionId) {
-        setCardErrors((prev) => ({ ...prev, [actionId]: msg }))
+      const mapped = toFieldErrorMap(error.details)
+      const hasFieldErrors = Object.keys(mapped).length > 0
+      const targetKey = actionId || 'NEW'
+      if (hasFieldErrors) {
+        setCardFieldErrors((prev) => ({ ...prev, [targetKey]: mapped }))
       } else {
-        setCardErrors((prev) => ({ ...prev, NEW: msg }))
+        const msg =
+          error.message ||
+          t('campaigns.actions.saveFailed', { defaultValue: 'Failed to save action.' })
+        setCardErrors((prev) => ({ ...prev, [targetKey]: msg }))
       }
       throw error
     }
@@ -162,6 +168,7 @@ export function CampaignActionManager({
           eventType={eventType}
           isReferralOnly={isReferralOnly}
           externalError={cardErrors[action.actionId] || ''}
+          externalFieldErrors={cardFieldErrors[action.actionId] || {}}
           onSave={handleSaveAction}
           onDelete={handleOpenDelete}
           language={language}
@@ -180,6 +187,8 @@ export function CampaignActionManager({
               amount: '50',
             },
             executeOrder: orderedActions.length + 1,
+            totalCount: null,
+            sessionCount: null,
           }}
           isNew={true}
           isDraft={isDraft}
@@ -188,10 +197,16 @@ export function CampaignActionManager({
           eventType={eventType}
           isReferralOnly={isReferralOnly}
           externalError={cardErrors.NEW || ''}
+          externalFieldErrors={cardFieldErrors.NEW || {}}
           onSave={handleSaveAction}
           onCancelNew={() => {
             setIsAddingNew(false)
             setCardErrors((prev) => {
+              const next = { ...prev }
+              delete next.NEW
+              return next
+            })
+            setCardFieldErrors((prev) => {
               const next = { ...prev }
               delete next.NEW
               return next

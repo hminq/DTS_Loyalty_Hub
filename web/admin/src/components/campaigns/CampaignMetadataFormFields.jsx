@@ -36,23 +36,99 @@ export function CampaignMetadataFormFields({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <FieldGroup>
-            <Field invalid={Boolean(fieldErrors.campaignName)} disabled={isSubmitting}>
-              <FieldLabel>
-                {t('campaigns.form.campaignNameLabel', { defaultValue: 'Campaign name' })}
-              </FieldLabel>
-              <Input
-                value={formValues.campaignName}
-                onChange={(e) => updateField('campaignName', e.target.value)}
-                placeholder={t('campaigns.form.campaignNamePlaceholder', {
-                  defaultValue: 'Enter campaign name',
-                })}
-                aria-invalid={Boolean(fieldErrors.campaignName)}
-              />
-              {fieldErrors.campaignName ? (
-                <FieldError>{fieldErrors.campaignName}</FieldError>
-              ) : null}
-            </Field>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
+            <FieldGroup>
+              <Field invalid={Boolean(fieldErrors.campaignName)} disabled={isSubmitting}>
+                <FieldLabel>
+                  {t('campaigns.form.campaignNameLabel', { defaultValue: 'Campaign name' })}
+                </FieldLabel>
+                <Input
+                  value={formValues.campaignName}
+                  onChange={(e) => updateField('campaignName', e.target.value)}
+                  placeholder={t('campaigns.form.campaignNamePlaceholder', {
+                    defaultValue: 'Enter campaign name',
+                  })}
+                  aria-invalid={Boolean(fieldErrors.campaignName)}
+                />
+                {fieldErrors.campaignName ? (
+                  <FieldError>{fieldErrors.campaignName}</FieldError>
+                ) : null}
+              </Field>
+
+              <Field invalid={Boolean(fieldErrors.description)} disabled={isSubmitting}>
+                <FieldLabel>
+                  {t('campaigns.form.descriptionLabel', { defaultValue: 'Description' })}
+                </FieldLabel>
+                <Input
+                  value={formValues.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  placeholder={t('campaigns.form.descriptionPlaceholder', {
+                    defaultValue: 'Describe the campaign purpose and rewards',
+                  })}
+                  aria-invalid={Boolean(fieldErrors.description)}
+                />
+                {fieldErrors.description ? (
+                  <FieldError>{fieldErrors.description}</FieldError>
+                ) : null}
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field invalid={Boolean(fieldErrors.eventType)} disabled={isSubmitting}>
+                  <FieldLabel>
+                    {t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
+                  </FieldLabel>
+                  <Combobox
+                    value={formValues.eventType}
+                    onValueChange={handleEventTypeChange}
+                    options={options.eventTypes ?? []}
+                    placeholder={t('campaigns.form.selectEventType', {
+                      defaultValue: 'Select event type',
+                    })}
+                    emptyOptionLabel={t('campaigns.form.selectEventType', {
+                      defaultValue: 'Select event type',
+                    })}
+                    ariaLabel={t('campaigns.form.eventTypeLabel', {
+                      defaultValue: 'Event type',
+                    })}
+                    disabled={isSubmitting}
+                  />
+                  {fieldErrors.eventType ? (
+                    <FieldError>{fieldErrors.eventType}</FieldError>
+                  ) : null}
+                </Field>
+
+                <Field
+                  invalid={Boolean(fieldErrors.conditionOptionCode || fieldErrors.condition)}
+                  disabled={!formValues.eventType || isSubmitting}
+                >
+                  <FieldLabel>
+                    {t('campaigns.form.conditionLabel', {
+                      defaultValue: 'Campaign condition',
+                    })}
+                  </FieldLabel>
+                  <Combobox
+                    value={formValues.conditionOptionCode}
+                    onValueChange={handleConditionOptionChange}
+                    options={conditionOptions}
+                    placeholder={t('campaigns.form.selectCondition', {
+                      defaultValue: 'Select campaign condition',
+                    })}
+                    emptyOptionLabel={t('campaigns.form.selectCondition', {
+                      defaultValue: 'Select campaign condition',
+                    })}
+                    disabled={!formValues.eventType || isSubmitting}
+                    ariaLabel={t('campaigns.form.conditionLabel', {
+                      defaultValue: 'Campaign condition',
+                    })}
+                  />
+                  {fieldErrors.conditionOptionCode || fieldErrors.condition ? (
+                    <FieldError>
+                      {fieldErrors.conditionOptionCode || fieldErrors.condition}
+                    </FieldError>
+                  ) : null}
+                </Field>
+              </div>
+            </FieldGroup>
 
             <Field
               invalid={Boolean(fieldErrors.bannerImageUrl)}
@@ -63,92 +139,27 @@ export function CampaignMetadataFormFields({
               </FieldLabel>
               <CampaignBannerField
                 file={formValues.bannerFile}
+                existingUrl={formValues.bannerImageUrl}
                 onChange={(file) => updateField('bannerFile', file)}
-                onClear={() => updateField('bannerFile', null)}
+                onClear={() => {
+                  updateField('bannerFile', null)
+                  updateField('bannerImageKey', '')
+                  updateField('bannerImageUrl', '')
+                }}
                 disabled={!canUploadBanner || isSubmitting}
                 error={fieldErrors.bannerImageUrl || ''}
                 t={t}
               />
             </Field>
-
-            <Field invalid={Boolean(fieldErrors.description)} disabled={isSubmitting}>
-              <FieldLabel>
-                {t('campaigns.form.descriptionLabel', { defaultValue: 'Description' })}
-              </FieldLabel>
-              <Input
-                value={formValues.description}
-                onChange={(e) => updateField('description', e.target.value)}
-                placeholder={t('campaigns.form.descriptionPlaceholder', {
-                  defaultValue: 'Describe the campaign purpose and rewards',
-                })}
-                aria-invalid={Boolean(fieldErrors.description)}
-              />
-              {fieldErrors.description ? (
-                <FieldError>{fieldErrors.description}</FieldError>
-              ) : null}
-            </Field>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field invalid={Boolean(fieldErrors.eventType)} disabled={isSubmitting}>
-                <FieldLabel>
-                  {t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
-                </FieldLabel>
-                <Combobox
-                  value={formValues.eventType}
-                  onValueChange={handleEventTypeChange}
-                  options={options.eventTypes ?? []}
-                  placeholder={t('campaigns.form.selectEventType', {
-                    defaultValue: 'Select event type',
-                  })}
-                  emptyOptionLabel={t('campaigns.form.selectEventType', {
-                    defaultValue: 'Select event type',
-                  })}
-                  ariaLabel={t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
-                  disabled={isSubmitting}
-                />
-                {fieldErrors.eventType ? (
-                  <FieldError>{fieldErrors.eventType}</FieldError>
-                ) : null}
-              </Field>
-
-              <Field
-                invalid={Boolean(fieldErrors.conditionOptionCode || fieldErrors.condition)}
-                disabled={!formValues.eventType || isSubmitting}
-              >
-                <FieldLabel>
-                  {t('campaigns.form.conditionLabel', {
-                    defaultValue: 'Campaign condition',
-                  })}
-                </FieldLabel>
-                <Combobox
-                  value={formValues.conditionOptionCode}
-                  onValueChange={handleConditionOptionChange}
-                  options={conditionOptions}
-                  placeholder={t('campaigns.form.selectCondition', {
-                    defaultValue: 'Select campaign condition',
-                  })}
-                  emptyOptionLabel={t('campaigns.form.selectCondition', {
-                    defaultValue: 'Select campaign condition',
-                  })}
-                  disabled={!formValues.eventType || isSubmitting}
-                  ariaLabel={t('campaigns.form.conditionLabel', {
-                    defaultValue: 'Campaign condition',
-                  })}
-                />
-                {fieldErrors.conditionOptionCode || fieldErrors.condition ? (
-                  <FieldError>{fieldErrors.conditionOptionCode || fieldErrors.condition}</FieldError>
-                ) : null}
-              </Field>
-            </div>
-          </FieldGroup>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Active range */}
+      {/* Schedule and active range */}
       <Card>
         <CardHeader>
           <CardTitle>
-            {t('campaigns.form.activeRangeTitle', { defaultValue: 'Active range' })}
+            {t('campaigns.form.scheduleTitle', { defaultValue: 'Schedule & active range' })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -181,22 +192,6 @@ export function CampaignMetadataFormFields({
                 />
                 {fieldErrors.endDate ? <FieldError>{fieldErrors.endDate}</FieldError> : null}
               </Field>
-            </div>
-            <FieldDescription>{timeZoneText}</FieldDescription>
-          </FieldGroup>
-        </CardContent>
-      </Card>
-
-      {/* Schedule */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {t('campaigns.form.scheduleTitle', { defaultValue: 'Schedule' })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
-            <div className="grid gap-4 sm:grid-cols-2">
               <Field invalid={Boolean(fieldErrors.scheduleCron)} disabled={isSubmitting}>
                 <FieldLabel>
                   {t('campaigns.form.scheduleCronLabel', { defaultValue: 'Schedule CRON' })}
@@ -231,6 +226,7 @@ export function CampaignMetadataFormFields({
                 ) : null}
               </Field>
             </div>
+            <FieldDescription>{timeZoneText}</FieldDescription>
             {weekdayLabels ? (
               <FieldDescription>
                 {t('campaigns.form.daysOfWeekHelper', {
@@ -253,17 +249,25 @@ export function CampaignMetadataFormFields({
             <div className="grid gap-4 sm:grid-cols-2">
               <Field invalid={Boolean(fieldErrors.userLimitTotal)} disabled={isSubmitting}>
                 <FieldLabel>
-                  {t('campaigns.form.userLimitTotalLabel', { defaultValue: 'Total user limit' })}
+                  {t('campaigns.form.userLimitTotalLabel', {
+                    defaultValue: 'Max rewards per customer',
+                  })}
                 </FieldLabel>
                 <Input
                   type="number"
                   min="0"
                   value={formValues.userLimitTotal}
                   onChange={(e) => updateField('userLimitTotal', e.target.value)}
-                  placeholder="1000"
+                  placeholder="1"
                   aria-invalid={Boolean(fieldErrors.userLimitTotal)}
                   disabled={isSubmitting}
                 />
+                <FieldDescription>
+                  {t('campaigns.form.userLimitTotalHelper', {
+                    defaultValue:
+                      'Maximum times one customer can receive this campaign overall. Leave empty for unlimited.',
+                  })}
+                </FieldDescription>
                 {fieldErrors.userLimitTotal ? (
                   <FieldError>{fieldErrors.userLimitTotal}</FieldError>
                 ) : null}
@@ -272,7 +276,7 @@ export function CampaignMetadataFormFields({
               <Field invalid={Boolean(fieldErrors.userLimitSession)} disabled={isSubmitting}>
                 <FieldLabel>
                   {t('campaigns.form.userLimitSessionLabel', {
-                    defaultValue: 'Session user limit',
+                    defaultValue: 'Max rewards per customer per session',
                   })}
                 </FieldLabel>
                 <Input
@@ -280,10 +284,16 @@ export function CampaignMetadataFormFields({
                   min="0"
                   value={formValues.userLimitSession}
                   onChange={(e) => updateField('userLimitSession', e.target.value)}
-                  placeholder="100"
+                  placeholder="1"
                   aria-invalid={Boolean(fieldErrors.userLimitSession)}
                   disabled={isSubmitting}
                 />
+                <FieldDescription>
+                  {t('campaigns.form.userLimitSessionHelper', {
+                    defaultValue:
+                      'Maximum times one customer can receive this campaign in each session. Leave empty for unlimited.',
+                  })}
+                </FieldDescription>
                 {fieldErrors.userLimitSession ? (
                   <FieldError>{fieldErrors.userLimitSession}</FieldError>
                 ) : null}
