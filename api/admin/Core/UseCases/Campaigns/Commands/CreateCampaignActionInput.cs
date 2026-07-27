@@ -5,6 +5,4 @@ public sealed record CreateCampaignActionInput(
     string ActionConfigJson,
     int ExecuteOrder,
     int? TotalCount,
-    int? SessionCount,
-    decimal? TotalAmount,
-    decimal? SessionAmount);
+    int? SessionCount);

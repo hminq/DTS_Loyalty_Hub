@@ -12,10 +12,7 @@ public sealed class CampaignAction
         int executeOrder,
         int? totalCount,
         int? sessionCount,
-        decimal? totalAmount,
-        decimal? sessionAmount,
         int usedCount,
-        decimal usedAmount,
         DateTime createdAt)
     {
         ActionId = actionId;
@@ -25,10 +22,7 @@ public sealed class CampaignAction
         ExecuteOrder = executeOrder;
         TotalCount = totalCount;
         SessionCount = sessionCount;
-        TotalAmount = totalAmount;
-        SessionAmount = sessionAmount;
         UsedCount = usedCount;
-        UsedAmount = usedAmount;
         CreatedAt = createdAt;
     }
 
@@ -39,10 +33,7 @@ public sealed class CampaignAction
     public int ExecuteOrder { get; private set; }
     public int? TotalCount { get; private set; }
     public int? SessionCount { get; private set; }
-    public decimal? TotalAmount { get; private set; }
-    public decimal? SessionAmount { get; private set; }
     public int UsedCount { get; }
-    public decimal UsedAmount { get; }
     public DateTime CreatedAt { get; }
 
     public static CampaignAction Create(
@@ -52,8 +43,6 @@ public sealed class CampaignAction
         int executeOrder,
         int? totalCount,
         int? sessionCount,
-        decimal? totalAmount,
-        decimal? sessionAmount,
         DateTime now)
     {
         if (campaignId == Guid.Empty)
@@ -66,9 +55,7 @@ public sealed class CampaignAction
             actionConfig,
             executeOrder,
             totalCount,
-            sessionCount,
-            totalAmount,
-            sessionAmount);
+            sessionCount);
 
         return new CampaignAction(
             Guid.NewGuid(),
@@ -78,9 +65,6 @@ public sealed class CampaignAction
             executeOrder,
             totalCount,
             sessionCount,
-            totalAmount,
-            sessionAmount,
-            0,
             0,
             now);
     }
@@ -93,10 +77,7 @@ public sealed class CampaignAction
         int executeOrder,
         int? totalCount,
         int? sessionCount,
-        decimal? totalAmount,
-        decimal? sessionAmount,
         int usedCount,
-        decimal usedAmount,
         DateTime createdAt)
     {
         if (actionId == Guid.Empty)
@@ -109,9 +90,7 @@ public sealed class CampaignAction
             actionConfig,
             executeOrder,
             totalCount,
-            sessionCount,
-            totalAmount,
-            sessionAmount);
+            sessionCount);
 
         return new CampaignAction(
             actionId,
@@ -121,10 +100,7 @@ public sealed class CampaignAction
             executeOrder,
             totalCount,
             sessionCount,
-            totalAmount,
-            sessionAmount,
             usedCount,
-            usedAmount,
             createdAt);
     }
 
@@ -133,26 +109,20 @@ public sealed class CampaignAction
         string actionConfig,
         int executeOrder,
         int? totalCount,
-        int? sessionCount,
-        decimal? totalAmount,
-        decimal? sessionAmount)
+        int? sessionCount)
     {
         Validate(
             actionType,
             actionConfig,
             executeOrder,
             totalCount,
-            sessionCount,
-            totalAmount,
-            sessionAmount);
+            sessionCount);
 
         ActionType = actionType;
         ActionConfig = actionConfig;
         ExecuteOrder = executeOrder;
         TotalCount = totalCount;
         SessionCount = sessionCount;
-        TotalAmount = totalAmount;
-        SessionAmount = sessionAmount;
     }
 
     private static void Validate(
@@ -160,9 +130,7 @@ public sealed class CampaignAction
         string actionConfig,
         int executeOrder,
         int? totalCount,
-        int? sessionCount,
-        decimal? totalAmount,
-        decimal? sessionAmount)
+        int? sessionCount)
     {
         if (string.IsNullOrWhiteSpace(actionType))
         {
@@ -183,22 +151,10 @@ public sealed class CampaignAction
             sessionCount is < 0 ||
             totalCount.HasValue &&
             sessionCount.HasValue &&
-            sessionCount > totalCount ||
-            totalAmount is < 0 ||
-            sessionAmount is < 0 ||
-            totalAmount.HasValue && HasMoreThanTwoDecimalPlaces(totalAmount.Value) ||
-            sessionAmount.HasValue && HasMoreThanTwoDecimalPlaces(sessionAmount.Value) ||
-            totalAmount.HasValue &&
-            sessionAmount.HasValue &&
-            sessionAmount > totalAmount)
+            sessionCount > totalCount)
         {
             throw ValidationError("CAMPAIGN_LIMIT_INVALID");
         }
-    }
-
-    private static bool HasMoreThanTwoDecimalPlaces(decimal value)
-    {
-        return decimal.Round(value, 2) != value;
     }
 
     private static DomainException ValidationError(string code)

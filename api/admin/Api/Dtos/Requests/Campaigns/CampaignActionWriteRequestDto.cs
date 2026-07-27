@@ -10,6 +10,4 @@ public sealed record CampaignActionWriteRequestDto
     public int ExecuteOrder { get; init; }
     public int? TotalCount { get; init; }
     public int? SessionCount { get; init; }
-    public decimal? TotalAmount { get; init; }
-    public decimal? SessionAmount { get; init; }
 }

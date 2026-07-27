@@ -43,22 +43,5 @@ public sealed class CampaignActionWriteRequestDtoValidator
             .WithErrorCode("CAMPAIGN_LIMIT_INVALID")
             .OverridePropertyName("sessionCount");
 
-        RuleFor(request => request.TotalAmount)
-            .GreaterThanOrEqualTo(0)
-            .When(request => request.TotalAmount.HasValue)
-            .WithErrorCode("CAMPAIGN_LIMIT_INVALID")
-            .OverridePropertyName("totalAmount");
-
-        RuleFor(request => request.SessionAmount)
-            .GreaterThanOrEqualTo(0)
-            .When(request => request.SessionAmount.HasValue)
-            .WithErrorCode("CAMPAIGN_LIMIT_INVALID")
-            .OverridePropertyName("sessionAmount");
-
-        RuleFor(request => request.SessionAmount)
-            .LessThanOrEqualTo(request => request.TotalAmount)
-            .When(request => request.TotalAmount.HasValue && request.SessionAmount.HasValue)
-            .WithErrorCode("CAMPAIGN_LIMIT_INVALID")
-            .OverridePropertyName("sessionAmount");
     }
 }

@@ -34,9 +34,7 @@ public static class CampaignMapper
                     action.ActionConfig.GetRawText(),
                     action.ExecuteOrder,
                     action.TotalCount,
-                    action.SessionCount,
-                    action.TotalAmount,
-                    action.SessionAmount))
+                    action.SessionCount))
                 .ToArray() ?? [],
             actorUserId);
     }
@@ -74,8 +72,6 @@ public static class CampaignMapper
             request.ExecuteOrder,
             request.TotalCount,
             request.SessionCount,
-            request.TotalAmount,
-            request.SessionAmount,
             actorUserId);
     }
 
@@ -93,8 +89,6 @@ public static class CampaignMapper
             request.ExecuteOrder,
             request.TotalCount,
             request.SessionCount,
-            request.TotalAmount,
-            request.SessionAmount,
             actorUserId);
     }
 
@@ -145,6 +139,7 @@ public static class CampaignMapper
             result.CampaignId,
             result.CampaignName,
             result.Description,
+            result.BannerImageKey,
             result.BannerImageUrl,
             result.EventType,
             ToUtcOffset(result.StartDate),
@@ -166,9 +161,6 @@ public static class CampaignMapper
                 action.TotalCount,
                 action.SessionCount,
                 action.UsedCount,
-                action.TotalAmount,
-                action.SessionAmount,
-                action.UsedAmount,
                 ToUtcOffset(action.CreatedAt)))
                 .ToArray(),
             result.Sessions.Select(session => new CampaignSessionResponseDto(
@@ -192,9 +184,6 @@ public static class CampaignMapper
             action.TotalCount,
             action.SessionCount,
             action.UsedCount,
-            action.TotalAmount,
-            action.SessionAmount,
-            action.UsedAmount,
             ToUtcOffset(action.CreatedAt));
     }
 

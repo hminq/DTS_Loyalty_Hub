@@ -40,10 +40,24 @@ internal static class CampaignAuditSerializer
             totalCount = action.TotalCount,
             sessionCount = action.SessionCount,
             usedCount = action.UsedCount,
-            totalAmount = action.TotalAmount,
-            sessionAmount = action.SessionAmount,
-            usedAmount = action.UsedAmount,
             createdAt = action.CreatedAt
+        });
+    }
+
+    public static string Activation(
+        DomainCampaign campaign,
+        string canonicalCron,
+        int generatedSessionCount)
+    {
+        return JsonSerializer.Serialize(new
+        {
+            campaignId = campaign.CampaignId,
+            campaignName = campaign.CampaignName,
+            status = campaign.Status,
+            scheduleCron = canonicalCron,
+            durationHour = campaign.DurationHour,
+            generatedSessionCount = generatedSessionCount,
+            activatedAt = campaign.UpdatedAt
         });
     }
 }

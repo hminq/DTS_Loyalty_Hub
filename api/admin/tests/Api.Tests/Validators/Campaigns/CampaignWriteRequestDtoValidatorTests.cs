@@ -119,9 +119,7 @@ public sealed class CampaignWriteRequestDtoValidatorTests
             ActionConfig = Json("""{"calculationType":"FIXED_AMOUNT"}"""),
             ExecuteOrder = 1,
             TotalCount = 10,
-            SessionCount = 5,
-            TotalAmount = 100,
-            SessionAmount = 50
+            SessionCount = 5
         };
 
         var result = await _actionValidator.ValidateAsync(request);
@@ -138,9 +136,7 @@ public sealed class CampaignWriteRequestDtoValidatorTests
             ActionConfig = Json("{}"),
             ExecuteOrder = 0,
             TotalCount = 1,
-            SessionCount = 2,
-            TotalAmount = 10,
-            SessionAmount = 20
+            SessionCount = 2
         };
 
         var result = await _actionValidator.ValidateAsync(request);
@@ -150,9 +146,6 @@ public sealed class CampaignWriteRequestDtoValidatorTests
             error.ErrorCode == "CAMPAIGN_ACTION_ORDER_INVALID");
         result.Errors.Should().Contain(error =>
             error.PropertyName == "sessionCount" &&
-            error.ErrorCode == "CAMPAIGN_LIMIT_INVALID");
-        result.Errors.Should().Contain(error =>
-            error.PropertyName == "sessionAmount" &&
             error.ErrorCode == "CAMPAIGN_LIMIT_INVALID");
     }
 

@@ -7,6 +7,7 @@ public sealed record CampaignDetailResponseDto(
     Guid CampaignId,
     string CampaignName,
     string? Description,
+    string? BannerImageKey,
     string? BannerImageUrl,
     string EventType,
     DateTimeOffset StartDate,
@@ -33,9 +34,6 @@ public sealed record CampaignActionResponseDto(
     int? TotalCount,
     int? SessionCount,
     int UsedCount,
-    decimal? TotalAmount,
-    decimal? SessionAmount,
-    decimal UsedAmount,
     DateTimeOffset CreatedAt);
 
 /// <summary>Represents one materialized campaign session.</summary>

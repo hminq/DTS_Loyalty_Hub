@@ -79,8 +79,6 @@ public sealed class CreateCampaignActionCommandHandler
             request.ExecuteOrder,
             request.TotalCount,
             request.SessionCount,
-            request.TotalAmount,
-            request.SessionAmount,
             now);
 
         _campaignRepository.AddAction(action);

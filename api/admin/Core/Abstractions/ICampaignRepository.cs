@@ -2,6 +2,7 @@ using Core.UseCases.Campaigns.Results;
 using Core.UseCases.Common;
 using DomainCampaign = Core.Entities.Campaign;
 using DomainCampaignAction = Core.Entities.CampaignAction;
+using DomainCampaignSession = Core.Entities.CampaignSession;
 
 namespace Core.Abstractions;
 
@@ -51,6 +52,8 @@ public interface ICampaignRepository
     Task DeleteDraftAsync(Guid campaignId, CancellationToken ct = default);
 
     DomainCampaignAction AddAction(DomainCampaignAction action);
+
+    void AddSessions(IEnumerable<DomainCampaignSession> sessions);
 
     Task TouchAsync(Guid campaignId, DateTime updatedAt, CancellationToken ct = default);
 

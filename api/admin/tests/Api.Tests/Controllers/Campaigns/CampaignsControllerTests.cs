@@ -267,6 +267,7 @@ public sealed class CampaignsControllerTests
             "Normal registration reward",
             null,
             null,
+            null,
             "CUSTOMER_ACCOUNT_REGISTERED",
             now.AddDays(1),
             now.AddDays(31),
@@ -293,9 +294,6 @@ public sealed class CampaignsControllerTests
              "calculationBase":null,"percentage":null,"maximumPoints":null}
             """,
             1,
-            null,
-            null,
-            0,
             null,
             null,
             0,

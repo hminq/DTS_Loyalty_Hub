@@ -85,9 +85,7 @@ public sealed class UpdateCampaignActionCommandHandler
             actionConfig,
             request.ExecuteOrder,
             request.TotalCount,
-            request.SessionCount,
-            request.TotalAmount,
-            request.SessionAmount);
+            request.SessionCount);
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         await _campaignRepository.UpdateActionAsync(action, now, ct);

@@ -4,6 +4,7 @@ public sealed record CampaignDetailResult(
     Guid CampaignId,
     string CampaignName,
     string? Description,
+    string? BannerImageKey,
     string? BannerImageUrl,
     string EventType,
     DateTime StartDate,
@@ -28,9 +29,6 @@ public sealed record CampaignActionResult(
     int? TotalCount,
     int? SessionCount,
     int UsedCount,
-    decimal? TotalAmount,
-    decimal? SessionAmount,
-    decimal UsedAmount,
     DateTime CreatedAt);
 
 public sealed record CampaignSessionResult(

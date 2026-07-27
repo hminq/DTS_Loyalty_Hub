@@ -55,7 +55,7 @@ public sealed class Campaign
     public int DurationHour { get; private set; }
     public int? UserLimitTotal { get; private set; }
     public int? UserLimitSession { get; private set; }
-    public string Status { get; }
+    public string Status { get; private set; }
     public DateTime CreatedAt { get; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -189,6 +189,27 @@ public sealed class Campaign
         if (!Status.Equals(CampaignStatuses.Draft, StringComparison.Ordinal))
         {
             throw new DomainException("CAMPAIGN_NOT_DRAFT", DomainErrorType.Conflict);
+        }
+    }
+
+    public void Activate(DateTime operationTimeUtc)
+    {
+        EnsureCanActivate();
+
+        if (StartDate <= operationTimeUtc || EndDate <= StartDate)
+        {
+            throw new DomainException("CAMPAIGN_DATE_RANGE_INVALID", DomainErrorType.Validation);
+        }
+
+        Status = CampaignStatuses.Active;
+        UpdatedAt = operationTimeUtc;
+    }
+
+    public void EnsureCanActivate()
+    {
+        if (!Status.Equals(CampaignStatuses.Draft, StringComparison.Ordinal))
+        {
+            throw new DomainException("CAMPAIGN_ALREADY_ACTIVE", DomainErrorType.Conflict);
         }
     }
 

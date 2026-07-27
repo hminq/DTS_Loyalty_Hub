@@ -148,6 +148,22 @@ public sealed class CampaignsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{campaignId:guid}/activate")]
+    [Authorize(Policy = PermissionCodes.Campaigns.Update)]
+    public async Task<ActionResult<ApiResponseDto<CampaignDetailResponseDto>>> Activate(
+        Guid campaignId,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(
+            new ActivateCampaignCommand(campaignId, _currentAdminContext.UserId),
+            ct);
+
+        return Ok(new ApiResponseDto<CampaignDetailResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
+    }
+
     [HttpGet("{campaignId:guid}/actions/{actionId:guid}")]
     [Authorize(Policy = PermissionCodes.Campaigns.View)]
     public async Task<ActionResult<ApiResponseDto<CampaignActionResponseDto>>> GetActionById(

@@ -69,8 +69,6 @@ public sealed class CreateCampaignCommandHandler
                 action.ExecuteOrder,
                 action.TotalCount,
                 action.SessionCount,
-                action.TotalAmount,
-                action.SessionAmount,
                 now))
             .OrderBy(action => action.ExecuteOrder)
             .ThenBy(action => action.ActionId)
@@ -128,9 +126,7 @@ public sealed class CreateCampaignCommandHandler
             actionConfig,
             input.ExecuteOrder,
             input.TotalCount,
-            input.SessionCount,
-            input.TotalAmount,
-            input.SessionAmount);
+            input.SessionCount);
     }
 
     private static void EnsureUniqueActions(
@@ -167,7 +163,5 @@ public sealed class CreateCampaignCommandHandler
         string ActionConfig,
         int ExecuteOrder,
         int? TotalCount,
-        int? SessionCount,
-        decimal? TotalAmount,
-        decimal? SessionAmount);
+        int? SessionCount);
 }

@@ -1,6 +1,7 @@
 using Core.UseCases.Campaigns.Results;
 using DomainCampaign = Core.Entities.Campaign;
 using DomainCampaignAction = Core.Entities.CampaignAction;
+using DomainCampaignSession = Core.Entities.CampaignSession;
 
 namespace Core.UseCases.Campaigns;
 
@@ -15,6 +16,7 @@ internal static class CampaignResultMapper
             campaign.CampaignName,
             campaign.Description,
             campaign.BannerImageUrl,
+            null,
             campaign.EventType,
             campaign.StartDate,
             campaign.EndDate,
@@ -41,9 +43,17 @@ internal static class CampaignResultMapper
             action.TotalCount,
             action.SessionCount,
             action.UsedCount,
-            action.TotalAmount,
-            action.SessionAmount,
-            action.UsedAmount,
             action.CreatedAt);
+    }
+
+    public static CampaignSessionResult ToResult(this DomainCampaignSession session)
+    {
+        return new CampaignSessionResult(
+            session.CampaignSessionId,
+            session.SessionStart,
+            session.SessionEnd,
+            session.Status,
+            session.CreatedAt,
+            session.EndedAt);
     }
 }

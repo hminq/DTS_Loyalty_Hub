@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Models.Context;
 using DomainCampaign = Core.Entities.Campaign;
 using DomainCampaignAction = Core.Entities.CampaignAction;
+using DomainCampaignSession = Core.Entities.CampaignSession;
 using PersistenceAction = Persistence.Models.Action;
 using PersistenceCampaign = Persistence.Models.Campaign;
+using PersistenceCampaignSession = Persistence.Models.CampaignSession;
 
 namespace Infrastructure.Implementations;
 
@@ -129,9 +131,6 @@ public sealed class CampaignRepository : ICampaignRepository
                 action.TotalCount,
                 action.SessionCount,
                 action.UsedCount,
-                action.TotalAmount,
-                action.SessionAmount,
-                action.UsedAmount,
                 action.CreatedAt))
             .ToArrayAsync(ct);
 
@@ -159,6 +158,7 @@ public sealed class CampaignRepository : ICampaignRepository
             campaign.CampaignName,
             campaign.Description,
             campaign.BannerImageUrl,
+            null,
             campaign.EventType,
             campaign.StartDate,
             campaign.EndDate,
@@ -256,9 +256,6 @@ public sealed class CampaignRepository : ICampaignRepository
                 action.TotalCount,
                 action.SessionCount,
                 action.UsedCount,
-                action.TotalAmount,
-                action.SessionAmount,
-                action.UsedAmount,
                 action.CreatedAt))
             .SingleOrDefaultAsync(ct);
     }
@@ -324,6 +321,7 @@ public sealed class CampaignRepository : ICampaignRepository
         persistedCampaign.DurationHour = campaign.DurationHour;
         persistedCampaign.UserLimitTotal = campaign.UserLimitTotal;
         persistedCampaign.UserLimitSession = campaign.UserLimitSession;
+        persistedCampaign.Status = campaign.Status;
         persistedCampaign.UpdatedAt = campaign.UpdatedAt;
     }
 
@@ -355,13 +353,27 @@ public sealed class CampaignRepository : ICampaignRepository
             TotalCount = action.TotalCount,
             SessionCount = action.SessionCount,
             UsedCount = action.UsedCount,
-            TotalAmount = action.TotalAmount,
-            SessionAmount = action.SessionAmount,
-            UsedAmount = action.UsedAmount,
             CreatedAt = action.CreatedAt
         });
 
         return action;
+    }
+
+    public void AddSessions(IEnumerable<DomainCampaignSession> sessions)
+    {
+        foreach (var session in sessions)
+        {
+            _dbContext.CampaignSessions.Add(new PersistenceCampaignSession
+            {
+                CampaignSessionId = session.CampaignSessionId,
+                CampaignId = session.CampaignId,
+                SessionStart = session.SessionStart,
+                SessionEnd = session.SessionEnd,
+                Status = session.Status,
+                CreatedAt = session.CreatedAt,
+                EndedAt = session.EndedAt
+            });
+        }
     }
 
     public async Task TouchAsync(
@@ -397,8 +409,6 @@ public sealed class CampaignRepository : ICampaignRepository
         persistedAction.ExecuteOrder = action.ExecuteOrder;
         persistedAction.TotalCount = action.TotalCount;
         persistedAction.SessionCount = action.SessionCount;
-        persistedAction.TotalAmount = action.TotalAmount;
-        persistedAction.SessionAmount = action.SessionAmount;
 
         await TouchAsync(action.CampaignId, updatedAt, ct);
     }
@@ -448,10 +458,7 @@ public sealed class CampaignRepository : ICampaignRepository
             action.ExecuteOrder,
             action.TotalCount,
             action.SessionCount,
-            action.TotalAmount,
-            action.SessionAmount,
             action.UsedCount,
-            action.UsedAmount,
             action.CreatedAt);
     }
 }

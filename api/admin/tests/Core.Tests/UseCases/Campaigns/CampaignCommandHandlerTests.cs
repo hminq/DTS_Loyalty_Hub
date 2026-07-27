@@ -180,8 +180,6 @@ public sealed class CampaignCommandHandlerTests
                     "{}",
                     2,
                     null,
-                    null,
-                    null,
                     null)
             ]
         };
@@ -293,7 +291,6 @@ public sealed class CampaignCommandHandlerTests
 
         result.ActionId.Should().NotBe(Guid.Empty);
         result.UsedCount.Should().Be(0);
-        result.UsedAmount.Should().Be(0);
         _repository.Verify(repository => repository.AddAction(
             It.Is<DomainCampaignAction>(action =>
                 action.CampaignId == campaign.CampaignId &&
@@ -410,8 +407,6 @@ public sealed class CampaignCommandHandlerTests
             2,
             10,
             5,
-            750,
-            375,
             Guid.NewGuid());
         var handler = new UpdateCampaignActionCommandHandler(
             _repository.Object,
@@ -426,8 +421,7 @@ public sealed class CampaignCommandHandlerTests
         _repository.Verify(repository => repository.UpdateActionAsync(
             It.Is<DomainCampaignAction>(action =>
                 action.ActionId == existingAction.ActionId &&
-                action.ExecuteOrder == 2 &&
-                action.TotalAmount == 750),
+                action.ExecuteOrder == 2),
             FixedNow.UtcDateTime,
             It.IsAny<CancellationToken>()), Times.Once);
         _auditWriter.Verify(writer => writer.Add(It.Is<AuditLogEntry>(entry =>
@@ -454,9 +448,6 @@ public sealed class CampaignCommandHandlerTests
             2,
             null,
             null,
-            null,
-            null,
-            0,
             0,
             FixedNow.UtcDateTime);
         _repository.Setup(repository => repository.GetForUpdateAsync(
@@ -491,8 +482,6 @@ public sealed class CampaignCommandHandlerTests
              "calculationBase":null,"percentage":null,"maximumPoints":null}
             """,
             1,
-            null,
-            null,
             null,
             null,
             Guid.NewGuid());
@@ -607,8 +596,6 @@ public sealed class CampaignCommandHandlerTests
         """,
         executeOrder,
         null,
-        null,
-        null,
         null);
 
     private static UpdateCampaignCommand ValidUpdateCampaignCommand(Guid campaignId)
@@ -638,8 +625,6 @@ public sealed class CampaignCommandHandlerTests
          "calculationBase":null,"percentage":null,"maximumPoints":null}
         """,
         1,
-        null,
-        null,
         null,
         null,
         Guid.NewGuid());
@@ -679,9 +664,6 @@ public sealed class CampaignCommandHandlerTests
             1,
             null,
             null,
-            null,
-            null,
-            0,
             0,
             FixedNow.UtcDateTime);
     }
@@ -694,6 +676,7 @@ public sealed class CampaignCommandHandlerTests
             campaign.CampaignName,
             campaign.Description,
             campaign.BannerImageUrl,
+            null,
             campaign.EventType,
             campaign.StartDate,
             campaign.EndDate,
@@ -708,6 +691,93 @@ public sealed class CampaignCommandHandlerTests
             [],
             [],
             0);
+    }
+
+    [Fact]
+    public async Task ActivateCampaign_ValidDraft_MaterializesSessionsAndSetsActive()
+    {
+        var campaign = RestoredCampaign(CampaignStatuses.Draft);
+        var action = RestoredAction(campaign.CampaignId);
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([action]);
+
+        var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
+        var handler = new ActivateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Status.Should().Be(CampaignStatuses.Active);
+        result.SessionCount.Should().BeGreaterThan(0);
+        result.Sessions.Should().NotBeEmpty();
+        _repository.Verify(
+            repository => repository.AddSessions(It.IsAny<IEnumerable<Core.Entities.CampaignSession>>()),
+            Times.Once);
+        _repository.Verify(
+            repository => repository.UpdateAsync(campaign, It.IsAny<CancellationToken>()),
+            Times.Once);
+        _auditWriter.Verify(
+            writer => writer.Add(It.Is<AuditLogEntry>(entry =>
+                entry.Action == AuditActions.Activate &&
+                entry.EntityType == AuditEntityTypes.Campaign &&
+                entry.EntityId == campaign.CampaignId)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ActivateCampaign_AlreadyActive_ThrowsConflict()
+    {
+        var campaign = RestoredCampaign(CampaignStatuses.Active);
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+
+        var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
+        var handler = new ActivateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var act = () => handler.Handle(command, CancellationToken.None);
+
+        var ex = await act.Should().ThrowAsync<DomainException>();
+        ex.Which.ErrorCode.Should().Be("CAMPAIGN_ALREADY_ACTIVE");
+        ex.Which.ErrorType.Should().Be(DomainErrorType.Conflict);
+    }
+
+    [Fact]
+    public async Task ActivateCampaign_NoActions_ThrowsValidation()
+    {
+        var campaign = RestoredCampaign(CampaignStatuses.Draft);
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
+        var handler = new ActivateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var act = () => handler.Handle(command, CancellationToken.None);
+
+        var ex = await act.Should().ThrowAsync<DomainException>();
+        ex.Which.ErrorCode.Should().Be("CAMPAIGN_ACTIONS_REQUIRED");
+        ex.Which.ErrorType.Should().Be(DomainErrorType.Validation);
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

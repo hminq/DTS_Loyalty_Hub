@@ -12,6 +12,4 @@ public sealed record UpdateCampaignActionCommand(
     int ExecuteOrder,
     int? TotalCount,
     int? SessionCount,
-    decimal? TotalAmount,
-    decimal? SessionAmount,
     Guid? ActorUserId) : IRequest<CampaignActionResult>, ITransactionalRequest;

@@ -11,10 +11,14 @@ public sealed class GetCampaignByIdQueryHandler
 {
     private const int SessionPreviewLimit = 100;
     private readonly ICampaignRepository _campaignRepository;
+    private readonly IBannerReadUrlProvider _bannerReadUrlProvider;
 
-    public GetCampaignByIdQueryHandler(ICampaignRepository campaignRepository)
+    public GetCampaignByIdQueryHandler(
+        ICampaignRepository campaignRepository,
+        IBannerReadUrlProvider bannerReadUrlProvider)
     {
         _campaignRepository = campaignRepository;
+        _bannerReadUrlProvider = bannerReadUrlProvider;
     }
 
     public async Task<CampaignDetailResult> Handle(
@@ -26,10 +30,20 @@ public sealed class GetCampaignByIdQueryHandler
             throw new DomainException("CAMPAIGN_ID_REQUIRED", DomainErrorType.Validation);
         }
 
-        return await _campaignRepository.GetByIdAsync(
+        var result = await _campaignRepository.GetByIdAsync(
                 request.CampaignId,
                 SessionPreviewLimit,
                 ct)
             ?? throw new DomainException("CAMPAIGN_NOT_FOUND", DomainErrorType.NotFound);
+
+        if (string.IsNullOrWhiteSpace(result.BannerImageKey))
+        {
+            return result;
+        }
+
+        return result with
+        {
+            BannerImageUrl = _bannerReadUrlProvider.CreateReadUrl(result.BannerImageKey)
+        };
     }
 }
