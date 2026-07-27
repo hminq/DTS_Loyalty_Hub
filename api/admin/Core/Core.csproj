@@ -9,4 +9,9 @@
     <PackageReference Include="MediatR" Version="14.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\shared\Campaign.Contracts\Campaign.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\shared\Messaging.Contracts\Messaging.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>

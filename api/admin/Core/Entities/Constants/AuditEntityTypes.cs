@@ -8,6 +8,8 @@ public static class AuditEntityTypes
     public const string TierConfig = "TierConfig";
     public const string VoucherDefinition = "VoucherDefinition";
     public const string NotificationTemplate = "NotificationTemplate";
+    public const string Campaign = "Campaign";
+    public const string CampaignAction = "CampaignAction";
 
     public static IReadOnlyCollection<string> All { get; } =
     [
@@ -16,6 +18,8 @@ public static class AuditEntityTypes
         Role,
         TierConfig,
         VoucherDefinition,
-        NotificationTemplate
+        NotificationTemplate,
+        Campaign,
+        CampaignAction
     ];
 }

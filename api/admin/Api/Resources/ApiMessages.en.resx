@@ -147,4 +147,23 @@
   <data name="CUSTOMER_VOUCHER_NOT_FOUND" xml:space="preserve"><value>Customer voucher does not exist.</value></data>
   <data name="VOUCHER_REDEMPTION_NOT_FOUND" xml:space="preserve"><value>The requested voucher redemption record was not found.</value></data>
   <data name="REDEEM_DATE_RANGE_INVALID" xml:space="preserve"><value>Redeem from date must be earlier than or equal to redeem to date.</value></data>
+  <data name="CAMPAIGN_ID_REQUIRED" xml:space="preserve"><value>Campaign ID is required.</value></data>
+  <data name="CAMPAIGN_NOT_FOUND" xml:space="preserve"><value>Campaign does not exist.</value></data>
+  <data name="CAMPAIGN_STATUS_INVALID" xml:space="preserve"><value>Campaign status is invalid.</value></data>
+  <data name="CAMPAIGN_EVENT_TYPE_INVALID" xml:space="preserve"><value>Campaign event type is invalid.</value></data>
+  <data name="CAMPAIGN_NAME_REQUIRED" xml:space="preserve"><value>Campaign name is required.</value></data>
+  <data name="CAMPAIGN_NAME_TOO_LONG" xml:space="preserve"><value>Campaign name must not exceed 200 characters.</value></data>
+  <data name="CAMPAIGN_BANNER_IMAGE_KEY_INVALID" xml:space="preserve"><value>Campaign banner image key is invalid.</value></data>
+  <data name="CAMPAIGN_CONDITION_INVALID" xml:space="preserve"><value>Campaign condition is invalid or unsupported.</value></data>
+  <data name="CAMPAIGN_DATE_RANGE_INVALID" xml:space="preserve"><value>Campaign end date must be later than its start date.</value></data>
+  <data name="CAMPAIGN_SCHEDULE_INVALID" xml:space="preserve"><value>Campaign schedule is invalid.</value></data>
+  <data name="CAMPAIGN_DURATION_INVALID" xml:space="preserve"><value>Campaign session duration must be greater than zero.</value></data>
+  <data name="CAMPAIGN_LIMIT_INVALID" xml:space="preserve"><value>Campaign or action limits are invalid.</value></data>
+  <data name="CAMPAIGN_NOT_DRAFT" xml:space="preserve"><value>Only a draft campaign can be changed.</value></data>
+  <data name="CAMPAIGN_ACTION_ID_REQUIRED" xml:space="preserve"><value>Campaign action ID is required.</value></data>
+  <data name="CAMPAIGN_ACTION_NOT_FOUND" xml:space="preserve"><value>Campaign action does not exist.</value></data>
+  <data name="CAMPAIGN_ACTION_TYPE_INVALID" xml:space="preserve"><value>Campaign action type is invalid or unsupported.</value></data>
+  <data name="CAMPAIGN_ACTION_CONFIG_INVALID" xml:space="preserve"><value>Campaign action configuration is invalid or unsupported.</value></data>
+  <data name="CAMPAIGN_ACTION_ORDER_INVALID" xml:space="preserve"><value>Campaign action execution order must be greater than zero.</value></data>
+  <data name="CAMPAIGN_ACTION_ORDER_CONFLICT" xml:space="preserve"><value>Another campaign action already uses this execution order.</value></data>
 </root>

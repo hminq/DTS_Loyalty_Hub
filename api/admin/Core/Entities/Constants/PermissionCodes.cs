@@ -32,6 +32,10 @@ public static class PermissionCodes
         VoucherDefinitions.Create,
         VoucherDefinitions.Update,
         VoucherDefinitions.Delete,
+        Campaigns.View,
+        Campaigns.Create,
+        Campaigns.Update,
+        Campaigns.Delete,
         CustomerVouchers.View
     ];
 
@@ -84,6 +88,14 @@ public static class PermissionCodes
         public const string Create = "voucher_definition.create";
         public const string Update = "voucher_definition.update";
         public const string Delete = "voucher_definition.delete";
+    }
+
+    public static class Campaigns
+    {
+        public const string View = "campaign.view";
+        public const string Create = "campaign.create";
+        public const string Update = "campaign.update";
+        public const string Delete = "campaign.delete";
     }
 
     private static string Normalize(string code)
