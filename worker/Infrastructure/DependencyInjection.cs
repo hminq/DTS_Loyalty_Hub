@@ -41,6 +41,7 @@ public static class DependencyInjection
 
         services.AddScoped<ICustomerTierRepository, CustomerTierRepository>();
         services.AddScoped<ICustomerTierMutationStore, CustomerTierMutationStore>();
+        services.AddScoped<ICampaignSessionLifecycleStore, CampaignSessionLifecycleStore>();
         services.AddScoped<VoucherPoolProvisioningStore>();
         services.AddScoped<IVoucherPoolProvisioningRepository>(
             provider => provider.GetRequiredService<VoucherPoolProvisioningStore>());

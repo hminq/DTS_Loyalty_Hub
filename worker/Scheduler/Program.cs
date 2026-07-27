@@ -38,10 +38,13 @@ if (builder.Environment.IsDevelopment())
 var scheduleOptions = TierExpirationScheduleOptions.FromConfiguration(builder.Configuration);
 var voucherPoolScheduleOptions =
     VoucherPoolProvisioningScheduleOptions.FromConfiguration(builder.Configuration);
+var campaignLifecycleScheduleOptions =
+    CampaignSessionLifecycleScheduleOptions.FromConfiguration(builder.Configuration);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(scheduleOptions);
 builder.Services.AddSingleton(voucherPoolScheduleOptions);
+builder.Services.AddSingleton(campaignLifecycleScheduleOptions);
 builder.Services.AddQuartz(quartz =>
 {
     var tierExpirationJobKey = new JobKey(nameof(ProcessExpiredCustomerTiersJob));
@@ -69,6 +72,19 @@ builder.Services.AddQuartz(quartz =>
             cron => cron
                 .InTimeZone(TimeZoneInfo.FindSystemTimeZoneById(
                     voucherPoolScheduleOptions.TimeZone))
+                .WithMisfireHandlingInstructionDoNothing()));
+
+    var campaignLifecycleJobKey = new JobKey(nameof(ProcessCampaignSessionLifecycleJob));
+
+    quartz.AddJob<ProcessCampaignSessionLifecycleJob>(
+        job => job.WithIdentity(campaignLifecycleJobKey));
+    quartz.AddTrigger(trigger => trigger
+        .ForJob(campaignLifecycleJobKey)
+        .WithIdentity($"{campaignLifecycleJobKey.Name}-trigger")
+        .WithCronSchedule(
+            campaignLifecycleScheduleOptions.Cron,
+            cron => cron
+                .InTimeZone(TimeZoneInfo.Utc)
                 .WithMisfireHandlingInstructionDoNothing()));
 
     var outboxDispatchJobKey = new JobKey(nameof(DispatchOutboxMessagesJob));
