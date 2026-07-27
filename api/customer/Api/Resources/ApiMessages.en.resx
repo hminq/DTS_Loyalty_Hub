@@ -10,6 +10,8 @@
   <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email is already registered.</value></data>
   <data name="PHONE_ALREADY_EXISTS" xml:space="preserve"><value>Phone number is already registered.</value></data>
   <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Username is already taken.</value></data>
+  <data name="REFERRAL_USERNAME_INVALID" xml:space="preserve"><value>Referral username is invalid or not eligible.</value></data>
+  <data name="REFERRAL_USERNAME_INVALID_LENGTH" xml:space="preserve"><value>Referral username must be between {MinLength} and {MaxLength} characters.</value></data>
   <data name="REQUEST_BODY_INVALID" xml:space="preserve"><value>Request body is invalid.</value></data>
   <data name="VALUE_INVALID" xml:space="preserve"><value>Request value is invalid.</value></data>
   <data name="EMAIL_INVALID_FORMAT" xml:space="preserve"><value>Email format is invalid.</value></data>

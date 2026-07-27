@@ -1,4 +1,5 @@
 using Core.Abstractions;
+using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.Auth;
 using Core.UseCases.Auth.Commands;
@@ -33,9 +34,10 @@ public class RegisterCommandHandlerTests
         string email = "john@example.com",
         string password = "Pass1234",
         string fullName = "John Doe",
-        string phone = "+84901234567")
+        string phone = "+84901234567",
+        string? referralUsername = null)
     {
-        return new RegisterCommand(username, email, password, fullName, phone);
+        return new RegisterCommand(username, email, password, fullName, phone, referralUsername);
     }
 
     private void SetupNoDuplicates()
@@ -145,6 +147,123 @@ public class RegisterCommandHandlerTests
         _userRepository.Verify(repository => repository.ExistsByPhoneAsync(
             "+84901234567",
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ValidReferral_EmitsReferralEventWithResolvedCustomerId()
+    {
+        var command = CreateCommand(referralUsername: "referrer");
+        var created = new CreatedCustomerUser(Guid.NewGuid(), Guid.NewGuid());
+        var referrer = new ReferralCustomer(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "referrer",
+            UserStatus.Enable);
+
+        SetupNoDuplicates();
+        _userRepository
+            .Setup(repository => repository.GetReferralCustomerByUsernameAsync(
+                "referrer",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(referrer);
+        _passwordVerifier.Setup(verifier => verifier.Hash(command.Password)).Returns("hash");
+        _userRepository
+            .Setup(repository => repository.Add(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<NewCustomerUser>()))
+            .Returns(created);
+        _accessTokenService.Setup(service => service.CreateExpiresAt()).Returns(DateTime.UtcNow);
+        _accessTokenService
+            .Setup(service => service.CreateAccessToken(
+                It.IsAny<CustomerTokenUser>(),
+                It.IsAny<DateTime>()))
+            .Returns(new AccessToken("token", DateTime.UtcNow));
+
+        await _sut.Handle(command, CancellationToken.None);
+
+        _outboxWriter.Verify(writer => writer.Add(
+            It.Is<OutgoingEvent<CustomerAccountRegisteredData>>(outgoingEvent =>
+                outgoingEvent.Data.Source == CustomerRegistrationSources.Referral &&
+                outgoingEvent.Data.ReferrerCustomerId == referrer.CustomerId)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_MissingReferral_RejectsRegistrationBeforeCreatingUser()
+    {
+        var command = CreateCommand(referralUsername: "missing_referrer");
+
+        SetupNoDuplicates();
+        _userRepository
+            .Setup(repository => repository.GetReferralCustomerByUsernameAsync(
+                "missing_referrer",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ReferralCustomer?)null);
+
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("REFERRAL_USERNAME_INVALID");
+        exception.Which.ErrorType.Should().Be(DomainErrorType.Validation);
+        _userRepository.Verify(
+            repository => repository.Add(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<NewCustomerUser>()),
+            Times.Never);
+        _outboxWriter.Verify(
+            writer => writer.Add(It.IsAny<OutgoingEvent<CustomerAccountRegisteredData>>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_DisabledReferral_RejectsRegistrationBeforeCreatingUser()
+    {
+        var command = CreateCommand(referralUsername: "disabled_referrer");
+        var disabledReferrer = new ReferralCustomer(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "disabled_referrer",
+            UserStatus.Disable);
+
+        SetupNoDuplicates();
+        _userRepository
+            .Setup(repository => repository.GetReferralCustomerByUsernameAsync(
+                "disabled_referrer",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(disabledReferrer);
+
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("REFERRAL_USERNAME_INVALID");
+        _userRepository.Verify(
+            repository => repository.Add(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<NewCustomerUser>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_SelfReferral_RejectsWithoutResolvingReferralUsername()
+    {
+        var command = CreateCommand(
+            username: "new_customer",
+            referralUsername: "new_customer");
+
+        SetupNoDuplicates();
+
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("REFERRAL_USERNAME_INVALID");
+        _userRepository.Verify(
+            repository => repository.GetReferralCustomerByUsernameAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]

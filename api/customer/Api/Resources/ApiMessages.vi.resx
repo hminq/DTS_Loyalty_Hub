@@ -10,6 +10,8 @@
   <data name="EMAIL_ALREADY_EXISTS" xml:space="preserve"><value>Email đã được đăng ký.</value></data>
   <data name="PHONE_ALREADY_EXISTS" xml:space="preserve"><value>Số điện thoại đã được đăng ký.</value></data>
   <data name="USERNAME_ALREADY_EXISTS" xml:space="preserve"><value>Tên đăng nhập đã được sử dụng.</value></data>
+  <data name="REFERRAL_USERNAME_INVALID" xml:space="preserve"><value>Tên người giới thiệu không hợp lệ hoặc không đủ điều kiện.</value></data>
+  <data name="REFERRAL_USERNAME_INVALID_LENGTH" xml:space="preserve"><value>Tên người giới thiệu phải từ {MinLength} đến {MaxLength} ký tự.</value></data>
   <data name="REQUEST_BODY_INVALID" xml:space="preserve"><value>Nội dung yêu cầu không hợp lệ.</value></data>
   <data name="VALUE_INVALID" xml:space="preserve"><value>Giá trị trong yêu cầu không hợp lệ.</value></data>
   <data name="EMAIL_INVALID_FORMAT" xml:space="preserve"><value>Định dạng email không hợp lệ.</value></data>

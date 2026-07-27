@@ -1,5 +1,6 @@
 using Core.Abstractions;
 using Core.Entities;
+using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Models;
@@ -37,6 +38,7 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         var email = UserProfileRules.NormalizeEmail(request.Email);
         var fullName = UserProfileRules.NormalizeFullName(request.FullName);
         var phone = UserProfileRules.NormalizePhoneNumber(request.Phone);
+        var referralUsername = NormalizeOptionalUsername(request.ReferralUsername);
 
         if (await _userRepository.ExistsByUsernameAsync(username, ct))
         {
@@ -57,6 +59,24 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
             throw new DomainException(
                 "PHONE_ALREADY_EXISTS",
                 DomainErrorType.Conflict);
+        }
+
+        ReferralCustomer? referrer = null;
+        if (referralUsername is not null)
+        {
+            if (string.Equals(username, referralUsername, StringComparison.Ordinal))
+            {
+                throw InvalidReferral();
+            }
+
+            referrer = await _userRepository.GetReferralCustomerByUsernameAsync(
+                referralUsername,
+                ct);
+
+            if (referrer is null || !UserStatus.IsEnabled(referrer.Status))
+            {
+                throw InvalidReferral();
+            }
         }
 
         var passwordHash = _passwordVerifier.Hash(request.Password);
@@ -84,8 +104,10 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
                 new CustomerAccountRegisteredData(
                     created.UserId,
                     created.CustomerId,
-                    CustomerRegistrationSources.Normal,
-                    ReferrerCustomerId: null)));
+                    referrer is null
+                        ? CustomerRegistrationSources.Normal
+                        : CustomerRegistrationSources.Referral,
+                    referrer?.CustomerId)));
 
         var expiresAt = _accessTokenService.CreateExpiresAt();
 
@@ -105,5 +127,19 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
                 username,
                 email,
                 fullName));
+    }
+
+    private static string? NormalizeOptionalUsername(string? username)
+    {
+        return string.IsNullOrWhiteSpace(username)
+            ? null
+            : username.Trim();
+    }
+
+    private static DomainException InvalidReferral()
+    {
+        return new DomainException(
+            "REFERRAL_USERNAME_INVALID",
+            DomainErrorType.Validation);
     }
 }

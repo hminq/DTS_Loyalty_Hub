@@ -6,6 +6,10 @@ public interface IUserRepository
 {
     Task<CustomerLoginUser?> GetByUsernameAsync(string username, CancellationToken ct);
 
+    Task<ReferralCustomer?> GetReferralCustomerByUsernameAsync(
+        string username,
+        CancellationToken ct);
+
     Task<CustomerLoginUser?> GetByIdAsync(Guid userId, CancellationToken ct);
 
     Task<bool> ExistsByUsernameAsync(string username, CancellationToken ct);
