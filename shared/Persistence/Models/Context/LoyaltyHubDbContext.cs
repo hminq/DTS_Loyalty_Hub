@@ -94,17 +94,8 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.ReferenceType)
                 .HasMaxLength(100)
                 .HasColumnName("reference_type");
-            entity.Property(e => e.SessionAmount)
-                .HasPrecision(18, 2)
-                .HasColumnName("session_amount");
             entity.Property(e => e.SessionCount).HasColumnName("session_count");
-            entity.Property(e => e.TotalAmount)
-                .HasPrecision(18, 2)
-                .HasColumnName("total_amount");
             entity.Property(e => e.TotalCount).HasColumnName("total_count");
-            entity.Property(e => e.UsedAmount)
-                .HasPrecision(18, 2)
-                .HasColumnName("used_amount");
             entity.Property(e => e.UsedCount).HasColumnName("used_count");
         });
 
@@ -124,9 +115,6 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
-            entity.Property(e => e.UsedAmount)
-                .HasPrecision(18, 2)
-                .HasColumnName("used_amount");
             entity.Property(e => e.UsedCount).HasColumnName("used_count");
 
             entity.HasOne(d => d.Action).WithMany(p => p.ActionUsages)
