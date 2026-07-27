@@ -5,6 +5,7 @@ using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Models;
 using Core.UseCases.Auth.Results;
 using MediatR;
+using Messaging.Contracts.Events;
 
 namespace Core.UseCases.Auth;
 
@@ -13,15 +14,21 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
     private readonly IUserRepository _userRepository;
     private readonly IPasswordVerifier _passwordVerifier;
     private readonly IAccessTokenService _accessTokenService;
+    private readonly IOutboxWriter _outboxWriter;
+    private readonly TimeProvider _timeProvider;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
         IPasswordVerifier passwordVerifier,
-        IAccessTokenService accessTokenService)
+        IAccessTokenService accessTokenService,
+        IOutboxWriter outboxWriter,
+        TimeProvider timeProvider)
     {
         _userRepository = userRepository;
         _passwordVerifier = passwordVerifier;
         _accessTokenService = accessTokenService;
+        _outboxWriter = outboxWriter;
+        _timeProvider = timeProvider;
     }
 
     public async Task<RegisterResult> Handle(RegisterCommand request, CancellationToken ct)
@@ -56,6 +63,8 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
 
         var userId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
+        var eventId = Guid.NewGuid();
+        var occurredAt = _timeProvider.GetUtcNow().UtcDateTime;
         var created = _userRepository.Add(
             userId,
             customerId,
@@ -65,6 +74,18 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
                 passwordHash,
                 fullName,
                 phone));
+
+        _outboxWriter.Add(
+            new OutgoingEvent<CustomerAccountRegisteredData>(
+                eventId,
+                EventTypeCodes.CustomerAccountRegistered,
+                EventRoutingKeys.CustomerAccountRegistered,
+                occurredAt,
+                new CustomerAccountRegisteredData(
+                    created.UserId,
+                    created.CustomerId,
+                    CustomerRegistrationSources.Normal,
+                    ReferrerCustomerId: null)));
 
         var expiresAt = _accessTokenService.CreateExpiresAt();
 

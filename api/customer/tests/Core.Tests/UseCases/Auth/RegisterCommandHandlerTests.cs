@@ -4,6 +4,7 @@ using Core.UseCases.Auth;
 using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Models;
 using FluentAssertions;
+using Messaging.Contracts.Events;
 using Moq;
 
 namespace Core.Tests.UseCases.Auth;
@@ -13,6 +14,8 @@ public class RegisterCommandHandlerTests
     private readonly Mock<IUserRepository> _userRepository = new();
     private readonly Mock<IPasswordVerifier> _passwordVerifier = new();
     private readonly Mock<IAccessTokenService> _accessTokenService = new();
+    private readonly Mock<IOutboxWriter> _outboxWriter = new();
+    private readonly DateTimeOffset _occurredAt = new(2026, 7, 27, 8, 30, 0, TimeSpan.Zero);
     private readonly RegisterCommandHandler _sut;
 
     public RegisterCommandHandlerTests()
@@ -20,7 +23,9 @@ public class RegisterCommandHandlerTests
         _sut = new RegisterCommandHandler(
             _userRepository.Object,
             _passwordVerifier.Object,
-            _accessTokenService.Object);
+            _accessTokenService.Object,
+            _outboxWriter.Object,
+            new FixedTimeProvider(_occurredAt));
     }
 
     private static RegisterCommand CreateCommand(
@@ -85,6 +90,18 @@ public class RegisterCommandHandlerTests
         result.Customer.Username.Should().Be(command.Username);
         result.Customer.Email.Should().Be(command.Email);
         result.Customer.FullName.Should().Be(command.FullName);
+        _outboxWriter.Verify(
+            writer => writer.Add(
+                It.Is<OutgoingEvent<CustomerAccountRegisteredData>>(outgoingEvent =>
+                    outgoingEvent.EventId != Guid.Empty &&
+                    outgoingEvent.EventType == EventTypeCodes.CustomerAccountRegistered &&
+                    outgoingEvent.RoutingKey == EventRoutingKeys.CustomerAccountRegistered &&
+                    outgoingEvent.OccurredAt == _occurredAt.UtcDateTime &&
+                    outgoingEvent.Data.UserId == created.UserId &&
+                    outgoingEvent.Data.CustomerId == created.CustomerId &&
+                    outgoingEvent.Data.Source == CustomerRegistrationSources.Normal &&
+                    outgoingEvent.Data.ReferrerCustomerId == null)),
+            Times.Once);
     }
 
     [Fact]
@@ -154,6 +171,9 @@ public class RegisterCommandHandlerTests
         _userRepository.Verify(
             r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()),
             Times.Never);
+        _outboxWriter.Verify(
+            writer => writer.Add(It.IsAny<OutgoingEvent<CustomerAccountRegisteredData>>()),
+            Times.Never);
     }
 
     [Fact]
@@ -180,6 +200,9 @@ public class RegisterCommandHandlerTests
         _userRepository.Verify(
             r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()),
             Times.Never);
+        _outboxWriter.Verify(
+            writer => writer.Add(It.IsAny<OutgoingEvent<CustomerAccountRegisteredData>>()),
+            Times.Never);
     }
 
     [Fact]
@@ -205,6 +228,9 @@ public class RegisterCommandHandlerTests
 
         _userRepository.Verify(
             r => r.Add(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<NewCustomerUser>()),
+            Times.Never);
+        _outboxWriter.Verify(
+            writer => writer.Add(It.IsAny<OutgoingEvent<CustomerAccountRegisteredData>>()),
             Times.Never);
     }
 
@@ -267,5 +293,10 @@ public class RegisterCommandHandlerTests
                 It.IsAny<Guid>(),
                 It.Is<NewCustomerUser>(u => u.PasswordHash == "hashed-value" && u.PasswordHash != command.Password)),
             Times.Once);
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset value) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => value;
     }
 }
