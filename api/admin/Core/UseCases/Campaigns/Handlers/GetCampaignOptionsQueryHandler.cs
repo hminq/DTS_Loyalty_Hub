@@ -21,7 +21,7 @@ public sealed class GetCampaignOptionsQueryHandler
             ],
             [
                 new CampaignCapabilityOptionResult(PointRecipients.EventCustomer, true),
-                new CampaignCapabilityOptionResult(PointRecipients.Referrer, false)
+                new CampaignCapabilityOptionResult(PointRecipients.Referrer, true)
             ]);
 
         var result = new CampaignOptionsResult(
@@ -34,8 +34,18 @@ public sealed class GetCampaignOptionsQueryHandler
                     EventTypeCodes.CustomerAccountRegistered,
                     new CampaignConditionOptionsResult(
                     [
-                        new CampaignCapabilityOptionResult(CustomerRegistrationSources.Normal, true),
-                        new CampaignCapabilityOptionResult(CustomerRegistrationSources.Referral, false)
+                        new CampaignConditionOptionResult(
+                            CustomerRegistrationConditionOptionCodes.AllRegistrations,
+                            [],
+                            true),
+                        new CampaignConditionOptionResult(
+                            CustomerRegistrationConditionOptionCodes.NormalRegistration,
+                            [CustomerRegistrationSources.Normal],
+                            true),
+                        new CampaignConditionOptionResult(
+                            CustomerRegistrationConditionOptionCodes.ReferralRegistration,
+                            [CustomerRegistrationSources.Referral],
+                            true)
                     ]),
                     [ActionTypes.IssuePoint])
             ],

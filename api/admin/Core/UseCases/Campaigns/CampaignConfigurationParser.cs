@@ -41,7 +41,9 @@ public static class CampaignConfigurationParser
 
             if (sources is not null &&
                 (sources.Distinct(StringComparer.Ordinal).Count() != sources.Length ||
-                 sources.Any(source => source != CustomerRegistrationSources.Normal)))
+                 sources.Any(source =>
+                     source != CustomerRegistrationSources.Normal &&
+                     source != CustomerRegistrationSources.Referral)))
             {
                 throw ValidationError("CAMPAIGN_CONDITION_INVALID");
             }
@@ -84,7 +86,8 @@ public static class CampaignConfigurationParser
             var recipient = Normalize(config.Recipient);
 
             if (calculationType != PointCalculationTypes.FixedAmount ||
-                recipient != PointRecipients.EventCustomer ||
+                recipient != PointRecipients.EventCustomer &&
+                recipient != PointRecipients.Referrer ||
                 config.Amount is null or <= 0 ||
                 HasMoreThanTwoDecimalPlaces(config.Amount.Value) ||
                 config.CalculationBase is not null ||
@@ -114,6 +117,48 @@ public static class CampaignConfigurationParser
         {
             throw ValidationError("CAMPAIGN_ACTION_CONFIG_INVALID");
         }
+    }
+
+    public static void EnsureActionCompatibleWithCondition(
+        string eventType,
+        string conditionJson,
+        string actionType,
+        string actionConfigJson)
+    {
+        var (_, canonicalCondition) = ParseCondition(eventType, conditionJson);
+        var (_, canonicalActionConfig) = ParseAction(
+            eventType,
+            actionType,
+            actionConfigJson);
+
+        var condition = JsonSerializer.Deserialize<CustomerAccountRegisteredCondition>(
+            canonicalCondition,
+            SerializerOptions)!;
+        var actionConfig = JsonSerializer.Deserialize<IssuePointActionConfig>(
+            canonicalActionConfig,
+            SerializerOptions)!;
+
+        var isReferralOnly = condition.Sources is not null &&
+            condition.Sources.Count == 1 &&
+            condition.Sources[0] == CustomerRegistrationSources.Referral;
+
+        if (actionConfig.Recipient == PointRecipients.Referrer && !isReferralOnly)
+        {
+            throw ValidationError("CAMPAIGN_ACTION_CONDITION_INCOMPATIBLE");
+        }
+    }
+
+    public static string GetActionUniquenessKey(
+        string eventType,
+        string actionType,
+        string actionConfigJson)
+    {
+        var (canonicalActionType, canonicalActionConfig) = ParseAction(
+            eventType,
+            actionType,
+            actionConfigJson);
+
+        return $"{canonicalActionType}:{canonicalActionConfig}";
     }
 
     private static string Normalize(string? value)

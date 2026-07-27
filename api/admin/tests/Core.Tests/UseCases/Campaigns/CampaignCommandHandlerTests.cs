@@ -22,6 +22,14 @@ public sealed class CampaignCommandHandlerTests
     private readonly Mock<IAuditLogWriter> _auditWriter = new();
     private readonly TimeProvider _timeProvider = new FixedTimeProvider(FixedNow);
 
+    public CampaignCommandHandlerTests()
+    {
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+    }
+
     [Fact]
     public async Task CreateCampaign_ValidCommand_AddsDraftAndAudit()
     {
@@ -38,18 +46,157 @@ public sealed class CampaignCommandHandlerTests
         result.CampaignId.Should().NotBe(Guid.Empty);
         result.Status.Should().Be(CampaignStatuses.Draft);
         result.StartDate.Kind.Should().Be(DateTimeKind.Utc);
-        result.Actions.Should().BeEmpty();
+        result.Actions.Should().ContainSingle();
         result.Sessions.Should().BeEmpty();
         _repository.Verify(repository => repository.Add(
             It.Is<DomainCampaign>(campaign =>
                 campaign.CampaignId == result.CampaignId &&
                 campaign.EventType == EventTypeCodes.CustomerAccountRegistered &&
                 campaign.Status == CampaignStatuses.Draft)), Times.Once);
+        _repository.Verify(repository => repository.AddAction(
+            It.Is<DomainCampaignAction>(action =>
+                action.CampaignId == result.CampaignId &&
+                action.ActionType == ActionTypes.IssuePoint &&
+                action.ExecuteOrder == 1)), Times.Once);
         _auditWriter.Verify(writer => writer.Add(It.Is<AuditLogEntry>(entry =>
             entry.ActorUserId == command.ActorUserId &&
             entry.Action == AuditActions.Create &&
             entry.EntityType == AuditEntityTypes.Campaign &&
             entry.EntityId == result.CampaignId)), Times.Once);
+        _auditWriter.Verify(writer => writer.Add(It.Is<AuditLogEntry>(entry =>
+            entry.EntityType == AuditEntityTypes.CampaignAction &&
+            entry.EntityId == result.Actions.Single().ActionId)), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateCampaign_ReferralActionsWithDifferentRecipients_AreAccepted()
+    {
+        var command = ValidCreateCampaignCommand() with
+        {
+            ConditionJson = """{"sources":["REFERRAL"]}""",
+            Actions =
+            [
+                ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
+                ValidCreateActionInput("REFERRER", 100, 2)
+            ]
+        };
+        var handler = new CreateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Actions.Should().HaveCount(2);
+        result.Actions.Select(action => action.ExecuteOrder).Should().ContainInOrder(1, 2);
+        _repository.Verify(repository => repository.AddAction(
+            It.IsAny<DomainCampaignAction>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task CreateCampaign_DuplicateActionConfig_RejectsBeforeMutation()
+    {
+        var command = ValidCreateCampaignCommand() with
+        {
+            Actions =
+            [
+                ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
+                ValidCreateActionInput("EVENT_CUSTOMER", 50, 2)
+            ]
+        };
+        var handler = new CreateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var action = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_ACTION_DUPLICATE");
+        _repository.Verify(repository => repository.Add(It.IsAny<DomainCampaign>()), Times.Never);
+        _repository.Verify(repository => repository.AddAction(It.IsAny<DomainCampaignAction>()), Times.Never);
+        _auditWriter.Verify(writer => writer.Add(It.IsAny<AuditLogEntry>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateCampaign_SameRecipientWithDifferentConfig_IsAccepted()
+    {
+        var command = ValidCreateCampaignCommand() with
+        {
+            Actions =
+            [
+                ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
+                ValidCreateActionInput("EVENT_CUSTOMER", 100, 2)
+            ]
+        };
+        var handler = new CreateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Actions.Should().HaveCount(2);
+        _repository.Verify(repository => repository.AddAction(
+            It.IsAny<DomainCampaignAction>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task CreateCampaign_DuplicateOrder_RejectsBeforeMutation()
+    {
+        var command = ValidCreateCampaignCommand() with
+        {
+            ConditionJson = """{"sources":["REFERRAL"]}""",
+            Actions =
+            [
+                ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
+                ValidCreateActionInput("REFERRER", 100, 1)
+            ]
+        };
+        var handler = new CreateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var action = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_ACTION_ORDER_CONFLICT");
+        _repository.Verify(repository => repository.Add(It.IsAny<DomainCampaign>()), Times.Never);
+        _repository.Verify(repository => repository.AddAction(It.IsAny<DomainCampaignAction>()), Times.Never);
+        _auditWriter.Verify(writer => writer.Add(It.IsAny<AuditLogEntry>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateCampaign_InvalidSecondAction_RejectsBeforeMutation()
+    {
+        var command = ValidCreateCampaignCommand() with
+        {
+            Actions =
+            [
+                ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
+                new CreateCampaignActionInput(
+                    ActionTypes.IssuePoint,
+                    "{}",
+                    2,
+                    null,
+                    null,
+                    null,
+                    null)
+            ]
+        };
+        var handler = new CreateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var action = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_ACTION_CONFIG_INVALID");
+        _repository.Verify(repository => repository.Add(It.IsAny<DomainCampaign>()), Times.Never);
+        _repository.Verify(repository => repository.AddAction(It.IsAny<DomainCampaignAction>()), Times.Never);
+        _auditWriter.Verify(writer => writer.Add(It.IsAny<AuditLogEntry>()), Times.Never);
     }
 
     [Fact]
@@ -196,6 +343,39 @@ public sealed class CampaignCommandHandlerTests
     }
 
     [Fact]
+    public async Task CreateAction_DuplicateConfig_RejectsWithoutMutation()
+    {
+        var campaign = RestoredCampaign(CampaignStatuses.Draft);
+        var existingAction = RestoredAction(campaign.CampaignId);
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        _repository.Setup(repository => repository.ActionOrderExistsAsync(
+                campaign.CampaignId,
+                2,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([existingAction]);
+        var handler = new CreateCampaignActionCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+        var command = ValidCreateActionCommand(campaign.CampaignId) with { ExecuteOrder = 2 };
+
+        var action = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_ACTION_DUPLICATE");
+        _repository.Verify(repository => repository.AddAction(It.IsAny<DomainCampaignAction>()), Times.Never);
+        _auditWriter.Verify(writer => writer.Add(It.IsAny<AuditLogEntry>()), Times.Never);
+    }
+
+    [Fact]
     public async Task UpdateAction_ValidCommand_UpdatesActionAndAudits()
     {
         var campaign = RestoredCampaign(CampaignStatuses.Draft);
@@ -215,6 +395,10 @@ public sealed class CampaignCommandHandlerTests
                 existingAction.ActionId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([existingAction]);
         var command = new UpdateCampaignActionCommand(
             campaign.CampaignId,
             existingAction.ActionId,
@@ -250,6 +434,78 @@ public sealed class CampaignCommandHandlerTests
             entry.Action == AuditActions.Update &&
             entry.EntityType == AuditEntityTypes.CampaignAction &&
             entry.EntityId == existingAction.ActionId)), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAction_ExistingConfig_RejectsWithoutMutation()
+    {
+        var campaign = RestoredCampaign(
+            CampaignStatuses.Draft,
+            """{"sources":["REFERRAL"]}""");
+        var eventCustomerAction = RestoredAction(campaign.CampaignId);
+        var referrerAction = DomainCampaignAction.Restore(
+            Guid.NewGuid(),
+            campaign.CampaignId,
+            ActionTypes.IssuePoint,
+            """
+            {"calculationType":"FIXED_AMOUNT","recipient":"REFERRER","amount":100,
+             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            """,
+            2,
+            null,
+            null,
+            null,
+            null,
+            0,
+            0,
+            FixedNow.UtcDateTime);
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        _repository.Setup(repository => repository.GetActionForUpdateAsync(
+                campaign.CampaignId,
+                eventCustomerAction.ActionId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(eventCustomerAction);
+        _repository.Setup(repository => repository.ActionOrderExistsAsync(
+                campaign.CampaignId,
+                1,
+                eventCustomerAction.ActionId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([eventCustomerAction, referrerAction]);
+        var handler = new UpdateCampaignActionCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+        var command = new UpdateCampaignActionCommand(
+            campaign.CampaignId,
+            eventCustomerAction.ActionId,
+            ActionTypes.IssuePoint,
+            """
+            {"calculationType":"FIXED_AMOUNT","recipient":"REFERRER","amount":100,
+             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            """,
+            1,
+            null,
+            null,
+            null,
+            null,
+            Guid.NewGuid());
+
+        var action = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_ACTION_DUPLICATE");
+        _repository.Verify(repository => repository.UpdateActionAsync(
+            It.IsAny<DomainCampaignAction>(),
+            It.IsAny<DateTime>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _auditWriter.Verify(writer => writer.Add(It.IsAny<AuditLogEntry>()), Times.Never);
     }
 
     [Fact]
@@ -337,7 +593,23 @@ public sealed class CampaignCommandHandlerTests
         2,
         1,
         1,
+        [ValidCreateActionInput("EVENT_CUSTOMER", 50, 1)],
         Guid.NewGuid());
+
+    private static CreateCampaignActionInput ValidCreateActionInput(
+        string recipient,
+        decimal amount,
+        int executeOrder) => new(
+        ActionTypes.IssuePoint,
+        $$"""
+        {"calculationType":"FIXED_AMOUNT","recipient":"{{recipient}}","amount":{{amount}},
+         "calculationBase":null,"percentage":null,"maximumPoints":null}
+        """,
+        executeOrder,
+        null,
+        null,
+        null,
+        null);
 
     private static UpdateCampaignCommand ValidUpdateCampaignCommand(Guid campaignId)
     {
@@ -372,7 +644,9 @@ public sealed class CampaignCommandHandlerTests
         null,
         Guid.NewGuid());
 
-    private static DomainCampaign RestoredCampaign(string status)
+    private static DomainCampaign RestoredCampaign(
+        string status,
+        string condition = """{"sources":["NORMAL"]}""")
     {
         return DomainCampaign.Restore(
             Guid.NewGuid(),
@@ -380,7 +654,7 @@ public sealed class CampaignCommandHandlerTests
             null,
             null,
             EventTypeCodes.CustomerAccountRegistered,
-            """{"sources":["NORMAL"]}""",
+            condition,
             FixedNow.UtcDateTime.AddDays(1),
             FixedNow.UtcDateTime.AddDays(31),
             "0 0 2 * * ?",

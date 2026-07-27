@@ -23,7 +23,6 @@ public sealed class CampaignConfigurationParserTests
     }
 
     [Theory]
-    [InlineData("""{"sources":["REFERRAL"]}""")]
     [InlineData("""{"sources":["NORMAL","NORMAL"]}""")]
     [InlineData("""{"sources":["NORMAL"],"unexpected":true}""")]
     public void ParseCondition_UnsupportedOrMalformedContract_Throws(string json)
@@ -34,6 +33,17 @@ public sealed class CampaignConfigurationParserTests
 
         action.Should().Throw<DomainException>()
             .Which.ErrorCode.Should().Be("CAMPAIGN_CONDITION_INVALID");
+    }
+
+    [Fact]
+    public void ParseCondition_ReferralSource_ReturnsCanonicalContract()
+    {
+        var result = CampaignConfigurationParser.ParseCondition(
+            EventTypeCodes.CustomerAccountRegistered,
+            """{"sources":[" referral "]}""");
+
+        using var document = JsonDocument.Parse(result.Condition);
+        document.RootElement.GetProperty("sources")[0].GetString().Should().Be("REFERRAL");
     }
 
     [Fact]
@@ -76,14 +86,100 @@ public sealed class CampaignConfigurationParserTests
         document.RootElement.GetProperty("amount").GetDecimal().Should().Be(50);
     }
 
+    [Fact]
+    public void ParseAction_FixedAmountForReferrer_ReturnsCanonicalContract()
+    {
+        const string json = """
+            {
+              "calculationType": "FIXED_AMOUNT",
+              "recipient": "REFERRER",
+              "amount": 100,
+              "calculationBase": null,
+              "percentage": null,
+              "maximumPoints": null
+            }
+            """;
+
+        var result = CampaignConfigurationParser.ParseAction(
+            EventTypeCodes.CustomerAccountRegistered,
+            "ISSUE_POINT",
+            json);
+
+        using var document = JsonDocument.Parse(result.ActionConfig);
+        document.RootElement.GetProperty("recipient").GetString().Should().Be("REFERRER");
+    }
+
+    [Fact]
+    public void GetActionUniquenessKey_NormalizesCanonicalActionConfig()
+    {
+        var normalized = CampaignConfigurationParser.GetActionUniquenessKey(
+            EventTypeCodes.CustomerAccountRegistered,
+            " issue_point ",
+            """
+            {"calculationType":"fixed_amount","recipient":" event_customer ","amount":50,
+             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            """);
+        var canonical = CampaignConfigurationParser.GetActionUniquenessKey(
+            EventTypeCodes.CustomerAccountRegistered,
+            "ISSUE_POINT",
+            """
+            {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":50}
+            """);
+
+        normalized.Should().Be(canonical);
+    }
+
+    [Fact]
+    public void ReferrerAction_OnNormalCondition_IsRejected()
+    {
+        const string actionJson = """
+            {
+              "calculationType": "FIXED_AMOUNT",
+              "recipient": "REFERRER",
+              "amount": 100,
+              "calculationBase": null,
+              "percentage": null,
+              "maximumPoints": null
+            }
+            """;
+
+        var action = () => CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+            EventTypeCodes.CustomerAccountRegistered,
+            """{"sources":["NORMAL"]}""",
+            "ISSUE_POINT",
+            actionJson);
+
+        action.Should().Throw<DomainException>()
+            .Which.ErrorCode.Should().Be("CAMPAIGN_ACTION_CONDITION_INCOMPATIBLE");
+    }
+
+    [Fact]
+    public void ReferrerAction_OnReferralOnlyCondition_IsAccepted()
+    {
+        const string actionJson = """
+            {
+              "calculationType": "FIXED_AMOUNT",
+              "recipient": "REFERRER",
+              "amount": 100,
+              "calculationBase": null,
+              "percentage": null,
+              "maximumPoints": null
+            }
+            """;
+
+        var action = () => CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+            EventTypeCodes.CustomerAccountRegistered,
+            """{"sources":["REFERRAL"]}""",
+            "ISSUE_POINT",
+            actionJson);
+
+        action.Should().NotThrow();
+    }
+
     [Theory]
     [InlineData("""
         {"calculationType":"PERCENT","recipient":"EVENT_CUSTOMER","amount":null,
          "calculationBase":"ORDER_AMOUNT","percentage":10,"maximumPoints":100}
-        """)]
-    [InlineData("""
-        {"calculationType":"FIXED_AMOUNT","recipient":"REFERRER","amount":50,
-         "calculationBase":null,"percentage":null,"maximumPoints":null}
         """)]
     [InlineData("""
         {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":50.001,

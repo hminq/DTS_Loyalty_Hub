@@ -20,7 +20,16 @@ public sealed record CampaignEventTypeOptionResponseDto(
 
 /// <summary>Represents condition capabilities for one event type.</summary>
 public sealed record CampaignConditionOptionsResponseDto(
-    IReadOnlyCollection<CampaignCapabilityOptionResponseDto> Sources);
+    IReadOnlyCollection<CampaignConditionOptionResponseDto> Options);
+
+/// <summary>
+/// Represents one selectable condition and the event-payload sources it matches.
+/// An empty Sources collection means the condition matches all sources.
+/// </summary>
+public sealed record CampaignConditionOptionResponseDto(
+    string Code,
+    IReadOnlyCollection<string> Sources,
+    bool Supported);
 
 /// <summary>Represents one action type and its compatible configuration values.</summary>
 public sealed record CampaignActionTypeOptionResponseDto(

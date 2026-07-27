@@ -16,4 +16,5 @@ public sealed record CreateCampaignCommand(
     int DurationHour,
     int? UserLimitTotal,
     int? UserLimitSession,
+    IReadOnlyCollection<CreateCampaignActionInput> Actions,
     Guid? ActorUserId) : IRequest<CampaignDetailResult>, ITransactionalRequest;

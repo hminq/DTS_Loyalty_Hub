@@ -29,6 +29,10 @@ public interface ICampaignRepository
         Guid actionId,
         CancellationToken ct = default);
 
+    Task<IReadOnlyCollection<DomainCampaignAction>> GetActionsForUpdateAsync(
+        Guid campaignId,
+        CancellationToken ct = default);
+
     Task<CampaignActionResult?> GetActionByIdAsync(
         Guid campaignId,
         Guid actionId,

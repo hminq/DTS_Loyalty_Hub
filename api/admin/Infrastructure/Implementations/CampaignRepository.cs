@@ -180,8 +180,9 @@ public sealed class CampaignRepository : ICampaignRepository
         CancellationToken ct = default)
     {
         var campaign = await _dbContext.Campaigns
+            .FromSqlInterpolated($"SELECT * FROM campaigns WHERE campaign_id = {campaignId} FOR UPDATE")
             .AsNoTracking()
-            .SingleOrDefaultAsync(item => item.CampaignId == campaignId, ct);
+            .SingleOrDefaultAsync(ct);
 
         return campaign is null
             ? null
@@ -218,6 +219,22 @@ public sealed class CampaignRepository : ICampaignRepository
                 ct);
 
         return action is null ? null : ToDomainAction(action);
+    }
+
+    public async Task<IReadOnlyCollection<DomainCampaignAction>> GetActionsForUpdateAsync(
+        Guid campaignId,
+        CancellationToken ct = default)
+    {
+        var actions = await _dbContext.Actions
+            .AsNoTracking()
+            .Where(action =>
+                action.ReferenceType == ActionReferenceTypes.Campaign &&
+                action.ReferenceId == campaignId)
+            .OrderBy(action => action.ExecuteOrder)
+            .ThenBy(action => action.ActionId)
+            .ToArrayAsync(ct);
+
+        return actions.Select(ToDomainAction).ToArray();
     }
 
     public Task<CampaignActionResult?> GetActionByIdAsync(

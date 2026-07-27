@@ -13,7 +13,7 @@ namespace Api.Mappers;
 public static class CampaignMapper
 {
     public static CreateCampaignCommand ToCreateCommand(
-        this CampaignWriteRequestDto request,
+        this CreateCampaignRequestDto request,
         Guid? actorUserId)
     {
         return new CreateCampaignCommand(
@@ -28,6 +28,16 @@ public static class CampaignMapper
             request.DurationHour,
             request.UserLimitTotal,
             request.UserLimitSession,
+            request.Actions?
+                .Select(action => new CreateCampaignActionInput(
+                    action.ActionType,
+                    action.ActionConfig.GetRawText(),
+                    action.ExecuteOrder,
+                    action.TotalCount,
+                    action.SessionCount,
+                    action.TotalAmount,
+                    action.SessionAmount))
+                .ToArray() ?? [],
             actorUserId);
     }
 
@@ -198,7 +208,12 @@ public static class CampaignMapper
             result.EventTypes.Select(eventType => new CampaignEventTypeOptionResponseDto(
                 eventType.Code,
                 new CampaignConditionOptionsResponseDto(
-                    eventType.Condition.Sources.Select(ToResponseDto).ToArray()),
+                    eventType.Condition.Options.Select(condition =>
+                        new CampaignConditionOptionResponseDto(
+                            condition.Code,
+                            condition.Sources.ToArray(),
+                            condition.Supported))
+                        .ToArray()),
                 eventType.ActionTypes.ToArray()))
                 .ToArray(),
             result.ActionTypes.Select(actionType => new CampaignActionTypeOptionResponseDto(

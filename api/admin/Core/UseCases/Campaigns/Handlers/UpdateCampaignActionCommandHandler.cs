@@ -44,6 +44,11 @@ public sealed class UpdateCampaignActionCommandHandler
             campaign.EventType,
             request.ActionType,
             request.ActionConfigJson);
+        CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+            campaign.EventType,
+            campaign.Condition,
+            actionType,
+            actionConfig);
 
         if (await _campaignRepository.ActionOrderExistsAsync(
                 request.CampaignId,
@@ -53,6 +58,25 @@ public sealed class UpdateCampaignActionCommandHandler
         {
             throw new DomainException(
                 "CAMPAIGN_ACTION_ORDER_CONFLICT",
+                DomainErrorType.Conflict);
+        }
+
+        var actionKey = CampaignConfigurationParser.GetActionUniquenessKey(
+            campaign.EventType,
+            actionType,
+            actionConfig);
+        var existingActions = await _campaignRepository.GetActionsForUpdateAsync(
+            request.CampaignId,
+            ct);
+        if (existingActions.Any(existingAction =>
+                existingAction.ActionId != request.ActionId &&
+                CampaignConfigurationParser.GetActionUniquenessKey(
+                    campaign.EventType,
+                    existingAction.ActionType,
+                    existingAction.ActionConfig) == actionKey))
+        {
+            throw new DomainException(
+                "CAMPAIGN_ACTION_DUPLICATE",
                 DomainErrorType.Conflict);
         }
 

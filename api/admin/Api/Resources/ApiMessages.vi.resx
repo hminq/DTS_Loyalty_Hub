@@ -164,6 +164,9 @@
   <data name="CAMPAIGN_ACTION_NOT_FOUND" xml:space="preserve"><value>Hành động chiến dịch không tồn tại.</value></data>
   <data name="CAMPAIGN_ACTION_TYPE_INVALID" xml:space="preserve"><value>Loại hành động chiến dịch không hợp lệ hoặc chưa được hỗ trợ.</value></data>
   <data name="CAMPAIGN_ACTION_CONFIG_INVALID" xml:space="preserve"><value>Cấu hình hành động chiến dịch không hợp lệ hoặc chưa được hỗ trợ.</value></data>
+  <data name="CAMPAIGN_ACTION_CONDITION_INCOMPATIBLE" xml:space="preserve"><value>Hành động chiến dịch không tương thích với điều kiện chiến dịch.</value></data>
+  <data name="CAMPAIGN_ACTIONS_REQUIRED" xml:space="preserve"><value>Chiến dịch phải có ít nhất một hành động.</value></data>
   <data name="CAMPAIGN_ACTION_ORDER_INVALID" xml:space="preserve"><value>Thứ tự thực thi hành động chiến dịch phải lớn hơn 0.</value></data>
   <data name="CAMPAIGN_ACTION_ORDER_CONFLICT" xml:space="preserve"><value>Một hành động khác trong chiến dịch đã sử dụng thứ tự thực thi này.</value></data>
+  <data name="CAMPAIGN_ACTION_DUPLICATE" xml:space="preserve"><value>Một hành động giống hệt đã tồn tại trong chiến dịch.</value></data>
 </root>

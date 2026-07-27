@@ -2,23 +2,8 @@ using System.Text.Json;
 
 namespace Api.Dtos.Requests.Campaigns;
 
-public interface ICampaignWriteRequest
-{
-    string CampaignName { get; }
-    string? Description { get; }
-    string? BannerImageUrl { get; }
-    string EventType { get; }
-    JsonElement Condition { get; }
-    DateTimeOffset StartDate { get; }
-    DateTimeOffset EndDate { get; }
-    string ScheduleCron { get; }
-    int DurationHour { get; }
-    int? UserLimitTotal { get; }
-    int? UserLimitSession { get; }
-}
-
-/// <summary>Represents editable configuration for a draft campaign.</summary>
-public sealed record CampaignWriteRequestDto : ICampaignWriteRequest
+/// <summary>Represents a draft campaign and all of its initial ordered actions.</summary>
+public sealed record CreateCampaignRequestDto : ICampaignWriteRequest
 {
     public string CampaignName { get; init; } = string.Empty;
     public string? Description { get; init; }
@@ -31,4 +16,5 @@ public sealed record CampaignWriteRequestDto : ICampaignWriteRequest
     public int DurationHour { get; init; }
     public int? UserLimitTotal { get; init; }
     public int? UserLimitSession { get; init; }
+    public IReadOnlyCollection<CampaignActionWriteRequestDto>? Actions { get; init; }
 }

@@ -43,6 +43,15 @@ public sealed class UpdateCampaignCommandHandler
             request.EventType,
             request.ConditionJson);
 
+        foreach (var action in existingDetail.Actions)
+        {
+            CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+                eventType,
+                condition,
+                action.ActionType,
+                action.ActionConfig);
+        }
+
         campaign.Update(
             request.CampaignName,
             request.Description,

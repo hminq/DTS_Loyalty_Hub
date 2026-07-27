@@ -22,6 +22,7 @@ public sealed class CampaignsController : ControllerBase
     private readonly ICurrentAdminContext _currentAdminContext;
     private readonly IValidator<GetCampaignsRequestDto> _getCampaignsValidator;
     private readonly IValidator<CampaignWriteRequestDto> _campaignWriteValidator;
+    private readonly IValidator<CreateCampaignRequestDto> _createCampaignValidator;
     private readonly IValidator<CampaignActionWriteRequestDto> _campaignActionWriteValidator;
     private readonly ValidationErrorMapper _validationErrorMapper;
 
@@ -30,6 +31,7 @@ public sealed class CampaignsController : ControllerBase
         ICurrentAdminContext currentAdminContext,
         IValidator<GetCampaignsRequestDto> getCampaignsValidator,
         IValidator<CampaignWriteRequestDto> campaignWriteValidator,
+        IValidator<CreateCampaignRequestDto> createCampaignValidator,
         IValidator<CampaignActionWriteRequestDto> campaignActionWriteValidator,
         ValidationErrorMapper validationErrorMapper)
     {
@@ -37,6 +39,7 @@ public sealed class CampaignsController : ControllerBase
         _currentAdminContext = currentAdminContext;
         _getCampaignsValidator = getCampaignsValidator;
         _campaignWriteValidator = campaignWriteValidator;
+        _createCampaignValidator = createCampaignValidator;
         _campaignActionWriteValidator = campaignActionWriteValidator;
         _validationErrorMapper = validationErrorMapper;
     }
@@ -88,10 +91,10 @@ public sealed class CampaignsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PermissionCodes.Campaigns.Create)]
     public async Task<ActionResult<ApiResponseDto<CampaignDetailResponseDto>>> Create(
-        [FromBody] CampaignWriteRequestDto request,
+        [FromBody] CreateCampaignRequestDto request,
         CancellationToken ct)
     {
-        var validationResult = await _campaignWriteValidator.ValidateAsync(request, ct);
+        var validationResult = await _createCampaignValidator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
             return BadRequest(_validationErrorMapper.FromValidationFailures(validationResult.Errors));

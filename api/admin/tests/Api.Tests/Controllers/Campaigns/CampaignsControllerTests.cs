@@ -27,6 +27,7 @@ public sealed class CampaignsControllerTests
     private readonly Mock<ICurrentAdminContext> _adminContext = new();
     private readonly Mock<IValidator<GetCampaignsRequestDto>> _listValidator = new();
     private readonly Mock<IValidator<CampaignWriteRequestDto>> _campaignValidator = new();
+    private readonly Mock<IValidator<CreateCampaignRequestDto>> _createCampaignValidator = new();
     private readonly Mock<IValidator<CampaignActionWriteRequestDto>> _actionValidator = new();
 
     [Fact]
@@ -36,7 +37,7 @@ public sealed class CampaignsControllerTests
         var request = ValidCampaignRequest();
         var expected = CampaignResult();
         _adminContext.SetupGet(context => context.UserId).Returns(actorUserId);
-        SetupValid(_campaignValidator);
+        SetupValid(_createCampaignValidator);
         _sender.Setup(sender => sender.Send(
                 It.IsAny<CreateCampaignCommand>(),
                 It.IsAny<CancellationToken>()))
@@ -58,7 +59,8 @@ public sealed class CampaignsControllerTests
                 command.ActorUserId == actorUserId &&
                 command.CampaignName == request.CampaignName &&
                 command.EventType == request.EventType &&
-                command.ConditionJson.Contains("NORMAL")),
+                command.ConditionJson.Contains("NORMAL") &&
+                command.Actions.Count == 1),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -66,7 +68,7 @@ public sealed class CampaignsControllerTests
     public async Task Create_InvalidRequest_ReturnsValidationErrorWithoutCommand()
     {
         SetupInvalid(
-            _campaignValidator,
+            _createCampaignValidator,
             new ValidationFailure("campaignName", "Campaign name is required.")
             {
                 ErrorCode = "CAMPAIGN_NAME_REQUIRED"
@@ -74,7 +76,7 @@ public sealed class CampaignsControllerTests
         var controller = CreateController();
 
         var actionResult = await controller.Create(
-            new CampaignWriteRequestDto(),
+            new CreateCampaignRequestDto(),
             CancellationToken.None);
 
         var badRequest = actionResult.Result.Should().BeOfType<BadRequestObjectResult>().Which;
@@ -198,6 +200,7 @@ public sealed class CampaignsControllerTests
         _adminContext.Object,
         _listValidator.Object,
         _campaignValidator.Object,
+        _createCampaignValidator.Object,
         _actionValidator.Object,
         CreateValidationErrorMapper());
 
@@ -231,7 +234,7 @@ public sealed class CampaignsControllerTests
             .ReturnsAsync(new ValidationResult(failures));
     }
 
-    private static CampaignWriteRequestDto ValidCampaignRequest() => new()
+    private static CreateCampaignRequestDto ValidCampaignRequest() => new()
     {
         CampaignName = "Normal registration reward",
         Description = "Issue points after normal registration.",
@@ -242,7 +245,8 @@ public sealed class CampaignsControllerTests
         ScheduleCron = "0 0 2 * * ?",
         DurationHour = 2,
         UserLimitTotal = 1,
-        UserLimitSession = 1
+        UserLimitSession = 1,
+        Actions = [ValidActionRequest()]
     };
 
     private static CampaignActionWriteRequestDto ValidActionRequest() => new()

@@ -8,6 +8,7 @@ namespace Api.Tests.Validators.Campaigns;
 public sealed class CampaignWriteRequestDtoValidatorTests
 {
     private readonly CampaignWriteRequestDtoValidator _campaignValidator = new();
+    private readonly CreateCampaignRequestDtoValidator _createCampaignValidator = new();
     private readonly CampaignActionWriteRequestDtoValidator _actionValidator = new();
 
     [Fact]
@@ -59,6 +60,54 @@ public sealed class CampaignWriteRequestDtoValidatorTests
         result.Errors.Should().Contain(error =>
             error.PropertyName == "condition" &&
             error.ErrorCode == "CAMPAIGN_CONDITION_INVALID");
+    }
+
+    [Fact]
+    public async Task CreateCampaignRequest_ValidShapeWithAction_Passes()
+    {
+        var result = await _createCampaignValidator.ValidateAsync(ValidCreateCampaignRequest());
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CreateCampaignRequest_MissingOrEmptyActions_ReturnsRequiredError(bool useEmptyArray)
+    {
+        var request = ValidCreateCampaignRequest() with
+        {
+            Actions = useEmptyArray ? [] : null
+        };
+
+        var result = await _createCampaignValidator.ValidateAsync(request);
+
+        result.Errors.Should().Contain(error =>
+            error.PropertyName == "actions" &&
+            error.ErrorCode == "CAMPAIGN_ACTIONS_REQUIRED");
+    }
+
+    [Fact]
+    public async Task CreateCampaignRequest_InvalidNestedAction_ReturnsNestedField()
+    {
+        var request = ValidCreateCampaignRequest() with
+        {
+            Actions =
+            [
+                new CampaignActionWriteRequestDto
+                {
+                    ActionType = "ISSUE_POINT",
+                    ActionConfig = Json("{}"),
+                    ExecuteOrder = 0
+                }
+            ]
+        };
+
+        var result = await _createCampaignValidator.ValidateAsync(request);
+
+        result.Errors.Should().Contain(error =>
+            error.PropertyName == "actions[0].executeOrder" &&
+            error.ErrorCode == "CAMPAIGN_ACTION_ORDER_INVALID");
     }
 
     [Fact]
@@ -118,6 +167,28 @@ public sealed class CampaignWriteRequestDtoValidatorTests
         DurationHour = 2,
         UserLimitTotal = 1,
         UserLimitSession = 1
+    };
+
+    private static CreateCampaignRequestDto ValidCreateCampaignRequest() => new()
+    {
+        CampaignName = "Normal registration reward",
+        EventType = "CUSTOMER_ACCOUNT_REGISTERED",
+        Condition = Json("""{"sources":["NORMAL"]}"""),
+        StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
+        EndDate = new DateTimeOffset(2026, 8, 31, 0, 0, 0, TimeSpan.Zero),
+        ScheduleCron = "0 0 2 * * ?",
+        DurationHour = 2,
+        UserLimitTotal = 1,
+        UserLimitSession = 1,
+        Actions =
+        [
+            new CampaignActionWriteRequestDto
+            {
+                ActionType = "ISSUE_POINT",
+                ActionConfig = Json("""{"calculationType":"FIXED_AMOUNT"}"""),
+                ExecuteOrder = 1
+            }
+        ]
     };
 
     private static JsonElement Json(string json)

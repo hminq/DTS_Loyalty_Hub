@@ -164,6 +164,9 @@
   <data name="CAMPAIGN_ACTION_NOT_FOUND" xml:space="preserve"><value>Campaign action does not exist.</value></data>
   <data name="CAMPAIGN_ACTION_TYPE_INVALID" xml:space="preserve"><value>Campaign action type is invalid or unsupported.</value></data>
   <data name="CAMPAIGN_ACTION_CONFIG_INVALID" xml:space="preserve"><value>Campaign action configuration is invalid or unsupported.</value></data>
+  <data name="CAMPAIGN_ACTION_CONDITION_INCOMPATIBLE" xml:space="preserve"><value>Campaign action is incompatible with the campaign condition.</value></data>
+  <data name="CAMPAIGN_ACTIONS_REQUIRED" xml:space="preserve"><value>At least one campaign action is required.</value></data>
   <data name="CAMPAIGN_ACTION_ORDER_INVALID" xml:space="preserve"><value>Campaign action execution order must be greater than zero.</value></data>
   <data name="CAMPAIGN_ACTION_ORDER_CONFLICT" xml:space="preserve"><value>Another campaign action already uses this execution order.</value></data>
+  <data name="CAMPAIGN_ACTION_DUPLICATE" xml:space="preserve"><value>An identical campaign action already exists.</value></data>
 </root>

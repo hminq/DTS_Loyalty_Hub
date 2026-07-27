@@ -16,7 +16,12 @@ public sealed record CampaignEventTypeOptionResult(
     IReadOnlyCollection<string> ActionTypes);
 
 public sealed record CampaignConditionOptionsResult(
-    IReadOnlyCollection<CampaignCapabilityOptionResult> Sources);
+    IReadOnlyCollection<CampaignConditionOptionResult> Options);
+
+public sealed record CampaignConditionOptionResult(
+    string Code,
+    IReadOnlyCollection<string> Sources,
+    bool Supported);
 
 public sealed record CampaignActionTypeOptionResult(
     string Code,
