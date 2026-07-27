@@ -60,6 +60,8 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<NotificationLog> NotificationLogs { get; set; }
 
+    public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("pgcrypto");
@@ -1010,6 +1012,74 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasOne(d => d.Template).WithMany(p => p.NotificationLogs)
                 .HasForeignKey(d => d.TemplateId)
                 .HasConstraintName("fk_notification_log_template");
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(e => e.EventId).HasName("outbox_messages_pkey");
+
+            entity.ToTable("outbox_messages", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_outbox_messages_event_type",
+                    "NULLIF(BTRIM(event_type), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_outbox_messages_routing_key",
+                    "NULLIF(BTRIM(routing_key), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_outbox_messages_payload",
+                    "jsonb_typeof(payload) = 'object'");
+                table.HasCheckConstraint(
+                    "ck_outbox_messages_status",
+                    "status IN ('PENDING', 'PUBLISHED', 'FAILED')");
+                table.HasCheckConstraint(
+                    "ck_outbox_messages_attempt_count",
+                    "attempt_count >= 0");
+                table.HasCheckConstraint(
+                    "ck_outbox_messages_publication_state",
+                    "(status = 'PUBLISHED' AND published_at IS NOT NULL) OR "
+                    + "(status <> 'PUBLISHED' AND published_at IS NULL)");
+            });
+
+            entity.HasIndex(
+                    e => new { e.NextAttemptAt, e.CreatedAt },
+                    "idx_outbox_messages_pending")
+                .HasFilter("status = 'PENDING'");
+
+            entity.HasIndex(e => e.PublishedAt, "idx_outbox_messages_published_cleanup")
+                .HasFilter("status = 'PUBLISHED'");
+
+            entity.Property(e => e.EventId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("event_id");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(100)
+                .HasColumnName("event_type");
+            entity.Property(e => e.RoutingKey)
+                .HasMaxLength(255)
+                .HasColumnName("routing_key");
+            entity.Property(e => e.Payload)
+                .HasColumnType("jsonb")
+                .HasColumnName("payload");
+            entity.Property(e => e.Status)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'PENDING'::character varying")
+                .HasColumnName("status");
+            entity.Property(e => e.AttemptCount)
+                .HasDefaultValue(0)
+                .HasColumnName("attempt_count");
+            entity.Property(e => e.NextAttemptAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("next_attempt_at");
+            entity.Property(e => e.LastErrorCode)
+                .HasMaxLength(100)
+                .HasColumnName("last_error_code");
+            entity.Property(e => e.LastError).HasColumnName("last_error");
+            entity.Property(e => e.OccurredAt).HasColumnName("occurred_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.PublishedAt).HasColumnName("published_at");
         });
 
         OnModelCreatingPartial(modelBuilder);
