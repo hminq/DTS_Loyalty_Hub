@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using Infrastructure.RabbitMq;
 
 namespace Infrastructure;
 
@@ -59,6 +60,19 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(SaveChangesBehavior<,>));
+
+        return services;
+    }
+
+    public static IServiceCollection AddOutboxPublishing(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var options = RabbitMqPublisherOptions.FromConfiguration(configuration);
+
+        services.AddSingleton(options);
+        services.AddScoped<IOutboxDispatchStore, OutboxDispatchStore>();
+        services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 
         return services;
     }

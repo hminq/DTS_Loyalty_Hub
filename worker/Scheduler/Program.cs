@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Quartz;
 using Scheduler.Jobs;
 using Scheduler.Options;
+using Core.Entities.Constants;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -69,6 +70,18 @@ builder.Services.AddQuartz(quartz =>
                 .InTimeZone(TimeZoneInfo.FindSystemTimeZoneById(
                     voucherPoolScheduleOptions.TimeZone))
                 .WithMisfireHandlingInstructionDoNothing()));
+
+    var outboxDispatchJobKey = new JobKey(nameof(DispatchOutboxMessagesJob));
+
+    quartz.AddJob<DispatchOutboxMessagesJob>(
+        job => job.WithIdentity(outboxDispatchJobKey));
+    quartz.AddTrigger(trigger => trigger
+        .ForJob(outboxDispatchJobKey)
+        .WithIdentity($"{outboxDispatchJobKey.Name}-trigger")
+        .WithSimpleSchedule(schedule => schedule
+            .WithIntervalInSeconds(OutboxDispatchConstants.IntervalSeconds)
+            .RepeatForever()
+            .WithMisfireHandlingInstructionNextWithRemainingCount()));
 });
 builder.Services.AddQuartzHostedService(options =>
 {
@@ -76,6 +89,7 @@ builder.Services.AddQuartzHostedService(options =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddOutboxPublishing(builder.Configuration);
 
 var host = builder.Build();
 host.Run();

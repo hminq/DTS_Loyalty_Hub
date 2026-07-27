@@ -2,6 +2,8 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY shared/Persistence/Persistence.csproj shared/Persistence/
+COPY shared/Campaign.Contracts/Campaign.Contracts.csproj shared/Campaign.Contracts/
+COPY shared/Messaging.Contracts/Messaging.Contracts.csproj shared/Messaging.Contracts/
 COPY worker/Core/Core.csproj worker/Core/
 COPY worker/Infrastructure/Infrastructure.csproj worker/Infrastructure/
 COPY worker/Scheduler/Scheduler.csproj worker/Scheduler/
@@ -9,6 +11,8 @@ COPY worker/Scheduler/Scheduler.csproj worker/Scheduler/
 RUN dotnet restore worker/Scheduler/Scheduler.csproj
 
 COPY shared/Persistence/ shared/Persistence/
+COPY shared/Campaign.Contracts/ shared/Campaign.Contracts/
+COPY shared/Messaging.Contracts/ shared/Messaging.Contracts/
 COPY worker/ worker/
 
 RUN dotnet publish worker/Scheduler/Scheduler.csproj \
