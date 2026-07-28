@@ -21,13 +21,7 @@ public sealed class OutboxWriter : IOutboxWriter
     public void Add<TData>(OutgoingEvent<TData> outgoingEvent)
     {
         var payload = JsonSerializer.Serialize(
-            new
-            {
-                outgoingEvent.EventId,
-                outgoingEvent.EventType,
-                outgoingEvent.OccurredAt,
-                outgoingEvent.Data
-            },
+            outgoingEvent,
             SerializerOptions);
 
         _dbContext.OutboxMessages.Add(
