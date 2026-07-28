@@ -43,6 +43,9 @@ public partial class Campaign
 
     public virtual ICollection<CampaignUsage> CampaignUsages { get; set; } = new List<CampaignUsage>();
 
+    public virtual ICollection<EventCampaignProcessing> EventCampaignProcessings { get; set; } =
+        new List<EventCampaignProcessing>();
+
     public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 
     public virtual ICollection<VoucherRedemption> VoucherRedemptions { get; set; } = new List<VoucherRedemption>();

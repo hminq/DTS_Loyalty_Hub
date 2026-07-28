@@ -25,6 +25,9 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<CampaignUsage> CampaignUsages { get; set; }
 
+    public virtual DbSet<EventCampaignProcessing> EventCampaignProcessings { get; set; }
+
+    public virtual DbSet<EventProcessing> EventProcessings { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
 
@@ -70,7 +73,18 @@ public partial class LoyaltyHubDbContext : DbContext
         {
             entity.HasKey(e => e.ActionId).HasName("actions_pkey");
 
-            entity.ToTable("actions");
+            entity.ToTable("actions", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_actions_used_count",
+                    "used_count >= 0");
+                table.HasCheckConstraint(
+                    "ck_actions_total_count",
+                    "total_count IS NULL OR total_count >= 0");
+                table.HasCheckConstraint(
+                    "ck_actions_session_count",
+                    "session_count IS NULL OR session_count >= 0");
+            });
 
             entity.HasIndex(e => new { e.ReferenceType, e.ReferenceId }, "ix_actions_reference");
 
@@ -96,14 +110,18 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasColumnName("reference_type");
             entity.Property(e => e.SessionCount).HasColumnName("session_count");
             entity.Property(e => e.TotalCount).HasColumnName("total_count");
-            entity.Property(e => e.UsedCount).HasColumnName("used_count");
+            entity.Property(e => e.UsedCount)
+                .HasDefaultValue(0)
+                .HasColumnName("used_count");
         });
 
         modelBuilder.Entity<ActionUsage>(entity =>
         {
             entity.HasKey(e => e.ActionUsageId).HasName("action_usage_pkey");
 
-            entity.ToTable("action_usage");
+            entity.ToTable("action_usage", table => table.HasCheckConstraint(
+                "ck_action_usage_used_count",
+                "used_count >= 0"));
 
             entity.HasIndex(e => new { e.ActionId, e.CampaignSessionId }, "uq_action_usage_action_session").IsUnique();
 
@@ -115,7 +133,9 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
-            entity.Property(e => e.UsedCount).HasColumnName("used_count");
+            entity.Property(e => e.UsedCount)
+                .HasDefaultValue(0)
+                .HasColumnName("used_count");
 
             entity.HasOne(d => d.Action).WithMany(p => p.ActionUsages)
                 .HasForeignKey(d => d.ActionId)
@@ -280,7 +300,9 @@ public partial class LoyaltyHubDbContext : DbContext
         {
             entity.HasKey(e => e.CampaignSessionId).HasName("campaign_sessions_pkey");
 
-            entity.ToTable("campaign_sessions");
+            entity.ToTable("campaign_sessions", table => table.HasCheckConstraint(
+                "ck_campaign_sessions_status",
+                "status IN ('SCHEDULED', 'RUNNING', 'ENDED', 'CANCELLED')"));
 
             entity.HasIndex(e => new { e.Status, e.SessionEnd }, "ix_campaign_sessions_status_end");
 
@@ -314,6 +336,35 @@ public partial class LoyaltyHubDbContext : DbContext
 
             entity.ToTable("campaign_usages");
 
+            entity.HasIndex(
+                e => new
+                {
+                    e.CampaignId,
+                    e.CustomerId,
+                    e.EventCampaignProcessingId
+                },
+                "ix_campaign_usages_campaign_customer_processing");
+
+            entity.HasIndex(
+                e => new
+                {
+                    e.CampaignId,
+                    e.CampaignSessionId,
+                    e.CustomerId,
+                    e.EventCampaignProcessingId
+                },
+                "ix_campaign_usages_campaign_session_customer_processing");
+
+            entity.HasIndex(
+                    e => new
+                    {
+                        e.EventCampaignProcessingId,
+                        e.ActionId,
+                        e.CustomerId
+                    },
+                    "uq_campaign_usages_processing_action_customer")
+                .IsUnique();
+
             entity.Property(e => e.CampaignUsageId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("campaign_usage_id");
@@ -324,6 +375,8 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+            entity.Property(e => e.EventCampaignProcessingId)
+                .HasColumnName("event_campaign_processing_id");
 
             entity.HasOne(d => d.Action).WithMany(p => p.CampaignUsages)
                 .HasForeignKey(d => d.ActionId)
@@ -343,6 +396,157 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_campaign_usages_customer");
+
+            entity.HasOne(d => d.EventCampaignProcessing).WithMany(p => p.CampaignUsages)
+                .HasForeignKey(d => d.EventCampaignProcessingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_campaign_usages_event_campaign_processing");
+        });
+
+        modelBuilder.Entity<EventCampaignProcessing>(entity =>
+        {
+            entity.HasKey(e => e.EventCampaignProcessingId)
+                .HasName("event_campaign_processings_pkey");
+
+            entity.ToTable("event_campaign_processings", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_event_campaign_processings_status",
+                    "status IN ('PENDING', 'COMPLETED', 'SKIPPED', 'FAILED')");
+                table.HasCheckConstraint(
+                    "ck_event_campaign_processings_attempt_count",
+                    "attempt_count >= 0");
+                table.HasCheckConstraint(
+                    "ck_event_campaign_processings_terminal_state",
+                    "(status = 'PENDING' AND processed_at IS NULL "
+                    + "AND outcome_code IS NULL AND last_error IS NULL) OR "
+                    + "(status = 'COMPLETED' AND processed_at IS NOT NULL "
+                    + "AND last_error IS NULL) OR "
+                    + "(status = 'SKIPPED' AND processed_at IS NOT NULL "
+                    + "AND outcome_code IS NOT NULL AND last_error IS NULL) OR "
+                    + "(status = 'FAILED' AND processed_at IS NOT NULL "
+                    + "AND outcome_code IS NOT NULL "
+                    + "AND NULLIF(BTRIM(last_error), '') IS NOT NULL)");
+            });
+
+            entity.HasIndex(
+                e => new { e.CampaignId, e.ProcessedAt },
+                "ix_event_campaign_processings_campaign_processed");
+
+            entity.HasIndex(
+                e => new { e.EventId, e.Status },
+                "ix_event_campaign_processings_event_status");
+
+            entity.HasIndex(
+                e => new { e.Status, e.CreatedAt },
+                "ix_event_campaign_processings_status_created");
+
+            entity.HasIndex(
+                    e => new { e.EventId, e.CampaignId },
+                    "uq_event_campaign_processings_event_campaign")
+                .IsUnique();
+
+            entity.Property(e => e.EventCampaignProcessingId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("event_campaign_processing_id");
+            entity.Property(e => e.AttemptCount)
+                .HasDefaultValue(0)
+                .HasColumnName("attempt_count");
+            entity.Property(e => e.CampaignId).HasColumnName("campaign_id");
+            entity.Property(e => e.CampaignSessionId).HasColumnName("campaign_session_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EventCustomerId).HasColumnName("event_customer_id");
+            entity.Property(e => e.EventId).HasColumnName("event_id");
+            entity.Property(e => e.LastError).HasColumnName("last_error");
+            entity.Property(e => e.OutcomeCode)
+                .HasMaxLength(100)
+                .HasColumnName("outcome_code");
+            entity.Property(e => e.ProcessedAt).HasColumnName("processed_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'PENDING'::character varying")
+                .HasColumnName("status");
+
+            entity.HasOne(d => d.Campaign).WithMany(p => p.EventCampaignProcessings)
+                .HasForeignKey(d => d.CampaignId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_event_campaign_processings_campaign");
+
+            entity.HasOne(d => d.CampaignSession).WithMany(p => p.EventCampaignProcessings)
+                .HasForeignKey(d => d.CampaignSessionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_event_campaign_processings_session");
+
+            entity.HasOne(d => d.EventCustomer).WithMany(p => p.EventCampaignProcessings)
+                .HasForeignKey(d => d.EventCustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_event_campaign_processings_customer");
+
+            entity.HasOne(d => d.Event).WithMany(p => p.EventCampaignProcessings)
+                .HasForeignKey(d => d.EventId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_event_campaign_processings_event");
+        });
+
+        modelBuilder.Entity<EventProcessing>(entity =>
+        {
+            entity.HasKey(e => e.EventId).HasName("event_processings_pkey");
+
+            entity.ToTable("event_processings", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_event_processings_event_type",
+                    "NULLIF(BTRIM(event_type), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_event_processings_routing_key",
+                    "NULLIF(BTRIM(routing_key), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_event_processings_payload",
+                    "jsonb_typeof(payload) = 'object'");
+                table.HasCheckConstraint(
+                    "ck_event_processings_payload_hash",
+                    "payload_hash ~ '^[0-9a-f]{64}$'");
+                table.HasCheckConstraint(
+                    "ck_event_processings_status",
+                    "status IN ('PENDING', 'COMPLETED', 'FAILED')");
+                table.HasCheckConstraint(
+                    "ck_event_processings_terminal_state",
+                    "(status = 'PENDING' AND completed_at IS NULL AND failed_at IS NULL) OR "
+                    + "(status = 'COMPLETED' AND completed_at IS NOT NULL AND failed_at IS NULL) OR "
+                    + "(status = 'FAILED' AND completed_at IS NULL AND failed_at IS NOT NULL)");
+            });
+
+            entity.HasIndex(
+                e => new { e.Status, e.CreatedAt },
+                "ix_event_processings_status_created");
+
+            entity.Property(e => e.EventId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("event_id");
+            entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(100)
+                .HasColumnName("event_type");
+            entity.Property(e => e.FailedAt).HasColumnName("failed_at");
+            entity.Property(e => e.OccurredAt).HasColumnName("occurred_at");
+            entity.Property(e => e.Payload)
+                .HasColumnType("jsonb")
+                .HasColumnName("payload");
+            entity.Property(e => e.PayloadHash)
+                .HasMaxLength(64)
+                .HasColumnName("payload_hash");
+            entity.Property(e => e.RoutingKey)
+                .HasMaxLength(150)
+                .HasColumnName("routing_key");
+            entity.Property(e => e.Status)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'PENDING'::character varying")
+                .HasColumnName("status");
         });
 
         modelBuilder.Entity<Customer>(entity =>
@@ -510,6 +714,22 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasKey(e => e.PointTransactionId).HasName("point_transactions_pkey");
 
             entity.ToTable("point_transactions");
+
+            entity.HasIndex(
+                    e => new
+                    {
+                        e.SourceEventId,
+                        e.CampaignId,
+                        e.ActionId,
+                        e.CustomerId
+                    },
+                    "uq_point_transactions_campaign_reward_event")
+                .IsUnique()
+                .HasFilter(
+                    "source_event_id IS NOT NULL "
+                    + "AND campaign_id IS NOT NULL "
+                    + "AND action_id IS NOT NULL "
+                    + "AND transaction_type = 'CAMPAIGN_REWARD'");
 
             entity.Property(e => e.PointTransactionId)
                 .HasDefaultValueSql("gen_random_uuid()")
