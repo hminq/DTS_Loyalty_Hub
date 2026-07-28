@@ -206,6 +206,27 @@ export function CampaignMetadataFormFields({
                 {fieldErrors.scheduleCron ? (
                   <FieldError>{fieldErrors.scheduleCron}</FieldError>
                 ) : null}
+                <FieldDescription>
+                  <span>
+                    {t('campaigns.form.scheduleCronDailyPattern', {
+                      defaultValue: 'Daily',
+                    })}
+                    {': '}
+                  </span>
+                  <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                    0 42 15 * * ?
+                  </code>
+                  <span>
+                    {' · '}
+                    {t('campaigns.form.scheduleCronWeekdayPattern', {
+                      defaultValue: 'Selected weekdays',
+                    })}
+                    {': '}
+                  </span>
+                  <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                    0 42 15 ? * MON,WED,SAT
+                  </code>
+                </FieldDescription>
               </Field>
 
               <Field invalid={Boolean(fieldErrors.durationHour)} disabled={isSubmitting}>

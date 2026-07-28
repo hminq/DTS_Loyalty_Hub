@@ -1,6 +1,7 @@
 import {
   CircleNotchIcon,
   PencilSimpleIcon,
+  ProhibitIcon,
   RocketLaunchIcon,
   TrashIcon,
 } from '@phosphor-icons/react'
@@ -13,6 +14,7 @@ import { ActivateCampaignDialog } from '../components/campaigns/ActivateCampaign
 import { CampaignActionsDetails } from '../components/campaigns/CampaignActionsDetails'
 import { CampaignDetails } from '../components/campaigns/CampaignDetails'
 import { CampaignSessionsDetails } from '../components/campaigns/CampaignSessionsDetails'
+import { CancelCampaignDialog } from '../components/campaigns/CancelCampaignDialog'
 import { DeleteCampaignDialog } from '../components/campaigns/DeleteCampaignDialog'
 import { mapCampaignOptions } from '../components/campaigns/campaignOptions'
 import { Breadcrumb } from '../components/layout/Breadcrumb'
@@ -34,6 +36,7 @@ function CampaignDetailPage() {
   const [retryKey, setRetryKey] = useState(0)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [activateOpen, setActivateOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
 
   const [successMessage, setSuccessMessage] = useState(
     location.state?.successMessage || '',
@@ -42,6 +45,7 @@ function CampaignDetailPage() {
   const canUpdate = hasPermission(PermissionCodes.Campaigns.Update)
   const canDelete = hasPermission(PermissionCodes.Campaigns.Delete)
   const isDraft = campaign?.status === 'DRAFT'
+  const isActive = campaign?.status === 'ACTIVE'
 
   const options = useMemo(
     () => mapCampaignOptions(rawOptions, t),
@@ -116,6 +120,19 @@ function CampaignDetailPage() {
         >
           <RocketLaunchIcon size={15} weight="bold" />
           {t('campaigns.activate.button', { defaultValue: 'Activate Campaign' })}
+        </Button>
+      ) : null}
+
+      {canUpdate && isActive ? (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setCancelOpen(true)}
+        >
+          <ProhibitIcon data-icon="inline-start" weight="bold" aria-hidden="true" />
+          {t('campaigns.cancel.button', {
+            defaultValue: 'Cancel campaign',
+          })}
         </Button>
       ) : null}
 
@@ -238,6 +255,41 @@ function CampaignDetailPage() {
             }),
           )
           setRetryKey((k) => k + 1)
+        }}
+        t={t}
+      />
+
+      <CancelCampaignDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        campaign={campaign}
+        onSuccess={(result) => {
+          setCampaign((currentCampaign) => (
+            currentCampaign
+              ? {
+                  ...currentCampaign,
+                  status: result.status,
+                  updatedAt: result.cancelledAt,
+                }
+              : currentCampaign
+          ))
+          setSuccessMessage(
+            t('campaigns.cancel.success', {
+              defaultValue:
+                'Campaign cancelled successfully. Uncommitted rewards have been stopped.',
+            }),
+          )
+          setRetryKey((key) => key + 1)
+        }}
+        onNotFound={(message) => {
+          navigate('/campaigns', {
+            replace: true,
+            state: { errorMessage: message },
+          })
+        }}
+        onNotActive={(message) => {
+          setErrorMessage(message)
+          setRetryKey((key) => key + 1)
         }}
         t={t}
       />

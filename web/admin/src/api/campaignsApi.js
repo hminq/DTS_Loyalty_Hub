@@ -98,3 +98,10 @@ export async function activateCampaign(campaignId, signal) {
   return response.data.data
 }
 
+export async function cancelCampaign(campaignId, signal) {
+  if (!campaignId) {
+    throw new Error('campaignId is required')
+  }
+  const response = await httpClient.post(`/campaigns/${encodeURIComponent(campaignId)}/cancel`, {}, { signal })
+  return response.data.data
+}

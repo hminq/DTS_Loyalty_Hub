@@ -1,3 +1,57 @@
+const CAMPAIGN_SCHEDULE_WEEKDAYS = [
+  'MON',
+  'TUE',
+  'WED',
+  'THU',
+  'FRI',
+  'SAT',
+  'SUN',
+]
+
+function isCanonicalCronNumber(value, minimum, maximum) {
+  const parsed = Number(value)
+  return (
+    Number.isInteger(parsed) &&
+    parsed >= minimum &&
+    parsed <= maximum &&
+    value === String(parsed)
+  )
+}
+
+export function isValidCampaignScheduleCron(value) {
+  if (typeof value !== 'string' || !value.trim()) return false
+
+  const parts = value.trim().split(/\s+/)
+  if (parts.length !== 6) return false
+
+  const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts
+  if (
+    second !== '0' ||
+    !isCanonicalCronNumber(minute, 0, 59) ||
+    !isCanonicalCronNumber(hour, 0, 23)
+  ) {
+    return false
+  }
+
+  if (dayOfMonth === '*' && month === '*' && dayOfWeek === '?') {
+    return true
+  }
+
+  if (dayOfMonth !== '?' || month !== '*') return false
+
+  const weekdays = dayOfWeek.split(',')
+  if (weekdays.length === 0 || weekdays.some((day) => !day)) return false
+
+  let previousIndex = -1
+  for (const weekday of weekdays) {
+    const currentIndex = CAMPAIGN_SCHEDULE_WEEKDAYS.indexOf(weekday)
+    if (currentIndex === -1 || currentIndex <= previousIndex) return false
+    previousIndex = currentIndex
+  }
+
+  return true
+}
+
 function validateActionLimits(action = {}, prefix = '', t) {
   const errors = {}
   const keyTotal = prefix ? `${prefix}.totalCount` : 'totalCount'
@@ -140,6 +194,11 @@ export function validateCampaignMetadata(formValues = {}, t) {
   } else if (scheduleCron.length > 100) {
     errors.scheduleCron = t('campaigns.errors.scheduleCronTooLong', {
       defaultValue: 'Schedule CRON expression cannot exceed 100 characters.',
+    })
+  } else if (!isValidCampaignScheduleCron(scheduleCron)) {
+    errors.scheduleCron = t('campaigns.errors.scheduleCronInvalid', {
+      defaultValue:
+        'Use a supported CRON format, for example 0 42 15 * * ? or 0 42 15 ? * MON,WED,SAT.',
     })
   }
 
