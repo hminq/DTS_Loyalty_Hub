@@ -4,6 +4,7 @@ using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Models;
 using Persistence.Models.Context;
+using CampaignModel = Persistence.Models.Campaign;
 
 namespace Infrastructure.Implementations;
 
@@ -133,7 +134,7 @@ public sealed class CampaignSessionLifecycleStore : ICampaignSessionLifecycleSto
 
         var targetIds = new HashSet<Guid>(campaignIds);
 
-        foreach (var entry in _dbContext.ChangeTracker.Entries<Campaign>())
+        foreach (var entry in _dbContext.ChangeTracker.Entries<CampaignModel>())
         {
             if (targetIds.Contains(entry.Entity.CampaignId))
             {

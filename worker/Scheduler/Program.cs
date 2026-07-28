@@ -104,7 +104,11 @@ builder.Services.AddQuartzHostedService(options =>
     options.WaitForJobsToComplete = true;
 });
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddWorkerPersistence(builder.Configuration);
+builder.Services.AddWorkerPersistenceBehaviors();
+builder.Services.AddCustomerTierInfrastructure();
+builder.Services.AddVoucherPoolInfrastructure(builder.Configuration);
+builder.Services.AddCampaignSessionLifecycle();
 builder.Services.AddOutboxPublishing(builder.Configuration);
 
 var host = builder.Build();
