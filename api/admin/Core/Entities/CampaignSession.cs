@@ -80,4 +80,24 @@ public sealed class CampaignSession
             createdAt,
             endedAt);
     }
+
+    public void Cancel(DateTime operationTimeUtc)
+    {
+        if (Status.Equals(CampaignSessionStatuses.Scheduled, StringComparison.Ordinal))
+        {
+            Status = CampaignSessionStatuses.Cancelled;
+            return;
+        }
+
+        if (Status.Equals(CampaignSessionStatuses.Running, StringComparison.Ordinal))
+        {
+            Status = CampaignSessionStatuses.Cancelled;
+            EndedAt = operationTimeUtc;
+            return;
+        }
+
+        throw new DomainException(
+            "CAMPAIGN_SESSION_NOT_CANCELLABLE",
+            DomainErrorType.Conflict);
+    }
 }

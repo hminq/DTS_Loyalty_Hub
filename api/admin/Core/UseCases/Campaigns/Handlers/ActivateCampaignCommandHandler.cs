@@ -44,9 +44,14 @@ public sealed class ActivateCampaignCommandHandler
         var startDateUtc = DateTime.SpecifyKind(campaign.StartDate, DateTimeKind.Utc);
         var endDateUtc = DateTime.SpecifyKind(campaign.EndDate, DateTimeKind.Utc);
 
-        if (startDateUtc <= now || endDateUtc <= startDateUtc)
+        if (endDateUtc <= startDateUtc)
         {
             throw new DomainException("CAMPAIGN_DATE_RANGE_INVALID", DomainErrorType.Validation);
+        }
+
+        if (endDateUtc <= now)
+        {
+            throw new DomainException("CAMPAIGN_SCHEDULE_EMPTY", DomainErrorType.Validation);
         }
 
         if (campaign.DurationHour <= 0)
@@ -104,8 +109,12 @@ public sealed class ActivateCampaignCommandHandler
             throw new DomainException("CAMPAIGN_SCHEDULE_INVALID", DomainErrorType.Validation);
         }
 
+        var occurrenceWindowStartUtc = startDateUtc > now
+            ? startDateUtc
+            : now;
+
         if (!scheduleCron.TryGetOccurrences(
-                startDateUtc,
+                occurrenceWindowStartUtc,
                 endDateUtc,
                 campaign.DurationHour,
                 out var occurrences,

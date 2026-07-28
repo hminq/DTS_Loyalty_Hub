@@ -187,6 +187,16 @@ public static class CampaignMapper
             ToUtcOffset(action.CreatedAt));
     }
 
+    public static CancelCampaignResponseDto ToResponseDto(this CancelCampaignResult result)
+    {
+        return new CancelCampaignResponseDto(
+            result.CampaignId,
+            result.Status,
+            result.CancelledScheduledSessionCount,
+            result.CancelledRunningSessionCount,
+            ToUtcOffset(result.CancelledAt));
+    }
+
     public static CampaignOptionsResponseDto ToResponseDto(this CampaignOptionsResult result)
     {
         return new CampaignOptionsResponseDto(

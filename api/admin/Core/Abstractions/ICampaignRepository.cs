@@ -25,6 +25,10 @@ public interface ICampaignRepository
         Guid campaignId,
         CancellationToken ct = default);
 
+    Task<IReadOnlyCollection<DomainCampaignSession>> GetOpenSessionsForUpdateAsync(
+        Guid campaignId,
+        CancellationToken ct = default);
+
     Task<DomainCampaignAction?> GetActionForUpdateAsync(
         Guid campaignId,
         Guid actionId,
@@ -48,6 +52,8 @@ public interface ICampaignRepository
     DomainCampaign Add(DomainCampaign campaign);
 
     Task UpdateAsync(DomainCampaign campaign, CancellationToken ct = default);
+
+    void UpdateSessions(IEnumerable<DomainCampaignSession> sessions);
 
     Task DeleteDraftAsync(Guid campaignId, CancellationToken ct = default);
 

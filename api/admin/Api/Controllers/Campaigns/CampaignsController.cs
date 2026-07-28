@@ -164,6 +164,22 @@ public sealed class CampaignsController : ControllerBase
         });
     }
 
+    [HttpPost("{campaignId:guid}/cancel")]
+    [Authorize(Policy = PermissionCodes.Campaigns.Update)]
+    public async Task<ActionResult<ApiResponseDto<CancelCampaignResponseDto>>> Cancel(
+        Guid campaignId,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(
+            new CancelCampaignCommand(campaignId, _currentAdminContext.UserId),
+            ct);
+
+        return Ok(new ApiResponseDto<CancelCampaignResponseDto>
+        {
+            Data = result.ToResponseDto()
+        });
+    }
+
     [HttpGet("{campaignId:guid}/actions/{actionId:guid}")]
     [Authorize(Policy = PermissionCodes.Campaigns.View)]
     public async Task<ActionResult<ApiResponseDto<CampaignActionResponseDto>>> GetActionById(

@@ -204,6 +204,27 @@ public sealed class CampaignRepository : ICampaignRepository
                 campaign.UpdatedAt);
     }
 
+    public async Task<IReadOnlyCollection<DomainCampaignSession>> GetOpenSessionsForUpdateAsync(
+        Guid campaignId,
+        CancellationToken ct = default)
+    {
+        var sessions = await _dbContext.CampaignSessions
+            .FromSqlInterpolated($$"""
+                SELECT *
+                FROM campaign_sessions
+                WHERE campaign_id = {{campaignId}}
+                  AND status IN (
+                      {{CampaignSessionStatuses.Scheduled}},
+                      {{CampaignSessionStatuses.Running}}
+                  )
+                ORDER BY session_start, campaign_session_id
+                FOR UPDATE
+                """)
+            .ToArrayAsync(ct);
+
+        return sessions.Select(ToDomainSession).ToArray();
+    }
+
     public async Task<DomainCampaignAction?> GetActionForUpdateAsync(
         Guid campaignId,
         Guid actionId,
@@ -323,6 +344,21 @@ public sealed class CampaignRepository : ICampaignRepository
         persistedCampaign.UserLimitSession = campaign.UserLimitSession;
         persistedCampaign.Status = campaign.Status;
         persistedCampaign.UpdatedAt = campaign.UpdatedAt;
+    }
+
+    public void UpdateSessions(IEnumerable<DomainCampaignSession> sessions)
+    {
+        foreach (var session in sessions)
+        {
+            var persistedSession = _dbContext.CampaignSessions.Local.SingleOrDefault(
+                item => item.CampaignSessionId == session.CampaignSessionId)
+                ?? throw new Core.Exceptions.DomainException(
+                    "CAMPAIGN_SESSION_NOT_FOUND",
+                    Core.Exceptions.DomainErrorType.NotFound);
+
+            persistedSession.Status = session.Status;
+            persistedSession.EndedAt = session.EndedAt;
+        }
     }
 
     public async Task DeleteDraftAsync(
@@ -460,5 +496,17 @@ public sealed class CampaignRepository : ICampaignRepository
             action.SessionCount,
             action.UsedCount,
             action.CreatedAt);
+    }
+
+    private static DomainCampaignSession ToDomainSession(PersistenceCampaignSession session)
+    {
+        return DomainCampaignSession.Restore(
+            session.CampaignSessionId,
+            session.CampaignId,
+            session.SessionStart,
+            session.SessionEnd,
+            session.Status,
+            session.CreatedAt,
+            session.EndedAt);
     }
 }

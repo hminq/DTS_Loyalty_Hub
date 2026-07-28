@@ -119,6 +119,33 @@ public sealed class CampaignCommandHandlerTests
     }
 
     [Fact]
+    public async Task CreateCampaign_InvalidScheduleCron_RejectsBeforeMutation()
+    {
+        var command = ValidCreateCampaignCommand() with
+        {
+            ScheduleCron = "0 42 15 * * ?."
+        };
+        var handler = new CreateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var action = () => handler.Handle(command, CancellationToken.None);
+
+        var exception = await action.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_SCHEDULE_INVALID");
+        _repository.Verify(
+            repository => repository.Add(It.IsAny<DomainCampaign>()),
+            Times.Never);
+        _repository.Verify(
+            repository => repository.AddAction(It.IsAny<DomainCampaignAction>()),
+            Times.Never);
+        _auditWriter.Verify(
+            writer => writer.Add(It.IsAny<AuditLogEntry>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task CreateCampaign_SameRecipientWithDifferentConfig_IsAccepted()
     {
         var command = ValidCreateCampaignCommand() with
@@ -631,7 +658,10 @@ public sealed class CampaignCommandHandlerTests
 
     private static DomainCampaign RestoredCampaign(
         string status,
-        string condition = """{"sources":["NORMAL"]}""")
+        string condition = """{"sources":["NORMAL"]}""",
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string scheduleCron = "0 0 2 * * ?")
     {
         return DomainCampaign.Restore(
             Guid.NewGuid(),
@@ -640,9 +670,9 @@ public sealed class CampaignCommandHandlerTests
             null,
             EventTypeCodes.CustomerAccountRegistered,
             condition,
-            FixedNow.UtcDateTime.AddDays(1),
-            FixedNow.UtcDateTime.AddDays(31),
-            "0 0 2 * * ?",
+            startDate ?? FixedNow.UtcDateTime.AddDays(1),
+            endDate ?? FixedNow.UtcDateTime.AddDays(31),
+            scheduleCron,
             2,
             1,
             1,
@@ -733,6 +763,78 @@ public sealed class CampaignCommandHandlerTests
     }
 
     [Fact]
+    public async Task ActivateCampaign_StartedDraftWithFutureOccurrences_MaterializesOnlyFutureSessions()
+    {
+        var campaign = RestoredCampaign(
+            CampaignStatuses.Draft,
+            startDate: FixedNow.UtcDateTime.AddDays(-1),
+            endDate: FixedNow.UtcDateTime.AddDays(2),
+            scheduleCron: "0 0 12 * * ?");
+        var action = RestoredAction(campaign.CampaignId);
+        Core.Entities.CampaignSession[] addedSessions = [];
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        _repository.Setup(repository => repository.GetActionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([action]);
+        _repository.Setup(repository => repository.AddSessions(
+                It.IsAny<IEnumerable<Core.Entities.CampaignSession>>()))
+            .Callback<IEnumerable<Core.Entities.CampaignSession>>(
+                sessions => addedSessions = sessions.ToArray());
+
+        var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
+        var handler = new ActivateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Status.Should().Be(CampaignStatuses.Active);
+        addedSessions.Should().HaveCount(2);
+        addedSessions.Should().OnlyContain(
+            session => session.SessionStart >= FixedNow.UtcDateTime);
+        addedSessions[0].SessionStart.Should().Be(
+            new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc));
+    }
+
+    [Fact]
+    public async Task ActivateCampaign_EndedDraft_ThrowsScheduleEmpty()
+    {
+        var campaign = RestoredCampaign(
+            CampaignStatuses.Draft,
+            startDate: FixedNow.UtcDateTime.AddDays(-2),
+            endDate: FixedNow.UtcDateTime.AddMinutes(-1));
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+
+        var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
+        var handler = new ActivateCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var act = () => handler.Handle(command, CancellationToken.None);
+
+        var ex = await act.Should().ThrowAsync<DomainException>();
+        ex.Which.ErrorCode.Should().Be("CAMPAIGN_SCHEDULE_EMPTY");
+        ex.Which.ErrorType.Should().Be(DomainErrorType.Validation);
+        campaign.Status.Should().Be(CampaignStatuses.Draft);
+        _repository.Verify(
+            repository => repository.AddSessions(
+                It.IsAny<IEnumerable<Core.Entities.CampaignSession>>()),
+            Times.Never);
+        _auditWriter.Verify(
+            writer => writer.Add(It.IsAny<AuditLogEntry>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task ActivateCampaign_AlreadyActive_ThrowsConflict()
     {
         var campaign = RestoredCampaign(CampaignStatuses.Active);
@@ -778,6 +880,149 @@ public sealed class CampaignCommandHandlerTests
         var ex = await act.Should().ThrowAsync<DomainException>();
         ex.Which.ErrorCode.Should().Be("CAMPAIGN_ACTIONS_REQUIRED");
         ex.Which.ErrorType.Should().Be(DomainErrorType.Validation);
+    }
+
+    [Fact]
+    public async Task CancelCampaign_ActiveCampaign_CancelsOpenSessionsAndAddsAudit()
+    {
+        var campaign = RestoredCampaign(CampaignStatuses.Active);
+        var scheduledSession = RestoredSession(
+            campaign.CampaignId,
+            CampaignSessionStatuses.Scheduled,
+            FixedNow.UtcDateTime.AddHours(2),
+            FixedNow.UtcDateTime.AddHours(3));
+        var runningSession = RestoredSession(
+            campaign.CampaignId,
+            CampaignSessionStatuses.Running,
+            FixedNow.UtcDateTime.AddHours(-1),
+            FixedNow.UtcDateTime.AddHours(1));
+        Core.Entities.CampaignSession[] sessions =
+        [
+            scheduledSession,
+            runningSession
+        ];
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        _repository.Setup(repository => repository.GetOpenSessionsForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sessions);
+
+        var command = new CancelCampaignCommand(campaign.CampaignId, Guid.NewGuid());
+        var handler = new CancelCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Status.Should().Be(CampaignStatuses.Cancelled);
+        result.CancelledScheduledSessionCount.Should().Be(1);
+        result.CancelledRunningSessionCount.Should().Be(1);
+        result.CancelledAt.Should().Be(FixedNow.UtcDateTime);
+        campaign.Status.Should().Be(CampaignStatuses.Cancelled);
+        campaign.UpdatedAt.Should().Be(FixedNow.UtcDateTime);
+        scheduledSession.Status.Should().Be(CampaignSessionStatuses.Cancelled);
+        scheduledSession.EndedAt.Should().BeNull();
+        runningSession.Status.Should().Be(CampaignSessionStatuses.Cancelled);
+        runningSession.EndedAt.Should().Be(FixedNow.UtcDateTime);
+        _repository.Verify(repository => repository.UpdateAsync(
+            campaign,
+            It.IsAny<CancellationToken>()), Times.Once);
+        _repository.Verify(repository => repository.UpdateSessions(
+            It.Is<IEnumerable<Core.Entities.CampaignSession>>(value =>
+                value.SequenceEqual(sessions))), Times.Once);
+        _auditWriter.Verify(writer => writer.Add(It.Is<AuditLogEntry>(entry =>
+            entry.Action == AuditActions.Cancel &&
+            entry.EntityType == AuditEntityTypes.Campaign &&
+            entry.EntityId == campaign.CampaignId &&
+            entry.OldValue != null &&
+            entry.OldValue.Contains("\"status\":\"ACTIVE\"") &&
+            entry.NewValue != null &&
+            entry.NewValue.Contains("\"newStatus\":\"CANCELLED\"") &&
+            entry.NewValue.Contains("\"cancelledScheduledSessionCount\":1") &&
+            entry.NewValue.Contains("\"cancelledRunningSessionCount\":1"))),
+            Times.Once);
+    }
+
+    [Theory]
+    [InlineData(CampaignStatuses.Draft)]
+    [InlineData(CampaignStatuses.Ended)]
+    [InlineData(CampaignStatuses.Cancelled)]
+    public async Task CancelCampaign_NonActiveCampaign_ThrowsConflictWithoutMutations(
+        string status)
+    {
+        var campaign = RestoredCampaign(status);
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaign.CampaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(campaign);
+        var handler = new CancelCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var act = () => handler.Handle(
+            new CancelCampaignCommand(campaign.CampaignId, Guid.NewGuid()),
+            CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_NOT_ACTIVE");
+        exception.Which.ErrorType.Should().Be(DomainErrorType.Conflict);
+        _repository.Verify(repository => repository.GetOpenSessionsForUpdateAsync(
+            It.IsAny<Guid>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _repository.Verify(repository => repository.UpdateAsync(
+            It.IsAny<DomainCampaign>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _repository.Verify(repository => repository.UpdateSessions(
+            It.IsAny<IEnumerable<Core.Entities.CampaignSession>>()), Times.Never);
+        _auditWriter.Verify(
+            writer => writer.Add(It.IsAny<AuditLogEntry>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelCampaign_MissingCampaign_ThrowsNotFound()
+    {
+        var campaignId = Guid.NewGuid();
+        _repository.Setup(repository => repository.GetForUpdateAsync(
+                campaignId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((DomainCampaign?)null);
+        var handler = new CancelCampaignCommandHandler(
+            _repository.Object,
+            _auditWriter.Object,
+            _timeProvider);
+
+        var act = () => handler.Handle(
+            new CancelCampaignCommand(campaignId, Guid.NewGuid()),
+            CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<DomainException>();
+        exception.Which.ErrorCode.Should().Be("CAMPAIGN_NOT_FOUND");
+        exception.Which.ErrorType.Should().Be(DomainErrorType.NotFound);
+        _auditWriter.Verify(
+            writer => writer.Add(It.IsAny<AuditLogEntry>()),
+            Times.Never);
+    }
+
+    private static Core.Entities.CampaignSession RestoredSession(
+        Guid campaignId,
+        string status,
+        DateTime sessionStart,
+        DateTime sessionEnd)
+    {
+        return Core.Entities.CampaignSession.Restore(
+            Guid.NewGuid(),
+            campaignId,
+            sessionStart,
+            sessionEnd,
+            status,
+            FixedNow.UtcDateTime.AddDays(-1),
+            null);
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

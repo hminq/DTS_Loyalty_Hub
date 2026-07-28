@@ -1,6 +1,7 @@
 using Campaign.Contracts.Constants;
 using Core.Entities.Constants;
 using Core.Exceptions;
+using CampaignScheduleCronParser = Campaign.Contracts.Schedules.CampaignScheduleCron;
 
 namespace Core.Entities;
 
@@ -196,9 +197,14 @@ public sealed class Campaign
     {
         EnsureCanActivate();
 
-        if (StartDate <= operationTimeUtc || EndDate <= StartDate)
+        if (EndDate <= StartDate)
         {
             throw new DomainException("CAMPAIGN_DATE_RANGE_INVALID", DomainErrorType.Validation);
+        }
+
+        if (EndDate <= operationTimeUtc)
+        {
+            throw new DomainException("CAMPAIGN_SCHEDULE_EMPTY", DomainErrorType.Validation);
         }
 
         Status = CampaignStatuses.Active;
@@ -211,6 +217,22 @@ public sealed class Campaign
         {
             throw new DomainException("CAMPAIGN_ALREADY_ACTIVE", DomainErrorType.Conflict);
         }
+    }
+
+    public void EnsureCanCancel()
+    {
+        if (!Status.Equals(CampaignStatuses.Active, StringComparison.Ordinal))
+        {
+            throw new DomainException("CAMPAIGN_NOT_ACTIVE", DomainErrorType.Conflict);
+        }
+    }
+
+    public void Cancel(DateTime operationTimeUtc)
+    {
+        EnsureCanCancel();
+
+        Status = CampaignStatuses.Cancelled;
+        UpdatedAt = operationTimeUtc;
     }
 
     private static void Validate(
@@ -259,7 +281,8 @@ public sealed class Campaign
         }
 
         if (string.IsNullOrWhiteSpace(scheduleCron) ||
-            scheduleCron.Trim().Length > MaximumScheduleCronLength)
+            scheduleCron.Trim().Length > MaximumScheduleCronLength ||
+            !CampaignScheduleCronParser.TryParse(scheduleCron, out _))
         {
             throw ValidationError("CAMPAIGN_SCHEDULE_INVALID");
         }

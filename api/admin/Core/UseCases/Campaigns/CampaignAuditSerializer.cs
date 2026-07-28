@@ -60,4 +60,21 @@ internal static class CampaignAuditSerializer
             activatedAt = campaign.UpdatedAt
         });
     }
+
+    public static string Cancellation(
+        DomainCampaign campaign,
+        int cancelledScheduledSessionCount,
+        int cancelledRunningSessionCount,
+        DateTime cancelledAt)
+    {
+        return JsonSerializer.Serialize(new
+        {
+            campaignId = campaign.CampaignId,
+            oldStatus = global::Campaign.Contracts.Constants.CampaignStatuses.Active,
+            newStatus = campaign.Status,
+            cancelledScheduledSessionCount,
+            cancelledRunningSessionCount,
+            cancelledAt
+        });
+    }
 }

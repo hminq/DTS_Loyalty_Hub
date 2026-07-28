@@ -62,6 +62,22 @@ public sealed class CampaignWriteRequestDtoValidatorTests
             error.ErrorCode == "CAMPAIGN_CONDITION_INVALID");
     }
 
+    [Theory]
+    [InlineData("0 42 15 * * ?.")]
+    [InlineData("0 05 15 * * ?")]
+    [InlineData("0 42 15 ? * WED,MON")]
+    public async Task CampaignRequest_UnsupportedScheduleCron_ReturnsScheduleError(
+        string scheduleCron)
+    {
+        var request = ValidCampaignRequest() with { ScheduleCron = scheduleCron };
+
+        var result = await _campaignValidator.ValidateAsync(request);
+
+        result.Errors.Should().Contain(error =>
+            error.PropertyName == "scheduleCron" &&
+            error.ErrorCode == "CAMPAIGN_SCHEDULE_INVALID");
+    }
+
     [Fact]
     public async Task CreateCampaignRequest_ValidShapeWithAction_Passes()
     {

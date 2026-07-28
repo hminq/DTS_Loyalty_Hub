@@ -1,4 +1,5 @@
 using Api.Dtos.Requests.Campaigns;
+using Campaign.Contracts.Schedules;
 using Core.Entities.Constants;
 using FluentValidation;
 
@@ -50,6 +51,8 @@ internal static class CampaignWriteValidationRules
             .NotEmpty()
             .WithErrorCode("CAMPAIGN_SCHEDULE_INVALID")
             .MaximumLength(100)
+            .WithErrorCode("CAMPAIGN_SCHEDULE_INVALID")
+            .Must(scheduleCron => CampaignScheduleCron.TryParse(scheduleCron, out _))
             .WithErrorCode("CAMPAIGN_SCHEDULE_INVALID")
             .OverridePropertyName("scheduleCron");
 
