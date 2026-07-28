@@ -15,15 +15,18 @@ public sealed class CreateCampaignActionCommandHandler
 {
     private readonly ICampaignRepository _campaignRepository;
     private readonly IAuditLogWriter _auditLogWriter;
+    private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public CreateCampaignActionCommandHandler(
         ICampaignRepository campaignRepository,
         IAuditLogWriter auditLogWriter,
+        ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
         _auditLogWriter = auditLogWriter;
+        _configurationService = configurationService;
         _timeProvider = timeProvider;
     }
 
@@ -32,11 +35,11 @@ public sealed class CreateCampaignActionCommandHandler
         CancellationToken ct)
     {
         var campaign = await GetDraftCampaignAsync(request.CampaignId, ct);
-        var (actionType, actionConfig) = CampaignConfigurationParser.ParseAction(
+        var (actionType, actionConfig) = _configurationService.ParseAction(
             campaign.EventType,
             request.ActionType,
             request.ActionConfigJson);
-        CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+        _configurationService.EnsureActionCompatibleWithCondition(
             campaign.EventType,
             campaign.Condition,
             actionType,
@@ -53,7 +56,7 @@ public sealed class CreateCampaignActionCommandHandler
                 DomainErrorType.Conflict);
         }
 
-        var actionKey = CampaignConfigurationParser.GetActionUniquenessKey(
+        var actionKey = _configurationService.GetActionUniquenessKey(
             campaign.EventType,
             actionType,
             actionConfig);
@@ -61,7 +64,7 @@ public sealed class CreateCampaignActionCommandHandler
             request.CampaignId,
             ct);
         if (existingActions.Any(existingAction =>
-                CampaignConfigurationParser.GetActionUniquenessKey(
+                _configurationService.GetActionUniquenessKey(
                     campaign.EventType,
                     existingAction.ActionType,
                     existingAction.ActionConfig) == actionKey))

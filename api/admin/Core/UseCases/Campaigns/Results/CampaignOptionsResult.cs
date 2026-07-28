@@ -13,19 +13,37 @@ public sealed record CampaignScheduleOptionsResult(
 public sealed record CampaignEventTypeOptionResult(
     string Code,
     CampaignConditionOptionsResult Condition,
-    IReadOnlyCollection<string> ActionTypes);
+    IReadOnlyCollection<CampaignTargetOptionResult> Targets);
 
 public sealed record CampaignConditionOptionsResult(
-    IReadOnlyCollection<CampaignConditionOptionResult> Options);
+    IReadOnlyCollection<string> Combinators,
+    IReadOnlyCollection<CampaignConditionFieldOptionResult> Fields,
+    IReadOnlyCollection<CampaignConditionPresetOptionResult> Presets);
 
-public sealed record CampaignConditionOptionResult(
+public sealed record CampaignConditionFieldOptionResult(
     string Code,
-    IReadOnlyCollection<string> Sources,
-    bool Supported);
+    string DataType,
+    IReadOnlyCollection<string> Operators,
+    IReadOnlyCollection<string> Options);
+
+public sealed record CampaignConditionPresetOptionResult(
+    string Code,
+    string Condition);
+
+public sealed record CampaignTargetOptionResult(
+    string Code,
+    string TargetKind,
+    string Applicability);
 
 public sealed record CampaignActionTypeOptionResult(
     string Code,
-    IReadOnlyCollection<CampaignCapabilityOptionResult> CalculationTypes,
-    IReadOnlyCollection<CampaignCapabilityOptionResult> Recipients);
+    string RequiredTargetKind,
+    IReadOnlyCollection<CampaignParameterFieldOptionResult> Parameters);
 
-public sealed record CampaignCapabilityOptionResult(string Code, bool Supported);
+public sealed record CampaignParameterFieldOptionResult(
+    string Code,
+    string DataType,
+    bool Required,
+    decimal? MinimumExclusive,
+    decimal? Maximum,
+    int? Scale);

@@ -13,15 +13,18 @@ public sealed class UpdateCampaignActionCommandHandler
 {
     private readonly ICampaignRepository _campaignRepository;
     private readonly IAuditLogWriter _auditLogWriter;
+    private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public UpdateCampaignActionCommandHandler(
         ICampaignRepository campaignRepository,
         IAuditLogWriter auditLogWriter,
+        ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
         _auditLogWriter = auditLogWriter;
+        _configurationService = configurationService;
         _timeProvider = timeProvider;
     }
 
@@ -40,11 +43,11 @@ public sealed class UpdateCampaignActionCommandHandler
                 ct)
             ?? throw new DomainException("CAMPAIGN_ACTION_NOT_FOUND", DomainErrorType.NotFound);
         var oldValue = CampaignAuditSerializer.Action(action);
-        var (actionType, actionConfig) = CampaignConfigurationParser.ParseAction(
+        var (actionType, actionConfig) = _configurationService.ParseAction(
             campaign.EventType,
             request.ActionType,
             request.ActionConfigJson);
-        CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+        _configurationService.EnsureActionCompatibleWithCondition(
             campaign.EventType,
             campaign.Condition,
             actionType,
@@ -61,7 +64,7 @@ public sealed class UpdateCampaignActionCommandHandler
                 DomainErrorType.Conflict);
         }
 
-        var actionKey = CampaignConfigurationParser.GetActionUniquenessKey(
+        var actionKey = _configurationService.GetActionUniquenessKey(
             campaign.EventType,
             actionType,
             actionConfig);
@@ -70,7 +73,7 @@ public sealed class UpdateCampaignActionCommandHandler
             ct);
         if (existingActions.Any(existingAction =>
                 existingAction.ActionId != request.ActionId &&
-                CampaignConfigurationParser.GetActionUniquenessKey(
+                _configurationService.GetActionUniquenessKey(
                     campaign.EventType,
                     existingAction.ActionType,
                     existingAction.ActionConfig) == actionKey))

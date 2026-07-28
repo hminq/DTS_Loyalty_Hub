@@ -16,15 +16,18 @@ public sealed class ActivateCampaignCommandHandler
 {
     private readonly ICampaignRepository _campaignRepository;
     private readonly IAuditLogWriter _auditLogWriter;
+    private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public ActivateCampaignCommandHandler(
         ICampaignRepository campaignRepository,
         IAuditLogWriter auditLogWriter,
+        ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
         _auditLogWriter = auditLogWriter;
+        _configurationService = configurationService;
         _timeProvider = timeProvider;
     }
 
@@ -68,7 +71,7 @@ public sealed class ActivateCampaignCommandHandler
             throw new DomainException("CAMPAIGN_LIMIT_INVALID", DomainErrorType.Validation);
         }
 
-        CampaignConfigurationParser.ParseCondition(campaign.EventType, campaign.Condition);
+        _configurationService.ParseCondition(campaign.EventType, campaign.Condition);
 
         var actions = await _campaignRepository.GetActionsForUpdateAsync(request.CampaignId, ct);
         if (actions.Count == 0)
@@ -98,7 +101,7 @@ public sealed class ActivateCampaignCommandHandler
                 throw new DomainException("CAMPAIGN_ACTION_TYPE_INVALID", DomainErrorType.Validation);
             }
 
-            CampaignConfigurationParser.ParseAction(
+            _configurationService.ParseAction(
                 campaign.EventType,
                 action.ActionType,
                 action.ActionConfig);

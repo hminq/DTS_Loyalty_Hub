@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MediatR;
 using Infrastructure.Auditing;
 using Infrastructure.Behaviors;
+using Core.UseCases.Campaigns;
 
 namespace Infrastructure;
 
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<ITierRepository, TierRepository>();
         services.AddScoped<IVoucherDefinitionRepository, VoucherDefinitionRepository>();
         services.AddScoped<ICampaignRepository, CampaignRepository>();
+        services.AddSingleton<ICampaignConfigurationService, CampaignConfigurationService>();
         services.AddScoped<IVoucherPoolProvisioningJobWriter, VoucherPoolProvisioningJobWriter>();
         services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();

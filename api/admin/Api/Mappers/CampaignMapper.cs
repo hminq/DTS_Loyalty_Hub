@@ -207,25 +207,39 @@ public static class CampaignMapper
             result.EventTypes.Select(eventType => new CampaignEventTypeOptionResponseDto(
                 eventType.Code,
                 new CampaignConditionOptionsResponseDto(
-                    eventType.Condition.Options.Select(condition =>
-                        new CampaignConditionOptionResponseDto(
-                            condition.Code,
-                            condition.Sources.ToArray(),
-                            condition.Supported))
+                    eventType.Condition.Combinators.ToArray(),
+                    eventType.Condition.Fields.Select(field =>
+                        new CampaignConditionFieldOptionResponseDto(
+                            field.Code,
+                            field.DataType,
+                            field.Operators.ToArray(),
+                            field.Options.ToArray()))
+                        .ToArray(),
+                    eventType.Condition.Presets.Select(preset =>
+                        new CampaignConditionPresetOptionResponseDto(
+                            preset.Code,
+                            JsonSerializer.Deserialize<JsonElement>(preset.Condition)))
                         .ToArray()),
-                eventType.ActionTypes.ToArray()))
+                eventType.Targets.Select(target =>
+                    new CampaignTargetOptionResponseDto(
+                        target.Code,
+                        target.TargetKind,
+                        JsonSerializer.Deserialize<JsonElement>(target.Applicability)))
+                    .ToArray()))
                 .ToArray(),
             result.ActionTypes.Select(actionType => new CampaignActionTypeOptionResponseDto(
                 actionType.Code,
-                actionType.CalculationTypes.Select(ToResponseDto).ToArray(),
-                actionType.Recipients.Select(ToResponseDto).ToArray()))
+                actionType.RequiredTargetKind,
+                actionType.Parameters.Select(parameter =>
+                    new CampaignParameterFieldOptionResponseDto(
+                        parameter.Code,
+                        parameter.DataType,
+                        parameter.Required,
+                        parameter.MinimumExclusive,
+                        parameter.Maximum,
+                        parameter.Scale))
+                    .ToArray()))
                 .ToArray());
-    }
-
-    private static CampaignCapabilityOptionResponseDto ToResponseDto(
-        CampaignCapabilityOptionResult option)
-    {
-        return new CampaignCapabilityOptionResponseDto(option.Code, option.Supported);
     }
 
     private static DateTimeOffset ToUtcOffset(DateTime value)

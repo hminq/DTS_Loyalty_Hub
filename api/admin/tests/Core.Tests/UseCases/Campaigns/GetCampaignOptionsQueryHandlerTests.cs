@@ -1,4 +1,5 @@
 using Campaign.Contracts.Constants;
+using Core.UseCases.Campaigns;
 using Core.UseCases.Campaigns.Handlers;
 using Core.UseCases.Campaigns.Queries;
 using FluentAssertions;
@@ -11,31 +12,26 @@ public sealed class GetCampaignOptionsQueryHandlerTests
     [Fact]
     public async Task Handle_ReturnsRegistrationConditionOptionsFromTheBackendContract()
     {
-        var handler = new GetCampaignOptionsQueryHandler();
+        var handler = new GetCampaignOptionsQueryHandler(new CampaignConfigurationService());
 
         var result = await handler.Handle(new GetCampaignOptionsQuery(), CancellationToken.None);
 
-        var conditionOptions = result.EventTypes.Should().ContainSingle().Which.Condition.Options;
-        conditionOptions.Should().BeEquivalentTo(
-            [
-                new
-                {
-                    Code = CustomerRegistrationConditionOptionCodes.AllRegistrations,
-                    Sources = Array.Empty<string>(),
-                    Supported = true
-                },
-                new
-                {
-                    Code = CustomerRegistrationConditionOptionCodes.NormalRegistration,
-                    Sources = new[] { CustomerRegistrationSources.Normal },
-                    Supported = true
-                },
-                new
-                {
-                    Code = CustomerRegistrationConditionOptionCodes.ReferralRegistration,
-                    Sources = new[] { CustomerRegistrationSources.Referral },
-                    Supported = true
-                }
-            ]);
+        var eventType = result.EventTypes.Should().ContainSingle().Subject;
+        eventType.Condition.Combinators.Should().Equal("ALL");
+        eventType.Condition.Fields.Should().ContainSingle(field =>
+            field.Code == "source" &&
+            field.DataType == CampaignConditionFieldTypes.Enum);
+        eventType.Condition.Presets.Select(preset => preset.Code).Should().Equal(
+            CustomerRegistrationConditionOptionCodes.AllRegistrations,
+            CustomerRegistrationConditionOptionCodes.NormalRegistration,
+            CustomerRegistrationConditionOptionCodes.ReferralRegistration);
+        eventType.Targets.Select(target => target.Code).Should().Equal("EVENT_CUSTOMER", "REFERRER");
+
+        var actionType = result.ActionTypes.Should().ContainSingle().Subject;
+        actionType.Code.Should().Be(ActionTypes.IssuePoint);
+        actionType.RequiredTargetKind.Should().Be(CampaignTargetKinds.Customer);
+        actionType.Parameters.Should().ContainSingle(parameter =>
+            parameter.Code == "amount" &&
+            parameter.DataType == "DECIMAL");
     }
 }

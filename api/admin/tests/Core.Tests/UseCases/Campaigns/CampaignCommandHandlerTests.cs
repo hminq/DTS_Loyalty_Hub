@@ -3,6 +3,7 @@ using Core.Abstractions;
 using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.AuditLogs;
+using Core.UseCases.Campaigns;
 using Core.UseCases.Campaigns.Commands;
 using Core.UseCases.Campaigns.Handlers;
 using FluentAssertions;
@@ -20,6 +21,7 @@ public sealed class CampaignCommandHandlerTests
 
     private readonly Mock<ICampaignRepository> _repository = new();
     private readonly Mock<IAuditLogWriter> _auditWriter = new();
+    private readonly ICampaignConfigurationService _configurationService = new CampaignConfigurationService();
     private readonly TimeProvider _timeProvider = new FixedTimeProvider(FixedNow);
 
     public CampaignCommandHandlerTests()
@@ -39,6 +41,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -73,7 +76,7 @@ public sealed class CampaignCommandHandlerTests
     {
         var command = ValidCreateCampaignCommand() with
         {
-            ConditionJson = """{"sources":["REFERRAL"]}""",
+            ConditionJson = ReferralConditionJson,
             Actions =
             [
                 ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
@@ -83,6 +86,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -107,6 +111,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var action = () => handler.Handle(command, CancellationToken.None);
@@ -128,6 +133,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var action = () => handler.Handle(command, CancellationToken.None);
@@ -159,6 +165,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -173,7 +180,7 @@ public sealed class CampaignCommandHandlerTests
     {
         var command = ValidCreateCampaignCommand() with
         {
-            ConditionJson = """{"sources":["REFERRAL"]}""",
+            ConditionJson = ReferralConditionJson,
             Actions =
             [
                 ValidCreateActionInput("EVENT_CUSTOMER", 50, 1),
@@ -183,6 +190,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var action = () => handler.Handle(command, CancellationToken.None);
@@ -213,6 +221,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var action = () => handler.Handle(command, CancellationToken.None);
@@ -241,6 +250,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new UpdateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var action = () => handler.Handle(command, CancellationToken.None);
@@ -273,6 +283,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new UpdateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -312,6 +323,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignActionCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -349,6 +361,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignActionCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var action = () => handler.Handle(
@@ -388,6 +401,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new CreateCampaignActionCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
         var command = ValidCreateActionCommand(campaign.CampaignId) with { ExecuteOrder = 2 };
 
@@ -428,8 +442,7 @@ public sealed class CampaignCommandHandlerTests
             existingAction.ActionId,
             ActionTypes.IssuePoint,
             """
-            {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":75,
-             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            {"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":75}}
             """,
             2,
             10,
@@ -438,6 +451,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new UpdateCampaignActionCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -462,15 +476,14 @@ public sealed class CampaignCommandHandlerTests
     {
         var campaign = RestoredCampaign(
             CampaignStatuses.Draft,
-            """{"sources":["REFERRAL"]}""");
+            ReferralConditionJson);
         var eventCustomerAction = RestoredAction(campaign.CampaignId);
         var referrerAction = DomainCampaignAction.Restore(
             Guid.NewGuid(),
             campaign.CampaignId,
             ActionTypes.IssuePoint,
             """
-            {"calculationType":"FIXED_AMOUNT","recipient":"REFERRER","amount":100,
-             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            {"target":{"selector":"REFERRER"},"parameters":{"amount":100}}
             """,
             2,
             null,
@@ -499,14 +512,14 @@ public sealed class CampaignCommandHandlerTests
         var handler = new UpdateCampaignActionCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
         var command = new UpdateCampaignActionCommand(
             campaign.CampaignId,
             eventCustomerAction.ActionId,
             ActionTypes.IssuePoint,
             """
-            {"calculationType":"FIXED_AMOUNT","recipient":"REFERRER","amount":100,
-             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            {"target":{"selector":"REFERRER"},"parameters":{"amount":100}}
             """,
             1,
             null,
@@ -602,7 +615,7 @@ public sealed class CampaignCommandHandlerTests
         "Issue points after registration.",
         null,
         EventTypeCodes.CustomerAccountRegistered,
-        """{"sources":["NORMAL"]}""",
+        NormalConditionJson,
         FixedNow.AddDays(1),
         FixedNow.AddDays(31),
         "0 0 2 * * ?",
@@ -613,13 +626,12 @@ public sealed class CampaignCommandHandlerTests
         Guid.NewGuid());
 
     private static CreateCampaignActionInput ValidCreateActionInput(
-        string recipient,
+        string selector,
         decimal amount,
         int executeOrder) => new(
         ActionTypes.IssuePoint,
-        $$"""
-        {"calculationType":"FIXED_AMOUNT","recipient":"{{recipient}}","amount":{{amount}},
-         "calculationBase":null,"percentage":null,"maximumPoints":null}
+        $$$"""
+        {"target":{"selector":"{{{selector}}}"},"parameters":{"amount":{{{amount}}}}}
         """,
         executeOrder,
         null,
@@ -648,8 +660,7 @@ public sealed class CampaignCommandHandlerTests
         campaignId,
         ActionTypes.IssuePoint,
         """
-        {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":50,
-         "calculationBase":null,"percentage":null,"maximumPoints":null}
+        {"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":50}}
         """,
         1,
         null,
@@ -658,7 +669,7 @@ public sealed class CampaignCommandHandlerTests
 
     private static DomainCampaign RestoredCampaign(
         string status,
-        string condition = """{"sources":["NORMAL"]}""",
+        string condition = NormalConditionJson,
         DateTime? startDate = null,
         DateTime? endDate = null,
         string scheduleCron = "0 0 2 * * ?")
@@ -688,8 +699,7 @@ public sealed class CampaignCommandHandlerTests
             campaignId,
             ActionTypes.IssuePoint,
             """
-            {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":50,
-             "calculationBase":null,"percentage":null,"maximumPoints":null}
+            {"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":50}}
             """,
             1,
             null,
@@ -697,6 +707,12 @@ public sealed class CampaignCommandHandlerTests
             0,
             FixedNow.UtcDateTime);
     }
+
+    private const string NormalConditionJson =
+        """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}""";
+
+    private const string ReferralConditionJson =
+        """{"all":[{"field":"source","operator":"EQUALS","value":"REFERRAL"}]}""";
 
     private static Core.UseCases.Campaigns.Results.CampaignDetailResult CampaignDetail(
         DomainCampaign campaign)
@@ -741,6 +757,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -789,6 +806,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -817,6 +835,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var act = () => handler.Handle(command, CancellationToken.None);
@@ -847,6 +866,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var act = () => handler.Handle(command, CancellationToken.None);
@@ -873,6 +893,7 @@ public sealed class CampaignCommandHandlerTests
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
             _auditWriter.Object,
+            _configurationService,
             _timeProvider);
 
         var act = () => handler.Handle(command, CancellationToken.None);

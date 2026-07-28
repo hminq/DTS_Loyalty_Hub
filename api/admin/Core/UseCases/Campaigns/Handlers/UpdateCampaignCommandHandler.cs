@@ -13,15 +13,18 @@ public sealed class UpdateCampaignCommandHandler
 {
     private readonly ICampaignRepository _campaignRepository;
     private readonly IAuditLogWriter _auditLogWriter;
+    private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public UpdateCampaignCommandHandler(
         ICampaignRepository campaignRepository,
         IAuditLogWriter auditLogWriter,
+        ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
         _auditLogWriter = auditLogWriter;
+        _configurationService = configurationService;
         _timeProvider = timeProvider;
     }
 
@@ -39,13 +42,13 @@ public sealed class UpdateCampaignCommandHandler
         var existingDetail = await _campaignRepository.GetByIdAsync(request.CampaignId, 100, ct)
             ?? throw new DomainException("CAMPAIGN_NOT_FOUND", DomainErrorType.NotFound);
         var oldValue = CampaignAuditSerializer.Campaign(campaign);
-        var (eventType, condition) = CampaignConfigurationParser.ParseCondition(
+        var (eventType, condition) = _configurationService.ParseCondition(
             request.EventType,
             request.ConditionJson);
 
         foreach (var action in existingDetail.Actions)
         {
-            CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+            _configurationService.EnsureActionCompatibleWithCondition(
                 eventType,
                 condition,
                 action.ActionType,

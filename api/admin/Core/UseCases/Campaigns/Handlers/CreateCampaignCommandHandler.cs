@@ -14,15 +14,18 @@ public sealed class CreateCampaignCommandHandler
 {
     private readonly ICampaignRepository _campaignRepository;
     private readonly IAuditLogWriter _auditLogWriter;
+    private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public CreateCampaignCommandHandler(
         ICampaignRepository campaignRepository,
         IAuditLogWriter auditLogWriter,
+        ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
         _auditLogWriter = auditLogWriter;
+        _configurationService = configurationService;
         _timeProvider = timeProvider;
     }
 
@@ -30,7 +33,7 @@ public sealed class CreateCampaignCommandHandler
         CreateCampaignCommand request,
         CancellationToken ct)
     {
-        var (eventType, condition) = CampaignConfigurationParser.ParseCondition(
+        var (eventType, condition) = _configurationService.ParseCondition(
             request.EventType,
             request.ConditionJson);
 
@@ -106,16 +109,16 @@ public sealed class CreateCampaignCommandHandler
         });
     }
 
-    private static ParsedAction ParseAction(
+    private ParsedAction ParseAction(
         string eventType,
         string condition,
         CreateCampaignActionInput input)
     {
-        var (actionType, actionConfig) = CampaignConfigurationParser.ParseAction(
+        var (actionType, actionConfig) = _configurationService.ParseAction(
             eventType,
             input.ActionType,
             input.ActionConfigJson);
-        CampaignConfigurationParser.EnsureActionCompatibleWithCondition(
+        _configurationService.EnsureActionCompatibleWithCondition(
             eventType,
             condition,
             actionType,
@@ -129,7 +132,7 @@ public sealed class CreateCampaignCommandHandler
             input.SessionCount);
     }
 
-    private static void EnsureUniqueActions(
+    private void EnsureUniqueActions(
         string eventType,
         IReadOnlyCollection<ParsedAction> actions)
     {
@@ -145,7 +148,7 @@ public sealed class CreateCampaignCommandHandler
                     Core.Exceptions.DomainErrorType.Conflict);
             }
 
-            var key = CampaignConfigurationParser.GetActionUniquenessKey(
+            var key = _configurationService.GetActionUniquenessKey(
                 eventType,
                 action.ActionType,
                 action.ActionConfig);
