@@ -3,12 +3,12 @@ import { useState } from 'react'
 
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Combobox } from '../ui/combobox'
 import { Field, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { Input } from '../ui/input'
 import { formatCampaignNumber } from './campaignFormatters'
 import { buildCampaignActionPayload, mapCampaignActionToFormValues } from './campaignPayloads'
 import { validateCampaignAction } from './campaignValidation'
+import { CampaignActionConfigurationFields } from './CampaignActionConfigurationFields'
 
 export function PersistedCampaignActionCard({
   action,
@@ -17,7 +17,7 @@ export function PersistedCampaignActionCard({
   canEdit = true,
   options = {},
   eventType = '',
-  isReferralOnly = false,
+  conditionPresetCode = '',
   isSubmitting = false,
   externalError = '',
   externalFieldErrors = {},
@@ -45,42 +45,24 @@ export function PersistedCampaignActionCard({
     }
   }
 
-  function handleActionTypeChange(nextType) {
-    const selectedAction = (options.actionTypes || []).find((a) => a.value === nextType)
-    const compatibleCalcs = (selectedAction?.calculationTypes || []).map((c) => c.value)
-    const compatibleRecipients = (selectedAction?.recipients || []).map((r) => r.value)
-
+  function handleConfigChange(nextActionValues) {
     setFormValues((prev) => ({
       ...prev,
-      actionType: nextType,
-      calculationType: compatibleCalcs.includes(prev.calculationType) ? prev.calculationType : '',
-      recipient: compatibleRecipients.includes(prev.recipient) ? prev.recipient : '',
+      ...nextActionValues,
     }))
   }
-
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === eventType)
-  const compatibleActionCodes = selectedEvent?.actionTypes || []
-  const actionTypeOptions = (options.actionTypes || []).filter(
-    (a) => !eventType || compatibleActionCodes.includes(a.value),
-  )
-
-  const selectedAction = (options.actionTypes || []).find((a) => a.value === formValues.actionType)
-  const calculationTypeOptions = selectedAction?.calculationTypes || []
-
-  const allRecipients = selectedAction?.recipients || []
-  const recipientOptions = allRecipients.map((rec) => {
-    if (rec.value === 'REFERRER' && !isReferralOnly) {
-      return { ...rec, disabled: true }
-    }
-    return rec
-  })
 
   async function handleSave(e) {
     e.preventDefault()
     setCardError('')
     setFieldErrors({})
 
-    const validation = validateCampaignAction(formValues, t)
+    const validation = validateCampaignAction(
+      formValues,
+      options,
+      { eventType, conditionPresetCode },
+      t,
+    )
     if (!validation.isValid) {
       setFieldErrors(validation.errors)
       return
@@ -89,6 +71,7 @@ export function PersistedCampaignActionCard({
     const payload = buildCampaignActionPayload(
       formValues,
       Number(formValues.executeOrder || 1),
+      options
     )
 
     try {
@@ -121,18 +104,12 @@ export function PersistedCampaignActionCard({
 
   if (!isEditing && action) {
     const config = action.actionConfig || {}
+    const target = config.target || {}
+    const parameters = config.parameters || {}
     const actionTypeLabel = t(`campaigns.actionTypes.${action.actionType}`, {
       defaultValue: action.actionType || '—',
     })
-    const calculationTypeLabel = t(
-      `campaigns.calculationTypes.${config.calculationType}`,
-      {
-        defaultValue: config.calculationType || '—',
-      },
-    )
-    const recipientLabel = t(`campaigns.recipients.${config.recipient}`, {
-      defaultValue: config.recipient || '—',
-    })
+    const amountValue = parameters.amount ?? null
 
     return (
       <Card className="shadow-sm">
@@ -172,35 +149,26 @@ export function PersistedCampaignActionCard({
           <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.form.calculationTypeLabel', {
-                  defaultValue: 'Calculation type',
-                })}
+                {t('campaigns.form.targetSelectorLabel', { defaultValue: 'Target' })}
               </p>
               <p className="mt-1 text-sm font-medium text-foreground">
-                {calculationTypeLabel}
+                {target.selector || '—'}
               </p>
             </div>
 
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.form.recipientLabel', { defaultValue: 'Recipient' })}
-              </p>
-              <p className="mt-1 text-sm font-medium text-foreground">{recipientLabel}</p>
-            </div>
+            {amountValue != null ? (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('campaigns.form.amountLabel', { defaultValue: 'Reward amount' })}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {formatCampaignNumber(amountValue, language)}{' '}
+                  {t('campaigns.detail.points', { defaultValue: 'points' })}
+                </p>
+              </div>
+            ) : null}
 
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.form.amountLabel', { defaultValue: 'Reward amount' })}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-primary">
-                {config.amount != null
-                  ? formatCampaignNumber(config.amount, language)
-                  : '0'}{' '}
-                {t('campaigns.detail.points', { defaultValue: 'points' })}
-              </p>
-            </div>
-
-            <div>
+            <div className={amountValue == null ? 'sm:col-span-2' : ''}>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {t('campaigns.form.actionLimitsTitle', {
                   defaultValue: 'Action execution limits',
@@ -255,105 +223,19 @@ export function PersistedCampaignActionCard({
           ) : null}
 
           <FieldGroup>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field invalid={Boolean(fieldErrors.actionType)} disabled={isSubmitting}>
-                <FieldLabel>
-                  {t('campaigns.form.actionTypeLabel', { defaultValue: 'Action type' })}
-                </FieldLabel>
-                <Combobox
-                  value={formValues.actionType}
-                  onValueChange={handleActionTypeChange}
-                  options={actionTypeOptions}
-                  placeholder={t('campaigns.form.selectActionType', {
-                    defaultValue: 'Select action type',
-                  })}
-                  emptyOptionLabel={t('campaigns.form.selectActionType', {
-                    defaultValue: 'Select action type',
-                  })}
-                  ariaLabel={t('campaigns.form.actionTypeLabel', { defaultValue: 'Action type' })}
-                  disabled={isSubmitting}
-                />
-                {fieldErrors.actionType ? (
-                  <FieldError>{fieldErrors.actionType}</FieldError>
-                ) : null}
-              </Field>
+            <CampaignActionConfigurationFields
+              action={formValues}
+              options={options}
+              eventType={eventType}
+              conditionPresetCode={conditionPresetCode}
+              fieldErrors={allErrors}
+              isSubmitting={isSubmitting}
+              onChange={handleConfigChange}
+              t={t}
+            />
 
-              <Field
-                invalid={Boolean(fieldErrors.calculationType)}
-                disabled={!formValues.actionType || isSubmitting}
-              >
-                <FieldLabel>
-                  {t('campaigns.form.calculationTypeLabel', {
-                    defaultValue: 'Calculation type',
-                  })}
-                </FieldLabel>
-                <Combobox
-                  value={formValues.calculationType}
-                  onValueChange={(val) => updateField('calculationType', val)}
-                  options={calculationTypeOptions}
-                  placeholder={t('campaigns.form.selectCalculationType', {
-                    defaultValue: 'Select calculation type',
-                  })}
-                  emptyOptionLabel={t('campaigns.form.selectCalculationType', {
-                    defaultValue: 'Select calculation type',
-                  })}
-                  disabled={!formValues.actionType || isSubmitting}
-                  ariaLabel={t('campaigns.form.calculationTypeLabel', {
-                    defaultValue: 'Calculation type',
-                  })}
-                />
-                {fieldErrors.calculationType ? (
-                  <FieldError>{fieldErrors.calculationType}</FieldError>
-                ) : null}
-              </Field>
-
-              <Field
-                invalid={Boolean(fieldErrors.recipient)}
-                disabled={!formValues.actionType || isSubmitting}
-              >
-                <FieldLabel>
-                  {t('campaigns.form.recipientLabel', { defaultValue: 'Recipient' })}
-                </FieldLabel>
-                <Combobox
-                  value={formValues.recipient}
-                  onValueChange={(val) => updateField('recipient', val)}
-                  options={recipientOptions}
-                  placeholder={t('campaigns.form.selectRecipient', {
-                    defaultValue: 'Select recipient',
-                  })}
-                  emptyOptionLabel={t('campaigns.form.selectRecipient', {
-                    defaultValue: 'Select recipient',
-                  })}
-                  disabled={!formValues.actionType || isSubmitting}
-                  ariaLabel={t('campaigns.form.recipientLabel', {
-                    defaultValue: 'Recipient',
-                  })}
-                />
-                {fieldErrors.recipient ? (
-                  <FieldError>{fieldErrors.recipient}</FieldError>
-                ) : null}
-              </Field>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field invalid={Boolean(fieldErrors.amount)} disabled={isSubmitting}>
-                <FieldLabel>
-                  {t('campaigns.form.amountLabel', { defaultValue: 'Reward amount (points)' })}
-                </FieldLabel>
-                <Input
-                  type="number"
-                  min="0.01"
-                  step="any"
-                  value={formValues.amount}
-                  onChange={(e) => updateField('amount', e.target.value)}
-                  placeholder="50"
-                  aria-invalid={Boolean(fieldErrors.amount)}
-                  disabled={isSubmitting}
-                />
-                {fieldErrors.amount ? <FieldError>{fieldErrors.amount}</FieldError> : null}
-              </Field>
-
-              <Field invalid={Boolean(fieldErrors.executeOrder)} disabled={isSubmitting}>
+            <div className="grid gap-4 sm:grid-cols-2 mt-4 border-t border-border pt-4">
+              <Field invalid={Boolean(allErrors.executeOrder)} disabled={isSubmitting}>
                 <FieldLabel>
                   {t('campaigns.actions.executeOrderLabel', {
                     defaultValue: 'Execution order',
@@ -366,15 +248,92 @@ export function PersistedCampaignActionCard({
                   value={formValues.executeOrder}
                   onChange={(e) => updateField('executeOrder', e.target.value)}
                   placeholder="1"
-                  aria-invalid={Boolean(fieldErrors.executeOrder)}
+                  aria-invalid={Boolean(allErrors.executeOrder)}
                   disabled={isSubmitting}
                 />
-                {fieldErrors.executeOrder ? (
-                  <FieldError>{fieldErrors.executeOrder}</FieldError>
+                {allErrors.executeOrder ? (
+                  <FieldError>{allErrors.executeOrder}</FieldError>
                 ) : null}
               </Field>
             </div>
           </FieldGroup>
+
+          <div className="border-t border-border pt-4">
+            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('campaigns.form.actionLimitsTitle', {
+                defaultValue: 'Action execution limits',
+              })}
+            </h4>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                invalid={Boolean(allErrors.totalCount)}
+                disabled={isSubmitting}
+              >
+                <FieldLabel>
+                  {t('campaigns.form.actionLimitTotalLabel', {
+                    defaultValue: 'Total action execution limit',
+                  })}
+                </FieldLabel>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={formValues.totalCount ?? ''}
+                  onChange={(e) => updateField('totalCount', e.target.value)}
+                  placeholder={t('campaigns.detail.unlimited', {
+                    defaultValue: 'Unlimited',
+                  })}
+                  aria-invalid={Boolean(allErrors.totalCount)}
+                  disabled={isSubmitting}
+                />
+                {allErrors.totalCount ? (
+                  <FieldError>{allErrors.totalCount}</FieldError>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('campaigns.form.actionLimitTotalHelper', {
+                      defaultValue:
+                        'Maximum successful executions of this action across the campaign. Leave empty for unlimited.',
+                    })}
+                  </p>
+                )}
+              </Field>
+
+              <Field
+                invalid={Boolean(allErrors.sessionCount)}
+                disabled={isSubmitting}
+              >
+                <FieldLabel>
+                  {t('campaigns.form.actionLimitSessionLabel', {
+                    defaultValue: 'Action execution limit per session',
+                  })}
+                </FieldLabel>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={formValues.sessionCount ?? ''}
+                  onChange={(e) => updateField('sessionCount', e.target.value)}
+                  placeholder={t('campaigns.detail.unlimited', {
+                    defaultValue: 'Unlimited',
+                  })}
+                  aria-invalid={Boolean(allErrors.sessionCount)}
+                  disabled={isSubmitting}
+                />
+                {allErrors.sessionCount ? (
+                  <FieldError>{allErrors.sessionCount}</FieldError>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('campaigns.form.actionLimitSessionHelper', {
+                      defaultValue:
+                        'Maximum successful executions of this action in each session. Leave empty for unlimited.',
+                    })}
+                  </p>
+                )}
+              </Field>
+            </div>
+          </div>
 
           <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
             <Button

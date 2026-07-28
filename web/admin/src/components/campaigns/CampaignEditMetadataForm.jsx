@@ -26,29 +26,29 @@ export function CampaignEditMetadataForm({
 
   function handleEventTypeChange(nextEventType) {
     const selectedEvent = (options.eventTypes || []).find((e) => e.value === nextEventType)
-    const compatibleConditionOptions = (selectedEvent?.conditionOptions || []).map(
+    const compatibleConditionPresets = (selectedEvent?.conditionPresets || []).map(
       (option) => option.value,
     )
 
     setFormValues((prev) => {
-      const nextConditionOptionCode = compatibleConditionOptions.includes(
-        prev.conditionOptionCode,
+      const nextConditionPresetCode = compatibleConditionPresets.includes(
+        prev.conditionPresetCode,
       )
-        ? prev.conditionOptionCode
+        ? prev.conditionPresetCode
         : ''
 
       return {
         ...prev,
         eventType: nextEventType,
-        conditionOptionCode: nextConditionOptionCode,
+        conditionPresetCode: nextConditionPresetCode,
       }
     })
   }
 
-  function handleConditionOptionChange(nextConditionOptionCode) {
+  function handleConditionOptionChange(nextConditionPresetCode) {
     setFormValues((prev) => ({
       ...prev,
-      conditionOptionCode: nextConditionOptionCode,
+      conditionPresetCode: nextConditionPresetCode,
     }))
   }
 

@@ -120,7 +120,7 @@ function EditCampaignPage() {
     setFormError('')
     setFieldErrors({})
 
-    const validation = validateCampaignMetadata(formValues, t)
+    const validation = validateCampaignMetadata(formValues, options, t)
     if (!validation.isValid) {
       setFieldErrors(validation.errors)
       return
@@ -210,10 +210,6 @@ function EditCampaignPage() {
     </div>
   )
 
-  const isReferralOnly =
-    campaign?.condition?.sources?.length === 1 &&
-    campaign.condition.sources[0] === 'REFERRAL'
-
   return (
     <>
       <PageHeader
@@ -296,7 +292,7 @@ function EditCampaignPage() {
               canEdit={canUpdate}
               options={options}
               eventType={initialFormValues.eventType || campaign.eventType || ''}
-              isReferralOnly={isReferralOnly}
+              conditionPresetCode={initialFormValues.conditionPresetCode || ''}
               onActionsChanged={handleRefreshActions}
               language={i18n.resolvedLanguage}
               t={t}

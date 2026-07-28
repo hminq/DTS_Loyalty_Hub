@@ -130,6 +130,13 @@ export const vi = {
     actionTypes: {
       ISSUE_POINT: 'Tặng điểm',
     },
+    targetSelectors: {
+      EVENT_CUSTOMER: 'Khách hàng phát sinh sự kiện',
+      REFERRER: 'Người giới thiệu',
+    },
+    parameters: {
+      amount: 'Mức thưởng',
+    },
     calculationTypes: {
       FIXED_AMOUNT: 'Số lượng cố định',
       PERCENT: 'Phần trăm',
@@ -191,6 +198,8 @@ export const vi = {
       removeAction: 'Xoá',
       actionTypeLabel: 'Loại hành động',
       selectActionType: 'Chọn loại hành động',
+      targetSelectorLabel: 'Đối tượng nhận thưởng',
+      selectTarget: 'Chọn đối tượng nhận thưởng',
       calculationTypeLabel: 'Cách tính thưởng',
       selectCalculationType: 'Chọn cách tính thưởng',
       recipientLabel: 'Người nhận',
@@ -227,6 +236,19 @@ export const vi = {
       userLimitSessionExceedsTotal: 'Giới hạn mỗi phiên của khách hàng không được vượt quá giới hạn toàn chiến dịch.',
       actionsRequired: 'Cần ít nhất một hành động.',
       actionTypeRequired: 'Loại hành động là bắt buộc.',
+      actionTypeUnsupported: 'Loại hành động đã chọn không được hỗ trợ.',
+      targetSelectorRequired: 'Đối tượng nhận thưởng là bắt buộc.',
+      targetSelectorIncompatible:
+        'Đối tượng nhận thưởng không tương thích với điều kiện chiến dịch.',
+      conditionUnsupported: 'Điều kiện chiến dịch đã chọn không được hỗ trợ.',
+      parameterRequired: 'Tham số của hành động này là bắt buộc.',
+      parameterInvalidNumber: 'Hãy nhập một số hợp lệ.',
+      parameterTooSmall: 'Giá trị phải lớn hơn {{minimum}}.',
+      parameterTooLarge: 'Giá trị không được vượt quá {{maximum}}.',
+      parameterScaleExceeded:
+        'Giá trị chỉ được có tối đa {{scale}} chữ số thập phân.',
+      parameterTypeUnsupported:
+        'Kiểu tham số {{type}} chưa được form này hỗ trợ.',
       calculationTypeRequired: 'Cách tính thưởng là bắt buộc.',
       recipientRequired: 'Người nhận là bắt buộc.',
       amountRequired: 'Mức thưởng phải lớn hơn không.',
@@ -333,6 +355,11 @@ export const vi = {
       deleteConfirm: 'Xóa hành động',
     },
     conditionOptions: {
+      ALL_REGISTRATIONS: 'Tất cả đăng ký',
+      NORMAL_REGISTRATION: 'Đăng ký thường',
+      REFERRAL_REGISTRATION: 'Đăng ký qua giới thiệu',
+    },
+    conditionPresets: {
       ALL_REGISTRATIONS: 'Tất cả đăng ký',
       NORMAL_REGISTRATION: 'Đăng ký thường',
       REFERRAL_REGISTRATION: 'Đăng ký qua giới thiệu',

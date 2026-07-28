@@ -1,17 +1,3 @@
-function mapSupportedItem(item, category, t) {
-  const code = typeof item === 'string' ? item : (item?.code || '')
-  const supported = typeof item === 'string' ? true : Boolean(item?.supported)
-  const baseLabel = t(`campaigns.${category}.${code}`, { defaultValue: code })
-  const label = supported ? baseLabel : `${baseLabel} — ${t('campaigns.comingSoon')}`
-
-  return {
-    value: code,
-    label,
-    supported,
-    disabled: !supported,
-  }
-}
-
 function mapStatuses(statuses = [], t) {
   return (statuses || []).map((code) => ({
     value: code,
@@ -32,14 +18,30 @@ function mapSchedule(schedule = {}, t) {
 function mapEventTypes(eventTypes = [], t) {
   return (eventTypes || []).map((item) => {
     const code = item?.code || ''
+
+    const condition = item?.condition || {}
+    const combinators = condition.combinators || []
+    const fields = condition.fields || []
+    const presets = (condition.presets || []).map(preset => ({
+      value: preset.code,
+      label: t(`campaigns.conditionPresets.${preset.code}`, { defaultValue: preset.code }),
+      condition: preset.condition,
+    }))
+
+    const targets = (item?.targets || []).map(target => ({
+      value: target.code,
+      label: t(`campaigns.targetSelectors.${target.code}`, { defaultValue: target.code }),
+      targetKind: target.targetKind,
+      applicability: target.applicability,
+    }))
+
     return {
       value: code,
       label: t(`campaigns.eventTypes.${code}`, { defaultValue: code }),
-      conditionOptions: (item?.condition?.options || []).map((option) => ({
-        ...mapSupportedItem(option, 'conditionOptions', t),
-        sources: Array.isArray(option?.sources) ? option.sources : [],
-      })),
-      actionTypes: item?.actionTypes || [],
+      conditionCombinators: combinators,
+      conditionFields: fields,
+      conditionPresets: presets,
+      targets: targets,
     }
   })
 }
@@ -50,8 +52,16 @@ function mapActionTypes(actionTypes = [], t) {
     return {
       value: code,
       label: t(`campaigns.actionTypes.${code}`, { defaultValue: code }),
-      calculationTypes: (item?.calculationTypes || []).map((calc) => mapSupportedItem(calc, 'calculationTypes', t)),
-      recipients: (item?.recipients || []).map((rec) => mapSupportedItem(rec, 'recipients', t)),
+      requiredTargetKind: item?.requiredTargetKind,
+      parameters: (item?.parameters || []).map(param => ({
+        code: param.code,
+        label: t(`campaigns.parameters.${param.code}`, { defaultValue: param.code }),
+        dataType: param.dataType,
+        required: param.required,
+        minimumExclusive: param.minimumExclusive,
+        maximum: param.maximum,
+        scale: param.scale,
+      })),
     }
   })
 }

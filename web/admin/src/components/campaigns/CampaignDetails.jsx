@@ -9,7 +9,7 @@ import {
   formatCampaignSchedule,
   getCampaignStatusVariant,
 } from './campaignFormatters'
-import { resolveConditionOptionCode } from './campaignPayloads'
+import { resolveConditionPresetCode } from './campaignPayloads'
 
 export function CampaignDetails({ campaign, options = {}, language, t }) {
   const [imageError, setImageError] = useState(false)
@@ -29,14 +29,14 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
     defaultValue: campaign.eventType || '—',
   })
 
-  const conditionCode = resolveConditionOptionCode(
-    campaign.condition?.sources,
+  const conditionCode = resolveConditionPresetCode(
+    campaign.condition,
     campaign.eventType,
     options,
   )
   const conditionLabel = conditionCode
-    ? t(`campaigns.conditionOptions.${conditionCode}`, { defaultValue: conditionCode })
-    : (campaign.condition?.sources || []).join(', ') || '—'
+    ? t(`campaigns.conditionPresets.${conditionCode}`, { defaultValue: conditionCode })
+    : '—'
 
   const timeZone = options.schedule?.timeZone || 'UTC'
   const hasBanner = Boolean(campaign.bannerImageUrl) && !imageError

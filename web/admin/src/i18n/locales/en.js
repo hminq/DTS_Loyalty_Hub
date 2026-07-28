@@ -129,6 +129,13 @@ export const en = {
     actionTypes: {
       ISSUE_POINT: 'Issue points',
     },
+    targetSelectors: {
+      EVENT_CUSTOMER: 'Event customer',
+      REFERRER: 'Referrer',
+    },
+    parameters: {
+      amount: 'Reward amount',
+    },
     calculationTypes: {
       FIXED_AMOUNT: 'Fixed amount',
       PERCENT: 'Percentage',
@@ -190,6 +197,8 @@ export const en = {
       removeAction: 'Remove',
       actionTypeLabel: 'Action type',
       selectActionType: 'Select action type',
+      targetSelectorLabel: 'Target',
+      selectTarget: 'Select target',
       calculationTypeLabel: 'Calculation type',
       selectCalculationType: 'Select calculation type',
       recipientLabel: 'Recipient',
@@ -226,6 +235,19 @@ export const en = {
       userLimitSessionExceedsTotal: 'Per-session customer limit cannot exceed the overall customer limit.',
       actionsRequired: 'At least one action is required.',
       actionTypeRequired: 'Action type is required.',
+      actionTypeUnsupported: 'The selected action type is not supported.',
+      targetSelectorRequired: 'Target is required.',
+      targetSelectorIncompatible:
+        'The selected target is not compatible with this campaign condition.',
+      conditionUnsupported: 'The selected campaign condition is not supported.',
+      parameterRequired: 'This action parameter is required.',
+      parameterInvalidNumber: 'Enter a valid number.',
+      parameterTooSmall: 'The value must be greater than {{minimum}}.',
+      parameterTooLarge: 'The value must be at most {{maximum}}.',
+      parameterScaleExceeded:
+        'The value must have at most {{scale}} decimal places.',
+      parameterTypeUnsupported:
+        'Parameter type {{type}} is not supported by this form.',
       calculationTypeRequired: 'Calculation type is required.',
       recipientRequired: 'Recipient is required.',
       amountRequired: 'Reward amount must be greater than zero.',
@@ -330,6 +352,11 @@ export const en = {
       deleteConfirm: 'Delete action',
     },
     conditionOptions: {
+      ALL_REGISTRATIONS: 'All registrations',
+      NORMAL_REGISTRATION: 'Normal registration',
+      REFERRAL_REGISTRATION: 'Referral registration',
+    },
+    conditionPresets: {
       ALL_REGISTRATIONS: 'All registrations',
       NORMAL_REGISTRATION: 'Normal registration',
       REFERRAL_REGISTRATION: 'Referral registration',

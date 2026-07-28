@@ -1,3 +1,5 @@
+import { isTargetCompatible } from './campaignCompatibility.js'
+
 const CAMPAIGN_SCHEDULE_WEEKDAYS = [
   'MON',
   'TUE',
@@ -7,6 +9,10 @@ const CAMPAIGN_SCHEDULE_WEEKDAYS = [
   'SAT',
   'SUN',
 ]
+
+function toFieldKey(prefix, field) {
+  return prefix ? `${prefix}.${field}` : field
+}
 
 function isCanonicalCronNumber(value, minimum, maximum) {
   const parsed = Number(value)
@@ -54,8 +60,8 @@ export function isValidCampaignScheduleCron(value) {
 
 function validateActionLimits(action = {}, prefix = '', t) {
   const errors = {}
-  const keyTotal = prefix ? `${prefix}.totalCount` : 'totalCount'
-  const keySession = prefix ? `${prefix}.sessionCount` : 'sessionCount'
+  const keyTotal = toFieldKey(prefix, 'totalCount')
+  const keySession = toFieldKey(prefix, 'sessionCount')
 
   const total =
     action.totalCount !== '' && action.totalCount != null
@@ -93,44 +99,111 @@ function validateActionLimits(action = {}, prefix = '', t) {
   return errors
 }
 
-function validateSingleAction(action = {}, index, t) {
+function getDecimalScale(value) {
+  const match = String(value).trim().match(/^[+-]?\d+(?:\.(\d+))?$/)
+  return match ? (match[1]?.length ?? 0) : null
+}
+
+function validateSingleAction(
+  action = {},
+  prefix = '',
+  options = {},
+  campaignContext = {},
+  t,
+) {
   const errors = {}
-  const prefix = `actions[${index}]`
+  const actionTypeKey = toFieldKey(prefix, 'actionType')
+  const targetSelectorKey = toFieldKey(prefix, 'targetSelector')
 
   if (!action.actionType) {
-    errors[`${prefix}.actionType`] = t('campaigns.errors.actionTypeRequired', {
+    errors[actionTypeKey] = t('campaigns.errors.actionTypeRequired', {
       defaultValue: 'Action type is required.',
     })
   }
 
-  if (!action.calculationType) {
-    errors[`${prefix}.calculationType`] = t('campaigns.errors.calculationTypeRequired', {
-      defaultValue: 'Calculation type is required.',
+  if (!action.targetSelector) {
+    errors[targetSelectorKey] = t('campaigns.errors.targetSelectorRequired', {
+      defaultValue: 'Target is required.',
     })
   }
 
-  if (!action.recipient) {
-    errors[`${prefix}.recipient`] = t('campaigns.errors.recipientRequired', {
-      defaultValue: 'Recipient is required.',
+  const selectedActionDef = (options.actionTypes || []).find(
+    (actionType) => actionType.value === action.actionType,
+  )
+  if (action.actionType && !selectedActionDef) {
+    errors[actionTypeKey] = t('campaigns.errors.actionTypeUnsupported', {
+      defaultValue: 'The selected action type is not supported.',
     })
   }
 
-  const amountVal = Number(action.amount)
+  const selectedEvent = (options.eventTypes || []).find(
+    (event) => event.value === campaignContext.eventType,
+  )
+  const selectedConditionPreset = (selectedEvent?.conditionPresets || []).find(
+    (preset) => preset.value === campaignContext.conditionPresetCode,
+  )
+  const selectedTarget = (selectedEvent?.targets || []).find(
+    (target) => target.value === action.targetSelector,
+  )
+
   if (
-    action.amount === '' ||
-    action.amount == null ||
-    Number.isNaN(amountVal) ||
-    amountVal <= 0
+    action.targetSelector &&
+    (!selectedTarget ||
+      !isTargetCompatible(selectedTarget, selectedActionDef, selectedConditionPreset))
   ) {
-    errors[`${prefix}.amount`] = t('campaigns.errors.amountRequired', {
-      defaultValue: 'Reward amount must be greater than zero.',
+    errors[targetSelectorKey] = t('campaigns.errors.targetSelectorIncompatible', {
+      defaultValue: 'The selected target is not compatible with this campaign condition.',
     })
-  } else {
-    const parts = String(action.amount).split('.')
-    if (parts.length > 1 && parts[1].length > 2) {
-      errors[`${prefix}.amount`] = t('campaigns.errors.amountInvalid', {
-        defaultValue: 'Reward amount can have at most two decimal places.',
-      })
+  }
+
+  if (selectedActionDef) {
+    for (const paramDef of selectedActionDef.parameters || []) {
+      const fieldKey = toFieldKey(prefix, `parameters.${paramDef.code}`)
+      const value = action.parameters?.[paramDef.code]
+
+      if (paramDef.dataType !== 'DECIMAL') {
+        errors[fieldKey] = t('campaigns.errors.parameterTypeUnsupported', {
+          type: paramDef.dataType,
+          defaultValue: `Parameter type ${paramDef.dataType} is not supported.`,
+        })
+        continue
+      }
+
+      if (paramDef.required && (value === '' || value == null)) {
+        errors[fieldKey] = t('campaigns.errors.parameterRequired', {
+          defaultValue: `${paramDef.label || paramDef.code} is required.`,
+        })
+      } else if (value !== '' && value != null) {
+        const numericValue = Number(value)
+        const decimalScale = getDecimalScale(value)
+
+        if (!Number.isFinite(numericValue) || decimalScale === null) {
+          errors[fieldKey] = t('campaigns.errors.parameterInvalidNumber', {
+            defaultValue: 'Must be a valid number.',
+          })
+        } else if (
+          Number.isInteger(paramDef.scale) &&
+          decimalScale > paramDef.scale
+        ) {
+          errors[fieldKey] = t('campaigns.errors.parameterScaleExceeded', {
+            scale: paramDef.scale,
+            defaultValue: `Must have at most ${paramDef.scale} decimal places.`,
+          })
+        } else if (
+          paramDef.minimumExclusive != null &&
+          numericValue <= paramDef.minimumExclusive
+        ) {
+          errors[fieldKey] = t('campaigns.errors.parameterTooSmall', {
+            minimum: paramDef.minimumExclusive,
+            defaultValue: `Must be greater than ${paramDef.minimumExclusive}.`,
+          })
+        } else if (paramDef.maximum != null && numericValue > paramDef.maximum) {
+          errors[fieldKey] = t('campaigns.errors.parameterTooLarge', {
+            maximum: paramDef.maximum,
+            defaultValue: `Must be at most ${paramDef.maximum}.`,
+          })
+        }
+      }
     }
   }
 
@@ -139,7 +212,7 @@ function validateSingleAction(action = {}, index, t) {
   return errors
 }
 
-export function validateCampaignMetadata(formValues = {}, t) {
+export function validateCampaignMetadata(formValues = {}, options = {}, t) {
   const errors = {}
 
   const campaignName = formValues.campaignName?.trim() || ''
@@ -159,10 +232,22 @@ export function validateCampaignMetadata(formValues = {}, t) {
     })
   }
 
-  if (!formValues.conditionOptionCode) {
-    errors.conditionOptionCode = t('campaigns.errors.conditionRequired', {
+  if (!formValues.conditionPresetCode) {
+    errors.conditionPresetCode = t('campaigns.errors.conditionRequired', {
       defaultValue: 'Campaign condition is required.',
     })
+  } else {
+    const selectedEvent = (options.eventTypes || []).find(
+      (event) => event.value === formValues.eventType,
+    )
+    const selectedConditionPreset = (selectedEvent?.conditionPresets || []).find(
+      (preset) => preset.value === formValues.conditionPresetCode,
+    )
+    if (!selectedConditionPreset) {
+      errors.conditionPresetCode = t('campaigns.errors.conditionUnsupported', {
+        defaultValue: 'The selected campaign condition is not supported.',
+      })
+    }
   }
 
   const start = formValues.startDate ? new Date(formValues.startDate) : null
@@ -252,8 +337,8 @@ export function validateCampaignMetadata(formValues = {}, t) {
   }
 }
 
-export function validateCampaignCreate(formValues = {}, t) {
-  const metadataVal = validateCampaignMetadata(formValues, t)
+export function validateCampaignCreate(formValues = {}, options = {}, t) {
+  const metadataVal = validateCampaignMetadata(formValues, options, t)
   const errors = { ...metadataVal.errors }
 
   const actions = formValues.actions || []
@@ -264,7 +349,19 @@ export function validateCampaignCreate(formValues = {}, t) {
   }
 
   for (let i = 0; i < actions.length; i++) {
-    Object.assign(errors, validateSingleAction(actions[i], i, t))
+    Object.assign(
+      errors,
+      validateSingleAction(
+        actions[i],
+        `actions[${i}]`,
+        options,
+        {
+          eventType: formValues.eventType,
+          conditionPresetCode: formValues.conditionPresetCode,
+        },
+        t,
+      ),
+    )
   }
 
   return {
@@ -273,45 +370,19 @@ export function validateCampaignCreate(formValues = {}, t) {
   }
 }
 
-export function validateCampaignAction(actionValues = {}, t) {
-  const errors = {}
-
-  if (!actionValues.actionType) {
-    errors.actionType = t('campaigns.errors.actionTypeRequired', {
-      defaultValue: 'Action type is required.',
-    })
-  }
-
-  if (!actionValues.calculationType) {
-    errors.calculationType = t('campaigns.errors.calculationTypeRequired', {
-      defaultValue: 'Calculation type is required.',
-    })
-  }
-
-  if (!actionValues.recipient) {
-    errors.recipient = t('campaigns.errors.recipientRequired', {
-      defaultValue: 'Recipient is required.',
-    })
-  }
-
-  const amountVal = Number(actionValues.amount)
-  if (
-    actionValues.amount === '' ||
-    actionValues.amount == null ||
-    Number.isNaN(amountVal) ||
-    amountVal <= 0
-  ) {
-    errors.amount = t('campaigns.errors.amountRequired', {
-      defaultValue: 'Reward amount must be greater than zero.',
-    })
-  } else {
-    const parts = String(actionValues.amount).split('.')
-    if (parts.length > 1 && parts[1].length > 2) {
-      errors.amount = t('campaigns.errors.amountInvalid', {
-        defaultValue: 'Reward amount can have at most two decimal places.',
-      })
-    }
-  }
+export function validateCampaignAction(
+  actionValues = {},
+  options = {},
+  campaignContext = {},
+  t,
+) {
+  const errors = validateSingleAction(
+    actionValues,
+    '',
+    options,
+    campaignContext,
+    t,
+  )
 
   const orderVal = Number(actionValues.executeOrder)
   if (
@@ -324,8 +395,6 @@ export function validateCampaignAction(actionValues = {}, t) {
       defaultValue: 'Execution order must be a positive integer.',
     })
   }
-
-  Object.assign(errors, validateActionLimits(actionValues, '', t))
 
   return {
     isValid: Object.keys(errors).length === 0,

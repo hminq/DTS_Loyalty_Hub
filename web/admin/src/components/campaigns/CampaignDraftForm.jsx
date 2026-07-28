@@ -4,20 +4,61 @@ import { useState } from 'react'
 import { Button } from '../ui/button'
 import { CampaignActionCard } from './CampaignActionCard'
 import { CampaignMetadataFormFields } from './CampaignMetadataFormFields'
+import {
+  getCompatibleActionTypes,
+  isTargetCompatible,
+} from './campaignCompatibility'
 
 function createDefaultAction() {
   return {
-    actionType: 'ISSUE_POINT',
-    calculationType: 'FIXED_AMOUNT',
-    recipient: 'EVENT_CUSTOMER',
-    amount: '50',
+    actionType: '',
+    targetSelector: '',
+    parameters: {},
     totalCount: '',
     sessionCount: '',
   }
 }
 
-function isReferralOnlyCondition(condition) {
-  return condition?.sources?.length === 1 && condition.sources[0] === 'REFERRAL'
+function reconcileAction(action, selectedEvent, conditionPreset, actionTypes) {
+  const compatibleActionTypes = getCompatibleActionTypes(
+    actionTypes,
+    selectedEvent,
+    conditionPreset,
+  )
+  const actionDefinition = compatibleActionTypes.find(
+    (actionType) => actionType.value === action.actionType,
+  )
+
+  if (!actionDefinition) {
+    return {
+      ...action,
+      actionType: '',
+      targetSelector: '',
+      parameters: {},
+    }
+  }
+
+  const targetDefinition = (selectedEvent?.targets || []).find(
+    (target) => target.value === action.targetSelector,
+  )
+  const targetSelector = isTargetCompatible(
+    targetDefinition,
+    actionDefinition,
+    conditionPreset,
+  )
+    ? action.targetSelector
+    : ''
+  const parameters = Object.fromEntries(
+    (actionDefinition.parameters || [])
+      .filter((parameter) => action.parameters?.[parameter.code] !== undefined)
+      .map((parameter) => [parameter.code, action.parameters[parameter.code]]),
+  )
+
+  return {
+    ...action,
+    targetSelector,
+    parameters,
+  }
 }
 
 export function CampaignDraftForm({
@@ -37,7 +78,7 @@ export function CampaignDraftForm({
     bannerImageKey: '',
     bannerImageUrl: '',
     eventType: '',
-    conditionOptionCode: '',
+    conditionPresetCode: '',
     startDate: '',
     endDate: '',
     scheduleCron: '0 0 2 * * ?',
@@ -53,49 +94,43 @@ export function CampaignDraftForm({
 
   function handleEventTypeChange(nextEventType) {
     const selectedEvent = (options.eventTypes || []).find((e) => e.value === nextEventType)
-    const compatibleConditionOptions = (selectedEvent?.conditionOptions || []).map((option) => option.value)
+    const compatibleConditionOptions = (selectedEvent?.conditionPresets || []).map((option) => option.value)
 
     setFormValues((prev) => {
-      const nextConditionOptionCode = compatibleConditionOptions.includes(prev.conditionOptionCode)
-        ? prev.conditionOptionCode
+      const nextConditionPresetCode = compatibleConditionOptions.includes(prev.conditionPresetCode)
+        ? prev.conditionPresetCode
         : ''
-      const nextCondition = (selectedEvent?.conditionOptions || []).find(
-        (option) => option.value === nextConditionOptionCode,
+      const nextConditionPreset = (selectedEvent?.conditionPresets || []).find(
+        (option) => option.value === nextConditionPresetCode,
       )
-      const isReferralOnly = isReferralOnlyCondition(nextCondition)
 
-      const nextActions =
-        isReferralOnly
-          ? prev.actions
-          : prev.actions.map((action) =>
-              action.recipient === 'REFERRER' ? { ...action, recipient: '' } : action,
-            )
+      const nextActions = prev.actions.map((action) =>
+        reconcileAction(action, selectedEvent, nextConditionPreset, options.actionTypes),
+      )
 
       return {
         ...prev,
         eventType: nextEventType,
-        conditionOptionCode: nextConditionOptionCode,
+        conditionPresetCode: nextConditionPresetCode,
         actions: nextActions,
       }
     })
   }
 
-  function handleConditionOptionChange(nextConditionOptionCode) {
+  function handleConditionOptionChange(nextConditionPresetCode) {
     setFormValues((prev) => {
       const selectedEvent = (options.eventTypes || []).find((event) => event.value === prev.eventType)
-      const nextCondition = (selectedEvent?.conditionOptions || []).find(
-        (option) => option.value === nextConditionOptionCode,
+      const nextConditionPreset = (selectedEvent?.conditionPresets || []).find(
+        (option) => option.value === nextConditionPresetCode,
       )
-      const nextActions =
-        isReferralOnlyCondition(nextCondition)
-          ? prev.actions
-          : prev.actions.map((action) =>
-              action.recipient === 'REFERRER' ? { ...action, recipient: '' } : action,
-            )
+
+      const nextActions = prev.actions.map((action) =>
+        reconcileAction(action, selectedEvent, nextConditionPreset, options.actionTypes),
+      )
 
       return {
         ...prev,
-        conditionOptionCode: nextConditionOptionCode,
+        conditionPresetCode: nextConditionPresetCode,
         actions: nextActions,
       }
     })
@@ -124,12 +159,6 @@ export function CampaignDraftForm({
       }
     })
   }
-
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === formValues.eventType)
-  const conditionOptions = selectedEvent?.conditionOptions || []
-  const selectedCondition = conditionOptions.find(
-    (option) => option.value === formValues.conditionOptionCode,
-  )
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -178,7 +207,11 @@ export function CampaignDraftForm({
             size="sm"
             className="gap-1"
             onClick={handleAddAction}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              !formValues.eventType ||
+              !formValues.conditionPresetCode
+            }
           >
             <PlusIcon size={14} weight="bold" />
             {t('campaigns.form.addAction', { defaultValue: 'Add action' })}
@@ -198,7 +231,7 @@ export function CampaignDraftForm({
             action={action}
             options={options}
             eventType={formValues.eventType}
-            isReferralOnly={isReferralOnlyCondition(selectedCondition)}
+            conditionPresetCode={formValues.conditionPresetCode}
             fieldErrors={fieldErrors}
             cardError={fieldErrors[`actions[${index}].actionConfig`] || ''}
             isSubmitting={isSubmitting}

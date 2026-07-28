@@ -3,23 +3,44 @@ function toNullableInteger(value) {
   return Number(value)
 }
 
-export function buildCampaignActionPayload(actionValues = {}, executeOrder = 1) {
-  const actionType = actionValues.actionType || null
-  const calculationType = actionValues.calculationType || null
-  const recipient = actionValues.recipient || null
+function parseParameters(actionValues, actionType, options) {
+  const parameters = {}
+  const selectedAction = (options.actionTypes || []).find(
+    (option) => option.value === actionType,
+  )
+  if (!selectedAction) {
+    throw new Error('Campaign action type is not registered.')
+  }
 
-  const amount =
-    actionValues.amount !== '' && actionValues.amount != null ? Number(actionValues.amount) : null
+  for (const paramDef of selectedAction.parameters || []) {
+    const value = actionValues.parameters?.[paramDef.code]
+    if (value === '' || value == null) continue
+
+    if (paramDef.dataType === 'DECIMAL') {
+      const parsedValue = Number(value)
+      if (!Number.isFinite(parsedValue)) {
+        throw new Error(`Campaign action parameter '${paramDef.code}' is invalid.`)
+      }
+      parameters[paramDef.code] = parsedValue
+    } else {
+      throw new Error(`Campaign action parameter type '${paramDef.dataType}' is not supported.`)
+    }
+  }
+
+  return parameters
+}
+
+export function buildCampaignActionPayload(actionValues = {}, executeOrder = 1, options = {}) {
+  const actionType = actionValues.actionType || null
+  const targetSelector = actionValues.targetSelector || null
 
   return {
     actionType,
     actionConfig: {
-      calculationType,
-      recipient,
-      amount,
-      calculationBase: null,
-      percentage: null,
-      maximumPoints: null,
+      target: {
+        selector: targetSelector,
+      },
+      parameters: parseParameters(actionValues, actionType, options),
     },
     executeOrder,
     totalCount: toNullableInteger(actionValues.totalCount),
@@ -39,11 +60,13 @@ function buildCampaignMetadataPayload(formValues = {}, options = {}) {
   const selectedEvent = (options.eventTypes || []).find(
     (option) => option.value === eventType,
   )
-  const selectedCondition = (selectedEvent?.conditionOptions || []).find(
-    (option) => option.value === formValues.conditionOptionCode,
+  const selectedPreset = (selectedEvent?.conditionPresets || []).find(
+    (preset) => preset.value === formValues.conditionPresetCode,
   )
-  const sources = selectedCondition?.sources || []
-  const condition = { sources }
+  if (!selectedPreset) {
+    throw new Error('Campaign condition preset is not registered.')
+  }
+  const condition = selectedPreset.condition
 
   const startDate = formValues.startDate ? new Date(formValues.startDate).toISOString() : null
   const endDate = formValues.endDate ? new Date(formValues.endDate).toISOString() : null
@@ -81,7 +104,7 @@ function buildCampaignMetadataPayload(formValues = {}, options = {}) {
 export function buildCampaignCreatePayload(formValues = {}, options = {}) {
   const metadata = buildCampaignMetadataPayload(formValues, options)
   const actions = (formValues.actions || []).map((action, index) =>
-    buildCampaignActionPayload(action, index + 1),
+    buildCampaignActionPayload(action, index + 1, options),
   )
 
   return {
@@ -94,24 +117,47 @@ export function buildCampaignUpdatePayload(formValues = {}, options = {}) {
   return buildCampaignMetadataPayload(formValues, options)
 }
 
-export function resolveConditionOptionCode(sources = [], eventType = '', options = {}) {
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === eventType)
-  const conditionOptions = selectedEvent?.conditionOptions || []
+function deepEqualCondition(a, b) {
+  if (a === b) return true
+  if (typeof a !== 'object' || a == null || typeof b !== 'object' || b == null) return false
 
-  const sourcesSet = new Set(sources || [])
-  for (const option of conditionOptions) {
-    const optSources = option.sources || []
-    if (optSources.length === sourcesSet.size && optSources.every((s) => sourcesSet.has(s))) {
-      return option.value
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+  if (keysA.length !== keysB.length) return false
+
+  for (const key of keysA) {
+    if (!keysB.includes(key)) return false
+
+    // Arrays representing predicates (e.g. "all": [...])
+    if (Array.isArray(a[key]) && Array.isArray(b[key])) {
+      if (a[key].length !== b[key].length) return false
+      // We assume order matters for array comparison in canonical condition JSON
+      for (let i = 0; i < a[key].length; i++) {
+        if (!deepEqualCondition(a[key][i], b[key][i])) return false
+      }
+    } else {
+      if (!deepEqualCondition(a[key], b[key])) return false
     }
   }
-  return conditionOptions[0]?.value || ''
+  return true
+}
+
+export function resolveConditionPresetCode(condition = {}, eventType = '', options = {}) {
+  const selectedEvent = (options.eventTypes || []).find((event) => event.value === eventType)
+  const presets = selectedEvent?.conditionPresets || []
+
+  for (const preset of presets) {
+    if (deepEqualCondition(preset.condition, condition)) {
+      return preset.value
+    }
+  }
+  return ''
 }
 
 export function mapCampaignDetailToFormValues(campaign = {}, options = {}) {
   const eventType = campaign.eventType || ''
-  const sources = campaign.condition?.sources || []
-  const conditionOptionCode = resolveConditionOptionCode(sources, eventType, options)
+  const condition = campaign.condition || {}
+  const conditionPresetCode = resolveConditionPresetCode(condition, eventType, options)
 
   return {
     campaignName: campaign.campaignName || '',
@@ -120,7 +166,7 @@ export function mapCampaignDetailToFormValues(campaign = {}, options = {}) {
     bannerImageKey: campaign.bannerImageKey || '',
     bannerImageUrl: campaign.bannerImageUrl || '',
     eventType,
-    conditionOptionCode,
+    conditionPresetCode,
     startDate: campaign.startDate || '',
     endDate: campaign.endDate || '',
     scheduleCron: campaign.scheduleCron || '',
@@ -132,11 +178,19 @@ export function mapCampaignDetailToFormValues(campaign = {}, options = {}) {
 
 export function mapCampaignActionToFormValues(action = {}) {
   const config = action.actionConfig || {}
+  const target = config.target || {}
+  const parameters = config.parameters || {}
+
+  // Convert API scalar values back to string for the form
+  const stringParams = {}
+  for (const key of Object.keys(parameters)) {
+    stringParams[key] = parameters[key] != null ? String(parameters[key]) : ''
+  }
+
   return {
-    actionType: action.actionType || 'ISSUE_POINT',
-    calculationType: config.calculationType || 'FIXED_AMOUNT',
-    recipient: config.recipient || 'EVENT_CUSTOMER',
-    amount: config.amount != null ? String(config.amount) : '50',
+    actionType: action.actionType || '',
+    targetSelector: target.selector || '',
+    parameters: stringParams,
     executeOrder: action.executeOrder != null ? String(action.executeOrder) : '1',
     totalCount: action.totalCount == null ? '' : String(action.totalCount),
     sessionCount: action.sessionCount == null ? '' : String(action.sessionCount),

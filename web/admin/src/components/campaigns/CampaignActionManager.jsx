@@ -18,7 +18,7 @@ export function CampaignActionManager({
   canEdit = true,
   options = {},
   eventType = '',
-  isReferralOnly = false,
+  conditionPresetCode = '',
   onActionsChanged,
   language,
   t,
@@ -31,6 +31,7 @@ export function CampaignActionManager({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [actionToDelete, setActionToDelete] = useState(null)
+  const hasCampaignContext = Boolean(eventType && conditionPresetCode)
 
   const orderedActions = [...(actions || [])].sort(
     (a, b) => (a.executeOrder ?? 0) - (b.executeOrder ?? 0),
@@ -111,6 +112,7 @@ export function CampaignActionManager({
               clearMessages()
               setIsAddingNew(true)
             }}
+            disabled={!hasCampaignContext}
           >
             <PlusIcon size={14} weight="bold" />
             {t('campaigns.form.addAction', { defaultValue: 'Add action' })}
@@ -147,6 +149,7 @@ export function CampaignActionManager({
                   size="sm"
                   className="mt-2 gap-1.5"
                   onClick={() => setIsAddingNew(true)}
+                  disabled={!hasCampaignContext}
                 >
                   <PlusIcon size={14} weight="bold" />
                   {t('campaigns.form.addAction', { defaultValue: 'Add action' })}
@@ -166,7 +169,7 @@ export function CampaignActionManager({
           canEdit={canEdit}
           options={options}
           eventType={eventType}
-          isReferralOnly={isReferralOnly}
+          conditionPresetCode={conditionPresetCode}
           externalError={cardErrors[action.actionId] || ''}
           externalFieldErrors={cardFieldErrors[action.actionId] || {}}
           onSave={handleSaveAction}
@@ -180,11 +183,10 @@ export function CampaignActionManager({
         <PersistedCampaignActionCard
           key="new-action-card"
           action={{
-            actionType: 'ISSUE_POINT',
+            actionType: '',
             actionConfig: {
-              calculationType: 'FIXED_AMOUNT',
-              recipient: isReferralOnly ? 'REFERRER' : 'EVENT_CUSTOMER',
-              amount: '50',
+              target: { selector: '' },
+              parameters: {},
             },
             executeOrder: orderedActions.length + 1,
             totalCount: null,
@@ -195,7 +197,7 @@ export function CampaignActionManager({
           canEdit={canEdit}
           options={options}
           eventType={eventType}
-          isReferralOnly={isReferralOnly}
+          conditionPresetCode={conditionPresetCode}
           externalError={cardErrors.NEW || ''}
           externalFieldErrors={cardFieldErrors.NEW || {}}
           onSave={handleSaveAction}

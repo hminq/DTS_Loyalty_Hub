@@ -17,7 +17,7 @@ export function CampaignMetadataFormFields({
   t,
 }) {
   const selectedEvent = (options.eventTypes || []).find((e) => e.value === formValues.eventType)
-  const conditionOptions = selectedEvent?.conditionOptions || []
+  const conditionPresets = selectedEvent?.conditionPresets || []
 
   const timeZoneText = t('campaigns.form.timeZoneHelper', {
     timeZone: options.schedule?.timeZone || 'UTC',
@@ -98,7 +98,7 @@ export function CampaignMetadataFormFields({
                 </Field>
 
                 <Field
-                  invalid={Boolean(fieldErrors.conditionOptionCode || fieldErrors.condition)}
+                  invalid={Boolean(fieldErrors.conditionPresetCode || fieldErrors.condition)}
                   disabled={!formValues.eventType || isSubmitting}
                 >
                   <FieldLabel>
@@ -107,9 +107,9 @@ export function CampaignMetadataFormFields({
                     })}
                   </FieldLabel>
                   <Combobox
-                    value={formValues.conditionOptionCode}
+                    value={formValues.conditionPresetCode}
                     onValueChange={handleConditionOptionChange}
-                    options={conditionOptions}
+                    options={conditionPresets}
                     placeholder={t('campaigns.form.selectCondition', {
                       defaultValue: 'Select campaign condition',
                     })}
@@ -121,9 +121,9 @@ export function CampaignMetadataFormFields({
                       defaultValue: 'Campaign condition',
                     })}
                   />
-                  {fieldErrors.conditionOptionCode || fieldErrors.condition ? (
+                  {fieldErrors.conditionPresetCode || fieldErrors.condition ? (
                     <FieldError>
-                      {fieldErrors.conditionOptionCode || fieldErrors.condition}
+                      {fieldErrors.conditionPresetCode || fieldErrors.condition}
                     </FieldError>
                   ) : null}
                 </Field>

@@ -74,7 +74,7 @@ function CreateCampaignPage() {
     setFormError('')
     setFieldErrors({})
 
-    const validation = validateCampaignCreate(formValues, t)
+    const validation = validateCampaignCreate(formValues, options, t)
     if (!validation.isValid) {
       setFieldErrors(validation.errors)
       return
