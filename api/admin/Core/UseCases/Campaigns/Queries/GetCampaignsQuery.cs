@@ -9,4 +9,4 @@ public sealed record GetCampaignsQuery(
     int PageSize,
     string? Keyword,
     string? Status,
-    string? EventType) : IRequest<PagedResult<CampaignListItemResult>>;
+    Guid? EventTypeId) : IRequest<PagedResult<CampaignListItemResult>>;

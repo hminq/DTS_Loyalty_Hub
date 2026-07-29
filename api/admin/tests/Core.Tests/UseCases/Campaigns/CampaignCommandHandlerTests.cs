@@ -6,9 +6,11 @@ using Core.UseCases.AuditLogs;
 using Core.UseCases.Campaigns;
 using Core.UseCases.Campaigns.Commands;
 using Core.UseCases.Campaigns.Handlers;
+using Core.UseCases.Campaigns.Results;
 using FluentAssertions;
 using Messaging.Contracts.Events;
 using Moq;
+using System.Text.Json;
 using DomainCampaign = Core.Entities.Campaign;
 using DomainCampaignAction = Core.Entities.CampaignAction;
 
@@ -18,8 +20,11 @@ public sealed class CampaignCommandHandlerTests
 {
     private static readonly DateTimeOffset FixedNow =
         new(2026, 7, 27, 10, 0, 0, TimeSpan.Zero);
+    private static readonly Guid EventTypeId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid EventTypeVersionId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
     private readonly Mock<ICampaignRepository> _repository = new();
+    private readonly Mock<ICampaignEventDefinitionRepository> _eventDefinitionRepository = new();
     private readonly Mock<IAuditLogWriter> _auditWriter = new();
     private readonly ICampaignConfigurationService _configurationService = new CampaignConfigurationService();
     private readonly TimeProvider _timeProvider = new FixedTimeProvider(FixedNow);
@@ -30,6 +35,10 @@ public sealed class CampaignCommandHandlerTests
                 It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
+        _eventDefinitionRepository.Setup(repository => repository.GetForCampaignWriteAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(RegistrationDefinition());
     }
 
     [Fact]
@@ -40,6 +49,7 @@ public sealed class CampaignCommandHandlerTests
         var command = ValidCreateCampaignCommand();
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -54,7 +64,7 @@ public sealed class CampaignCommandHandlerTests
         _repository.Verify(repository => repository.Add(
             It.Is<DomainCampaign>(campaign =>
                 campaign.CampaignId == result.CampaignId &&
-                campaign.EventType == EventTypeCodes.CustomerAccountRegistered &&
+                campaign.EventTypeVersionId == EventTypeVersionId &&
                 campaign.Status == CampaignStatuses.Draft)), Times.Once);
         _repository.Verify(repository => repository.AddAction(
             It.Is<DomainCampaignAction>(action =>
@@ -85,6 +95,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -110,6 +121,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -132,6 +144,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -164,6 +177,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -189,6 +203,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -220,6 +235,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new CreateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -249,6 +265,7 @@ public sealed class CampaignCommandHandlerTests
         var command = ValidUpdateCampaignCommand(campaign.CampaignId);
         var handler = new UpdateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -282,6 +299,7 @@ public sealed class CampaignCommandHandlerTests
         };
         var handler = new UpdateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -322,6 +340,7 @@ public sealed class CampaignCommandHandlerTests
         var command = ValidCreateActionCommand(campaign.CampaignId);
         var handler = new CreateCampaignActionCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -360,6 +379,7 @@ public sealed class CampaignCommandHandlerTests
             .ReturnsAsync(true);
         var handler = new CreateCampaignActionCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -400,6 +420,7 @@ public sealed class CampaignCommandHandlerTests
             .ReturnsAsync([existingAction]);
         var handler = new CreateCampaignActionCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -450,6 +471,7 @@ public sealed class CampaignCommandHandlerTests
             Guid.NewGuid());
         var handler = new UpdateCampaignActionCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -511,6 +533,7 @@ public sealed class CampaignCommandHandlerTests
             .ReturnsAsync([eventCustomerAction, referrerAction]);
         var handler = new UpdateCampaignActionCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -614,7 +637,7 @@ public sealed class CampaignCommandHandlerTests
         "Normal registration reward",
         "Issue points after registration.",
         null,
-        EventTypeCodes.CustomerAccountRegistered,
+        EventTypeVersionId,
         NormalConditionJson,
         FixedNow.AddDays(1),
         FixedNow.AddDays(31),
@@ -645,7 +668,7 @@ public sealed class CampaignCommandHandlerTests
             create.CampaignName,
             create.Description,
             create.BannerImageUrl,
-            create.EventType,
+            create.EventTypeVersionId,
             create.ConditionJson,
             create.StartDate,
             create.EndDate,
@@ -679,7 +702,7 @@ public sealed class CampaignCommandHandlerTests
             "Registration reward",
             null,
             null,
-            EventTypeCodes.CustomerAccountRegistered,
+            EventTypeVersionId,
             condition,
             startDate ?? FixedNow.UtcDateTime.AddDays(1),
             endDate ?? FixedNow.UtcDateTime.AddDays(31),
@@ -714,7 +737,7 @@ public sealed class CampaignCommandHandlerTests
     private const string ReferralConditionJson =
         """{"all":[{"field":"source","operator":"EQUALS","value":"REFERRAL"}]}""";
 
-    private static Core.UseCases.Campaigns.Results.CampaignDetailResult CampaignDetail(
+    private static CampaignDetailResult CampaignDetail(
         DomainCampaign campaign)
     {
         return new(
@@ -723,7 +746,7 @@ public sealed class CampaignCommandHandlerTests
             campaign.Description,
             campaign.BannerImageUrl,
             null,
-            campaign.EventType,
+            EventDefinitionReference(),
             campaign.StartDate,
             campaign.EndDate,
             campaign.Condition,
@@ -737,6 +760,41 @@ public sealed class CampaignCommandHandlerTests
             [],
             [],
             0);
+    }
+
+    private static CampaignEventDefinitionReferenceResult EventDefinitionReference() => new(
+        EventTypeId,
+        EventTypeVersionId,
+        EventTypeCodes.CustomerAccountRegistered,
+        "Customer account registered",
+        1);
+
+    private static CampaignEventDefinitionResult RegistrationDefinition()
+    {
+        var schema = new EventPayloadSchema(
+            [
+                new EventPayloadFieldSchema("source", EventPayloadDataTypes.String, null, false, true),
+                new EventPayloadFieldSchema("registeredCustomerId", EventPayloadDataTypes.String, "UUID", true, true),
+                new EventPayloadFieldSchema("referrerId", EventPayloadDataTypes.String, "UUID", false, true)
+            ],
+            [
+                new EventTargetSchema("EVENT_CUSTOMER", CampaignTargetKinds.Customer, "registeredCustomerId"),
+                new EventTargetSchema("REFERRER", CampaignTargetKinds.Customer, "referrerId")
+            ]);
+
+        return new CampaignEventDefinitionResult(
+            EventTypeId,
+            EventTypeVersionId,
+            EventTypeCodes.CustomerAccountRegistered,
+            "customer.account.registered",
+            "Customer account registered",
+            EventDefinitionStatuses.Active,
+            1,
+            EventDefinitionVersionStatuses.Published,
+            JsonSerializer.Serialize(schema, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }));
     }
 
     [Fact]
@@ -756,6 +814,7 @@ public sealed class CampaignCommandHandlerTests
         var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -805,6 +864,7 @@ public sealed class CampaignCommandHandlerTests
         var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -834,6 +894,7 @@ public sealed class CampaignCommandHandlerTests
         var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -865,6 +926,7 @@ public sealed class CampaignCommandHandlerTests
         var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);
@@ -892,6 +954,7 @@ public sealed class CampaignCommandHandlerTests
         var command = new ActivateCampaignCommand(campaign.CampaignId, Guid.NewGuid());
         var handler = new ActivateCampaignCommandHandler(
             _repository.Object,
+            _eventDefinitionRepository.Object,
             _auditWriter.Object,
             _configurationService,
             _timeProvider);

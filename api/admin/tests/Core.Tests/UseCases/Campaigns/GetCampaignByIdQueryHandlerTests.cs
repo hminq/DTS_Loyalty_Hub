@@ -92,7 +92,7 @@ public sealed class GetCampaignByIdQueryHandlerTests
             null,
             bannerKey,
             null,
-            "CUSTOMER_ACCOUNT_REGISTERED",
+            EventDefinitionReference(),
             now.AddDays(1),
             now.AddDays(31),
             """{"all":[]}""",
@@ -107,4 +107,11 @@ public sealed class GetCampaignByIdQueryHandlerTests
             [],
             0);
     }
+
+    private static CampaignEventDefinitionReferenceResult EventDefinitionReference() => new(
+        Guid.Parse("11111111-1111-1111-1111-111111111111"),
+        Guid.Parse("22222222-2222-2222-2222-222222222222"),
+        "CUSTOMER_ACCOUNT_REGISTERED",
+        "Customer account registered",
+        1);
 }

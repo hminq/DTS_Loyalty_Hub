@@ -8,7 +8,7 @@ public sealed record CreateCampaignRequestDto : ICampaignWriteRequest
     public string CampaignName { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string? BannerImageUrl { get; init; }
-    public string EventType { get; init; } = string.Empty;
+    public Guid EventTypeVersionId { get; init; }
     public JsonElement Condition { get; init; }
     public DateTimeOffset StartDate { get; init; }
     public DateTimeOffset EndDate { get; init; }

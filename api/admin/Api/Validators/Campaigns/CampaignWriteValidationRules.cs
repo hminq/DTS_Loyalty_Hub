@@ -25,10 +25,10 @@ internal static class CampaignWriteValidationRules
             .WithErrorCode("CAMPAIGN_BANNER_IMAGE_KEY_INVALID")
             .OverridePropertyName("bannerImageUrl");
 
-        validator.RuleFor(request => request.EventType)
+        validator.RuleFor(request => request.EventTypeVersionId)
             .NotEmpty()
-            .WithErrorCode("CAMPAIGN_EVENT_TYPE_INVALID")
-            .OverridePropertyName("eventType");
+            .WithErrorCode("CAMPAIGN_EVENT_TYPE_VERSION_REQUIRED")
+            .OverridePropertyName("eventTypeVersionId");
 
         validator.RuleFor(request => request.Condition)
             .Must(condition => condition.ValueKind == System.Text.Json.JsonValueKind.Object)

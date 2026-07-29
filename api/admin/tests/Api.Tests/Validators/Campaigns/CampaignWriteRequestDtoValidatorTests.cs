@@ -169,7 +169,7 @@ public sealed class CampaignWriteRequestDtoValidatorTests
     private static CampaignWriteRequestDto ValidCampaignRequest() => new()
     {
         CampaignName = "Normal registration reward",
-        EventType = "CUSTOMER_ACCOUNT_REGISTERED",
+        EventTypeVersionId = Guid.NewGuid(),
         Condition = Json(
             """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}"""),
         StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
@@ -183,7 +183,7 @@ public sealed class CampaignWriteRequestDtoValidatorTests
     private static CreateCampaignRequestDto ValidCreateCampaignRequest() => new()
     {
         CampaignName = "Normal registration reward",
-        EventType = "CUSTOMER_ACCOUNT_REGISTERED",
+        EventTypeVersionId = Guid.NewGuid(),
         Condition = Json(
             """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}"""),
         StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),

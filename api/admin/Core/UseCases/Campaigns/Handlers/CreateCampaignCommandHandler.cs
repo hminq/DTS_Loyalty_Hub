@@ -13,28 +13,32 @@ public sealed class CreateCampaignCommandHandler
     : IRequestHandler<CreateCampaignCommand, CampaignDetailResult>
 {
     private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignEventDefinitionRepository _eventDefinitionRepository;
     private readonly IAuditLogWriter _auditLogWriter;
     private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public CreateCampaignCommandHandler(
         ICampaignRepository campaignRepository,
+        ICampaignEventDefinitionRepository eventDefinitionRepository,
         IAuditLogWriter auditLogWriter,
         ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
+        _eventDefinitionRepository = eventDefinitionRepository;
         _auditLogWriter = auditLogWriter;
         _configurationService = configurationService;
         _timeProvider = timeProvider;
     }
 
-    public Task<CampaignDetailResult> Handle(
+    public async Task<CampaignDetailResult> Handle(
         CreateCampaignCommand request,
         CancellationToken ct)
     {
-        var (eventType, condition) = _configurationService.ParseCondition(
-            request.EventType,
+        var eventDefinition = await GetSelectableEventDefinitionAsync(request.EventTypeVersionId, ct);
+        var condition = _configurationService.ParseCondition(
+            eventDefinition,
             request.ConditionJson);
 
         if (request.Actions is null || request.Actions.Count == 0)
@@ -45,16 +49,16 @@ public sealed class CreateCampaignCommandHandler
         }
 
         var parsedActions = request.Actions
-            .Select(action => ParseAction(eventType, condition, action))
+            .Select(action => ParseAction(eventDefinition, action))
             .ToArray();
-        EnsureUniqueActions(eventType, parsedActions);
+        EnsureUniqueActions(eventDefinition, parsedActions);
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var campaign = DomainCampaign.Create(
             request.CampaignName,
             request.Description,
             request.BannerImageUrl,
-            eventType,
+            eventDefinition.EventTypeVersionId,
             condition,
             request.StartDate.UtcDateTime,
             request.EndDate.UtcDateTime,
@@ -103,26 +107,20 @@ public sealed class CreateCampaignCommandHandler
                 null));
         }
 
-        return Task.FromResult(campaign.ToDetailResult() with
+        return campaign.ToDetailResult(eventDefinition) with
         {
             Actions = actions.Select(action => action.ToResult()).ToArray()
-        });
+        };
     }
 
     private ParsedAction ParseAction(
-        string eventType,
-        string condition,
+        CampaignEventDefinitionResult eventDefinition,
         CreateCampaignActionInput input)
     {
         var (actionType, actionConfig) = _configurationService.ParseAction(
-            eventType,
+            eventDefinition,
             input.ActionType,
             input.ActionConfigJson);
-        _configurationService.EnsureActionCompatibleWithCondition(
-            eventType,
-            condition,
-            actionType,
-            actionConfig);
 
         return new ParsedAction(
             actionType,
@@ -133,7 +131,7 @@ public sealed class CreateCampaignCommandHandler
     }
 
     private void EnsureUniqueActions(
-        string eventType,
+        CampaignEventDefinitionResult eventDefinition,
         IReadOnlyCollection<ParsedAction> actions)
     {
         var executeOrders = new HashSet<int>();
@@ -149,7 +147,7 @@ public sealed class CreateCampaignCommandHandler
             }
 
             var key = _configurationService.GetActionUniquenessKey(
-                eventType,
+                eventDefinition,
                 action.ActionType,
                 action.ActionConfig);
             if (!actionKeys.Add(key))
@@ -159,6 +157,23 @@ public sealed class CreateCampaignCommandHandler
                     Core.Exceptions.DomainErrorType.Conflict);
             }
         }
+    }
+
+    private async Task<CampaignEventDefinitionResult> GetSelectableEventDefinitionAsync(
+        Guid eventTypeVersionId,
+        CancellationToken ct)
+    {
+        if (eventTypeVersionId == Guid.Empty)
+        {
+            throw new Core.Exceptions.DomainException(
+                "CAMPAIGN_EVENT_TYPE_VERSION_REQUIRED",
+                Core.Exceptions.DomainErrorType.Validation);
+        }
+
+        return await _eventDefinitionRepository.GetForCampaignWriteAsync(eventTypeVersionId, ct)
+            ?? throw new Core.Exceptions.DomainException(
+                "CAMPAIGN_EVENT_TYPE_VERSION_NOT_FOUND",
+                Core.Exceptions.DomainErrorType.Validation);
     }
 
     private sealed record ParsedAction(

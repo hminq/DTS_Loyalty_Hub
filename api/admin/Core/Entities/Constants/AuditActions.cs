@@ -11,6 +11,8 @@ public static class AuditActions
     public const string Import = "IMPORT";
     public const string Activate = "ACTIVATE";
     public const string Cancel = "CANCEL";
+    public const string Publish = "PUBLISH";
+    public const string Retire = "RETIRE";
 
     public static IReadOnlyCollection<string> All { get; } =
     [
@@ -22,6 +24,8 @@ public static class AuditActions
         RevokeSession,
         Import,
         Activate,
-        Cancel
+        Cancel,
+        Publish,
+        Retire
     ];
 }

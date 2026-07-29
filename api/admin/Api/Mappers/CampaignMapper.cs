@@ -20,7 +20,7 @@ public static class CampaignMapper
             request.CampaignName,
             request.Description,
             request.BannerImageUrl,
-            request.EventType,
+            request.EventTypeVersionId,
             request.Condition.GetRawText(),
             request.StartDate,
             request.EndDate,
@@ -49,7 +49,7 @@ public static class CampaignMapper
             request.CampaignName,
             request.Description,
             request.BannerImageUrl,
-            request.EventType,
+            request.EventTypeVersionId,
             request.Condition.GetRawText(),
             request.StartDate,
             request.EndDate,
@@ -99,7 +99,7 @@ public static class CampaignMapper
             request.PageSize,
             request.Keyword,
             request.Status,
-            request.EventType);
+            request.EventTypeId);
     }
 
     public static ApiResponseDto<IReadOnlyCollection<CampaignListItemResponseDto>> ToPagedResponseDto(
@@ -110,7 +110,7 @@ public static class CampaignMapper
             Data = result.Items.Select(item => new CampaignListItemResponseDto(
                 item.CampaignId,
                 item.CampaignName,
-                item.EventType,
+                item.EventDefinition.ToResponseDto(),
                 item.Status,
                 ToUtcOffset(item.StartDate),
                 ToUtcOffset(item.EndDate),
@@ -141,7 +141,7 @@ public static class CampaignMapper
             result.Description,
             result.BannerImageKey,
             result.BannerImageUrl,
-            result.EventType,
+            result.EventDefinition.ToResponseDto(),
             ToUtcOffset(result.StartDate),
             ToUtcOffset(result.EndDate),
             JsonSerializer.Deserialize<JsonElement>(result.Condition),
@@ -204,27 +204,29 @@ public static class CampaignMapper
             new CampaignScheduleOptionsResponseDto(
                 result.Schedule.TimeZone,
                 result.Schedule.DaysOfWeek.ToArray()),
-            result.EventTypes.Select(eventType => new CampaignEventTypeOptionResponseDto(
+            result.EventTypeVersions.Select(eventType => new CampaignEventTypeVersionOptionResponseDto(
+                eventType.EventTypeId,
+                eventType.EventTypeVersionId,
                 eventType.Code,
+                eventType.RoutingKey,
+                eventType.Name,
+                eventType.Version,
                 new CampaignConditionOptionsResponseDto(
                     eventType.Condition.Combinators.ToArray(),
                     eventType.Condition.Fields.Select(field =>
                         new CampaignConditionFieldOptionResponseDto(
                             field.Code,
                             field.DataType,
+                            field.Format,
+                            field.Required,
                             field.Operators.ToArray(),
                             field.Options.ToArray()))
-                        .ToArray(),
-                    eventType.Condition.Presets.Select(preset =>
-                        new CampaignConditionPresetOptionResponseDto(
-                            preset.Code,
-                            JsonSerializer.Deserialize<JsonElement>(preset.Condition)))
                         .ToArray()),
                 eventType.Targets.Select(target =>
                     new CampaignTargetOptionResponseDto(
-                        target.Code,
+                        target.Selector,
                         target.TargetKind,
-                        JsonSerializer.Deserialize<JsonElement>(target.Applicability)))
+                        target.IdField))
                     .ToArray()))
                 .ToArray(),
             result.ActionTypes.Select(actionType => new CampaignActionTypeOptionResponseDto(
@@ -245,5 +247,16 @@ public static class CampaignMapper
     private static DateTimeOffset ToUtcOffset(DateTime value)
     {
         return new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc));
+    }
+
+    private static CampaignEventDefinitionReferenceResponseDto ToResponseDto(
+        this CampaignEventDefinitionReferenceResult result)
+    {
+        return new CampaignEventDefinitionReferenceResponseDto(
+            result.EventTypeId,
+            result.EventTypeVersionId,
+            result.Code,
+            result.Name,
+            result.Version);
     }
 }

@@ -9,7 +9,7 @@ public sealed record UpdateCampaignCommand(
     string CampaignName,
     string? Description,
     string? BannerImageUrl,
-    string EventType,
+    Guid EventTypeVersionId,
     string ConditionJson,
     DateTimeOffset StartDate,
     DateTimeOffset EndDate,

@@ -4,64 +4,59 @@ using Campaign.Contracts.Constants;
 using Campaign.Contracts.Definitions;
 using Campaign.Contracts.Schedules;
 using Core.Abstractions;
+using Core.Entities.Constants;
 using Core.Exceptions;
 using Core.UseCases.Campaigns.Results;
+using Messaging.Contracts.Events;
 
 namespace Core.UseCases.Campaigns;
 
 public sealed class CampaignConfigurationService : ICampaignConfigurationService
 {
-    private readonly CampaignDefinitionCatalog _catalog;
+    private readonly CampaignActionCatalog _actionCatalog;
     private readonly CampaignConditionParser _conditionParser;
-    private readonly CampaignConditionCompatibilityAnalyzer _compatibilityAnalyzer;
     private readonly CampaignActionBindingParser _actionBindingParser;
 
     public CampaignConfigurationService()
         : this(
-            CampaignDefinitionCatalog.BuiltIn,
+            CampaignActionCatalog.BuiltIn,
             new CampaignConditionParser(),
-            new CampaignConditionCompatibilityAnalyzer(),
             new CampaignActionBindingParser())
     {
     }
 
     public CampaignConfigurationService(
-        CampaignDefinitionCatalog catalog,
+        CampaignActionCatalog actionCatalog,
         CampaignConditionParser conditionParser,
-        CampaignConditionCompatibilityAnalyzer compatibilityAnalyzer,
         CampaignActionBindingParser actionBindingParser)
     {
-        _catalog = catalog;
+        _actionCatalog = actionCatalog;
         _conditionParser = conditionParser;
-        _compatibilityAnalyzer = compatibilityAnalyzer;
         _actionBindingParser = actionBindingParser;
     }
 
-    public (string EventType, string Condition) ParseCondition(
-        string eventType,
+    public string ParseCondition(
+        CampaignEventDefinitionResult eventDefinition,
         string conditionJson)
     {
-        if (!_catalog.TryGetEvent(Normalize(eventType), out var eventDefinition))
-        {
-            throw ValidationError("CAMPAIGN_EVENT_TYPE_INVALID");
-        }
-
-        var result = _conditionParser.Parse(conditionJson, eventDefinition);
+        EnsureSelectable(eventDefinition);
+        var runtimeDefinition = ToRuntimeDefinition(eventDefinition);
+        var result = _conditionParser.Parse(conditionJson, runtimeDefinition);
         if (!result.IsValid || result.CanonicalJson is null)
         {
             throw ValidationError("CAMPAIGN_CONDITION_INVALID");
         }
 
-        return (eventDefinition.Code, result.CanonicalJson);
+        return result.CanonicalJson;
     }
 
     public (string ActionType, string ActionConfig) ParseAction(
-        string eventType,
+        CampaignEventDefinitionResult eventDefinition,
         string actionType,
         string actionConfigJson)
     {
-        if (!_catalog.TryGetEvent(Normalize(eventType), out var eventDefinition) ||
-            !_catalog.TryGetAction(Normalize(actionType), out var actionDefinition))
+        EnsureSelectable(eventDefinition);
+        if (!_actionCatalog.TryGetAction(Normalize(actionType), out var actionDefinition))
         {
             throw ValidationError("CAMPAIGN_ACTION_TYPE_INVALID");
         }
@@ -69,87 +64,79 @@ public sealed class CampaignConfigurationService : ICampaignConfigurationService
         var result = _actionBindingParser.Parse(
             actionDefinition.Code,
             actionConfigJson,
-            eventDefinition,
+            ToRuntimeDefinition(eventDefinition),
             actionDefinition);
         if (!result.IsValid || result.CanonicalJson is null)
         {
-            throw ValidationError("CAMPAIGN_ACTION_CONFIG_INVALID");
+            throw ValidationError(
+                result.Errors.Any(error => error.Code.Contains("TARGET", StringComparison.Ordinal))
+                    ? "CAMPAIGN_ACTION_TARGET_INVALID"
+                    : "CAMPAIGN_ACTION_CONFIG_INVALID");
         }
 
         return (actionDefinition.Code, result.CanonicalJson);
     }
 
-    public void EnsureActionCompatibleWithCondition(
-        string eventType,
-        string conditionJson,
+    public void ValidateAction(
+        CampaignEventDefinitionResult eventDefinition,
         string actionType,
         string actionConfigJson)
     {
-        var (canonicalEventType, canonicalConditionJson) = ParseCondition(eventType, conditionJson);
-        var (_, canonicalActionConfig) = ParseAction(canonicalEventType, actionType, actionConfigJson);
-        var eventDefinition = _catalog.GetEvent(canonicalEventType);
-        var actionDefinition = _catalog.GetAction(Normalize(actionType));
-
-        var condition = _conditionParser.Parse(canonicalConditionJson, eventDefinition).Condition!;
-        var bindingResult = _actionBindingParser.Parse(
-            actionDefinition.Code,
-            canonicalActionConfig,
-            eventDefinition,
-            actionDefinition);
-        if (!bindingResult.IsValid ||
-            bindingResult.Binding is null)
-        {
-            throw ValidationError("CAMPAIGN_ACTION_CONFIG_INVALID");
-        }
-
-        var target = eventDefinition.Targets.Single(item =>
-            item.Selector == bindingResult.Binding.Target.Selector);
-        if (!_compatibilityAnalyzer.CanOverlap(condition, target.Applicability, eventDefinition))
-        {
-            throw ValidationError("CAMPAIGN_ACTION_CONDITION_INCOMPATIBLE");
-        }
+        ParseAction(eventDefinition, actionType, actionConfigJson);
     }
 
     public string GetActionUniquenessKey(
-        string eventType,
+        CampaignEventDefinitionResult eventDefinition,
         string actionType,
         string actionConfigJson)
     {
         var (canonicalActionType, canonicalActionConfig) = ParseAction(
-            eventType,
+            eventDefinition,
             actionType,
             actionConfigJson);
 
         return $"{canonicalActionType}:{canonicalActionConfig}";
     }
 
-    public CampaignOptionsResult GetOptions()
+    public CampaignOptionsResult BuildOptions(
+        IReadOnlyCollection<CampaignEventDefinitionResult> eventDefinitions)
     {
         return new CampaignOptionsResult(
             CampaignStatuses.All,
             new CampaignScheduleOptionsResult(
                 CampaignScheduleDefaults.TimeZone,
                 CampaignScheduleDays.CanonicalOrder),
-            _catalog.Events.Select(eventDefinition => new CampaignEventTypeOptionResult(
-                    eventDefinition.Code,
-                    new CampaignConditionOptionsResult(
-                        ["ALL"],
-                        eventDefinition.ConditionFields.Select(field =>
-                            new CampaignConditionFieldOptionResult(
-                                field.Code,
-                                field.DataType,
-                                field.Operators.ToArray(),
-                                field.Options.ToArray()))
-                            .ToArray(),
-                        BuildConditionPresets(eventDefinition)),
-                    eventDefinition.Targets.Select(target =>
-                        new CampaignTargetOptionResult(
-                            target.Selector,
-                            target.TargetKind,
-                            CampaignConditionParser.ToCanonicalJson(target.Applicability)))
-                        .ToArray()))
+            eventDefinitions.Select(eventDefinition =>
+                {
+                    var schema = DeserializeSchema(eventDefinition.PayloadSchema);
+                    return new CampaignEventTypeVersionOptionResult(
+                        eventDefinition.EventTypeId,
+                        eventDefinition.EventTypeVersionId,
+                        eventDefinition.Code,
+                        eventDefinition.RoutingKey,
+                        eventDefinition.Name,
+                        eventDefinition.Version,
+                        new CampaignConditionOptionsResult(
+                            ["ALL"],
+                            schema.Fields
+                                .Where(field => field.Conditionable)
+                                .Select(field => new CampaignConditionFieldOptionResult(
+                                    field.Code,
+                                    field.Type,
+                                    field.Format,
+                                    field.Required,
+                                    GetOperators(field.Type).ToArray(),
+                                    Array.Empty<string>()))
+                                .ToArray()),
+                        schema.Targets.Select(target =>
+                            new CampaignTargetOptionResult(
+                                target.Selector,
+                                target.Kind,
+                                target.IdField))
+                            .ToArray());
+                })
                 .ToArray(),
-            _catalog.Actions.Select(actionDefinition => new CampaignActionTypeOptionResult(
+            _actionCatalog.Actions.Select(actionDefinition => new CampaignActionTypeOptionResult(
                     actionDefinition.Code,
                     actionDefinition.RequiredTargetKind,
                     actionDefinition.Parameters.Select(parameter =>
@@ -164,44 +151,91 @@ public sealed class CampaignConfigurationService : ICampaignConfigurationService
                 .ToArray());
     }
 
-    private static IReadOnlyCollection<CampaignConditionPresetOptionResult> BuildConditionPresets(
-        CampaignEventDefinition eventDefinition)
-    {
-        var sourceField = eventDefinition.ConditionFields.FirstOrDefault(field => field.Code == "source");
-        if (sourceField is null)
-        {
-            return [];
-        }
-
-        return
-        [
-            new CampaignConditionPresetOptionResult(
-                CustomerRegistrationConditionOptionCodes.AllRegistrations,
-                CampaignConditionParser.ToCanonicalJson(CampaignCondition.MatchAll)),
-            new CampaignConditionPresetOptionResult(
-                CustomerRegistrationConditionOptionCodes.NormalRegistration,
-                CampaignConditionParser.ToCanonicalJson(new CampaignCondition(
-                [
-                    new CampaignConditionPredicate(
-                        sourceField.Code,
-                        CampaignConditionOperators.Equals,
-                        ["NORMAL"])
-                ]))),
-            new CampaignConditionPresetOptionResult(
-                CustomerRegistrationConditionOptionCodes.ReferralRegistration,
-                CampaignConditionParser.ToCanonicalJson(new CampaignCondition(
-                [
-                    new CampaignConditionPredicate(
-                        sourceField.Code,
-                        CampaignConditionOperators.Equals,
-                        ["REFERRAL"])
-                ])))
-        ];
-    }
-
     private static string Normalize(string? value) =>
         value?.Trim().ToUpperInvariant() ?? string.Empty;
 
     private static DomainException ValidationError(string code) =>
         new(code, DomainErrorType.Validation);
+
+    private static void EnsureSelectable(CampaignEventDefinitionResult eventDefinition)
+    {
+        if (eventDefinition.EventTypeStatus != EventDefinitionStatuses.Active ||
+            eventDefinition.VersionStatus != EventDefinitionVersionStatuses.Published)
+        {
+            throw ValidationError("CAMPAIGN_EVENT_TYPE_VERSION_NOT_SELECTABLE");
+        }
+    }
+
+    private static CampaignEventDefinition ToRuntimeDefinition(
+        CampaignEventDefinitionResult eventDefinition)
+    {
+        var schema = DeserializeSchema(eventDefinition.PayloadSchema);
+        return new CampaignEventDefinition(
+            eventDefinition.Code,
+            schema.Targets.FirstOrDefault()?.Selector ?? string.Empty,
+            schema.Fields
+                .Where(field => field.Conditionable)
+                .Select(field => new CampaignConditionFieldDefinition(
+                    field.Code,
+                    field.Type,
+                    GetOperators(field.Type).ToArray(),
+                    Array.Empty<string>(),
+                    field.Required,
+                    field.Format,
+                    field.Conditionable))
+                .ToArray(),
+            schema.Targets
+                .Select(target => new CampaignTargetDefinition(
+                    target.Selector,
+                    target.Kind,
+                    CampaignCondition.MatchAll))
+                .ToArray());
+    }
+
+    private static EventPayloadSchema DeserializeSchema(string payloadSchema)
+    {
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<EventPayloadSchema>(
+                    payloadSchema,
+                    new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                        PropertyNameCaseInsensitive = true
+                    })
+                ?? throw ValidationError("CAMPAIGN_CONDITION_INVALID");
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            throw ValidationError("CAMPAIGN_CONDITION_INVALID");
+        }
+    }
+
+    private static IReadOnlyCollection<string> GetOperators(string fieldType)
+    {
+        return fieldType switch
+        {
+            EventPayloadDataTypes.String =>
+            [
+                ConditionOperatorCodes.Equal,
+                ConditionOperatorCodes.NotEquals,
+                ConditionOperatorCodes.Contains
+            ],
+            EventPayloadDataTypes.Number =>
+            [
+                ConditionOperatorCodes.Equal,
+                ConditionOperatorCodes.NotEquals,
+                ConditionOperatorCodes.GreaterThan,
+                ConditionOperatorCodes.GreaterThanOrEquals,
+                ConditionOperatorCodes.LessThan,
+                ConditionOperatorCodes.LessThanOrEquals
+            ],
+            EventPayloadDataTypes.Boolean =>
+            [
+                ConditionOperatorCodes.Equal,
+                ConditionOperatorCodes.NotEquals
+            ],
+            _ => Array.Empty<string>()
+        };
+    }
 }

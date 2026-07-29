@@ -15,7 +15,7 @@ public sealed class Campaign
         string campaignName,
         string? description,
         string? bannerImageUrl,
-        string eventType,
+        Guid eventTypeVersionId,
         string condition,
         DateTime startDate,
         DateTime endDate,
@@ -31,7 +31,7 @@ public sealed class Campaign
         CampaignName = campaignName;
         Description = description;
         BannerImageUrl = bannerImageUrl;
-        EventType = eventType;
+        EventTypeVersionId = eventTypeVersionId;
         Condition = condition;
         StartDate = startDate;
         EndDate = endDate;
@@ -48,7 +48,7 @@ public sealed class Campaign
     public string CampaignName { get; private set; }
     public string? Description { get; private set; }
     public string? BannerImageUrl { get; private set; }
-    public string EventType { get; private set; }
+    public Guid EventTypeVersionId { get; private set; }
     public string Condition { get; private set; }
     public DateTime StartDate { get; private set; }
     public DateTime EndDate { get; private set; }
@@ -64,7 +64,7 @@ public sealed class Campaign
         string campaignName,
         string? description,
         string? bannerImageUrl,
-        string eventType,
+        Guid eventTypeVersionId,
         string condition,
         DateTime startDate,
         DateTime endDate,
@@ -77,7 +77,7 @@ public sealed class Campaign
         Validate(
             campaignName,
             bannerImageUrl,
-            eventType,
+            eventTypeVersionId,
             condition,
             startDate,
             endDate,
@@ -91,7 +91,7 @@ public sealed class Campaign
             campaignName.Trim(),
             NormalizeOptional(description),
             NormalizeOptional(bannerImageUrl),
-            eventType,
+            eventTypeVersionId,
             condition,
             startDate,
             endDate,
@@ -109,7 +109,7 @@ public sealed class Campaign
         string campaignName,
         string? description,
         string? bannerImageUrl,
-        string eventType,
+        Guid eventTypeVersionId,
         string condition,
         DateTime startDate,
         DateTime endDate,
@@ -131,7 +131,7 @@ public sealed class Campaign
             campaignName,
             NormalizeOptional(description),
             NormalizeOptional(bannerImageUrl),
-            eventType,
+            eventTypeVersionId,
             condition,
             startDate,
             endDate,
@@ -148,7 +148,7 @@ public sealed class Campaign
         string campaignName,
         string? description,
         string? bannerImageUrl,
-        string eventType,
+        Guid eventTypeVersionId,
         string condition,
         DateTime startDate,
         DateTime endDate,
@@ -162,7 +162,7 @@ public sealed class Campaign
         Validate(
             campaignName,
             bannerImageUrl,
-            eventType,
+            eventTypeVersionId,
             condition,
             startDate,
             endDate,
@@ -174,7 +174,7 @@ public sealed class Campaign
         CampaignName = campaignName.Trim();
         Description = NormalizeOptional(description);
         BannerImageUrl = NormalizeOptional(bannerImageUrl);
-        EventType = eventType;
+        EventTypeVersionId = eventTypeVersionId;
         Condition = condition;
         StartDate = startDate;
         EndDate = endDate;
@@ -238,7 +238,7 @@ public sealed class Campaign
     private static void Validate(
         string campaignName,
         string? bannerImageUrl,
-        string eventType,
+        Guid eventTypeVersionId,
         string condition,
         DateTime startDate,
         DateTime endDate,
@@ -257,9 +257,9 @@ public sealed class Campaign
             throw ValidationError("CAMPAIGN_NAME_TOO_LONG");
         }
 
-        if (string.IsNullOrWhiteSpace(eventType))
+        if (eventTypeVersionId == Guid.Empty)
         {
-            throw ValidationError("CAMPAIGN_EVENT_TYPE_INVALID");
+            throw ValidationError("CAMPAIGN_EVENT_TYPE_VERSION_REQUIRED");
         }
 
         if (string.IsNullOrWhiteSpace(condition))

@@ -58,7 +58,7 @@ public sealed class CampaignsControllerTests
             It.Is<CreateCampaignCommand>(command =>
                 command.ActorUserId == actorUserId &&
                 command.CampaignName == request.CampaignName &&
-                command.EventType == request.EventType &&
+                command.EventTypeVersionId == request.EventTypeVersionId &&
                 command.ConditionJson.Contains("NORMAL") &&
                 command.Actions.Count == 1),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -239,7 +239,7 @@ public sealed class CampaignsControllerTests
     {
         CampaignName = "Normal registration reward",
         Description = "Issue points after normal registration.",
-        EventType = "CUSTOMER_ACCOUNT_REGISTERED",
+        EventTypeVersionId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
         Condition = Json(
             """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}"""),
         StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
@@ -268,7 +268,7 @@ public sealed class CampaignsControllerTests
             null,
             null,
             null,
-            "CUSTOMER_ACCOUNT_REGISTERED",
+            EventDefinitionReference(),
             now.AddDays(1),
             now.AddDays(31),
             """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}""",
@@ -283,6 +283,13 @@ public sealed class CampaignsControllerTests
             [],
             0);
     }
+
+    private static CampaignEventDefinitionReferenceResult EventDefinitionReference() => new(
+        Guid.Parse("11111111-1111-1111-1111-111111111111"),
+        Guid.Parse("22222222-2222-2222-2222-222222222222"),
+        "CUSTOMER_ACCOUNT_REGISTERED",
+        "Customer account registered",
+        1);
 
     private static CampaignActionResult ActionResult()
     {

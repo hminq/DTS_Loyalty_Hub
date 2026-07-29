@@ -5,7 +5,6 @@ using Core.UseCases.Campaigns.Queries;
 using Core.UseCases.Campaigns.Results;
 using Core.UseCases.Common;
 using MediatR;
-using Messaging.Contracts.Events;
 
 namespace Core.UseCases.Campaigns.Handlers;
 
@@ -40,22 +39,12 @@ public sealed class GetCampaignsQueryHandler
             throw new DomainException("CAMPAIGN_STATUS_INVALID", DomainErrorType.Validation);
         }
 
-        var eventType = NormalizeOptional(request.EventType);
-        if (eventType is not null &&
-            !string.Equals(
-                eventType,
-                EventTypeCodes.CustomerAccountRegistered,
-                StringComparison.Ordinal))
-        {
-            throw new DomainException("CAMPAIGN_EVENT_TYPE_INVALID", DomainErrorType.Validation);
-        }
-
         return _campaignRepository.GetPagedAsync(
             request.Page,
             request.PageSize,
             request.Keyword,
             status,
-            eventType,
+            request.EventTypeId,
             ct);
     }
 

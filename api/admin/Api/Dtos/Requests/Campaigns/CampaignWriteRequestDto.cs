@@ -7,7 +7,7 @@ public interface ICampaignWriteRequest
     string CampaignName { get; }
     string? Description { get; }
     string? BannerImageUrl { get; }
-    string EventType { get; }
+    Guid EventTypeVersionId { get; }
     JsonElement Condition { get; }
     DateTimeOffset StartDate { get; }
     DateTimeOffset EndDate { get; }
@@ -23,7 +23,7 @@ public sealed record CampaignWriteRequestDto : ICampaignWriteRequest
     public string CampaignName { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string? BannerImageUrl { get; init; }
-    public string EventType { get; init; } = string.Empty;
+    public Guid EventTypeVersionId { get; init; }
     public JsonElement Condition { get; init; }
     public DateTimeOffset StartDate { get; init; }
     public DateTimeOffset EndDate { get; init; }

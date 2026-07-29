@@ -9,6 +9,7 @@ internal static class CampaignResultMapper
 {
     public static CampaignDetailResult ToDetailResult(
         this DomainCampaign campaign,
+        CampaignEventDefinitionResult eventDefinition,
         CampaignDetailResult? existing = null)
     {
         return new CampaignDetailResult(
@@ -17,7 +18,7 @@ internal static class CampaignResultMapper
             campaign.Description,
             campaign.BannerImageUrl,
             null,
-            campaign.EventType,
+            eventDefinition.ToReferenceResult(),
             campaign.StartDate,
             campaign.EndDate,
             campaign.Condition,
@@ -31,6 +32,17 @@ internal static class CampaignResultMapper
             existing?.Actions ?? [],
             existing?.Sessions ?? [],
             existing?.SessionCount ?? 0);
+    }
+
+    public static CampaignEventDefinitionReferenceResult ToReferenceResult(
+        this CampaignEventDefinitionResult eventDefinition)
+    {
+        return new CampaignEventDefinitionReferenceResult(
+            eventDefinition.EventTypeId,
+            eventDefinition.EventTypeVersionId,
+            eventDefinition.Code,
+            eventDefinition.Name,
+            eventDefinition.Version);
     }
 
     public static CampaignActionResult ToResult(this DomainCampaignAction action)

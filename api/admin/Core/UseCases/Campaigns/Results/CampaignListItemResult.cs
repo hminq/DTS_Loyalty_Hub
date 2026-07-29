@@ -3,7 +3,7 @@ namespace Core.UseCases.Campaigns.Results;
 public sealed record CampaignListItemResult(
     Guid CampaignId,
     string CampaignName,
-    string EventType,
+    CampaignEventDefinitionReferenceResult EventDefinition,
     string Status,
     DateTime StartDate,
     DateTime EndDate,

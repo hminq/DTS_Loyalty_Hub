@@ -9,16 +9,21 @@ public sealed class GetCampaignOptionsQueryHandler
     : IRequestHandler<GetCampaignOptionsQuery, CampaignOptionsResult>
 {
     private readonly ICampaignConfigurationService _configurationService;
+    private readonly ICampaignEventDefinitionRepository _eventDefinitionRepository;
 
-    public GetCampaignOptionsQueryHandler(ICampaignConfigurationService configurationService)
+    public GetCampaignOptionsQueryHandler(
+        ICampaignConfigurationService configurationService,
+        ICampaignEventDefinitionRepository eventDefinitionRepository)
     {
         _configurationService = configurationService;
+        _eventDefinitionRepository = eventDefinitionRepository;
     }
 
-    public Task<CampaignOptionsResult> Handle(
+    public async Task<CampaignOptionsResult> Handle(
         GetCampaignOptionsQuery request,
         CancellationToken ct)
     {
-        return Task.FromResult(_configurationService.GetOptions());
+        var eventDefinitions = await _eventDefinitionRepository.GetSelectableVersionsAsync(ct);
+        return _configurationService.BuildOptions(eventDefinitions);
     }
 }

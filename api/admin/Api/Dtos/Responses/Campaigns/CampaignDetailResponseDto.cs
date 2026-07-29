@@ -9,7 +9,7 @@ public sealed record CampaignDetailResponseDto(
     string? Description,
     string? BannerImageKey,
     string? BannerImageUrl,
-    string EventType,
+    CampaignEventDefinitionReferenceResponseDto EventDefinition,
     DateTimeOffset StartDate,
     DateTimeOffset EndDate,
     JsonElement Condition,

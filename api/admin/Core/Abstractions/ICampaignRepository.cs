@@ -13,7 +13,7 @@ public interface ICampaignRepository
         int pageSize,
         string? keyword,
         string? status,
-        string? eventType,
+        Guid? eventTypeId,
         CancellationToken ct = default);
 
     Task<CampaignDetailResult?> GetByIdAsync(

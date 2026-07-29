@@ -12,17 +12,20 @@ public sealed class UpdateCampaignActionCommandHandler
     : IRequestHandler<UpdateCampaignActionCommand, CampaignActionResult>
 {
     private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignEventDefinitionRepository _eventDefinitionRepository;
     private readonly IAuditLogWriter _auditLogWriter;
     private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public UpdateCampaignActionCommandHandler(
         ICampaignRepository campaignRepository,
+        ICampaignEventDefinitionRepository eventDefinitionRepository,
         IAuditLogWriter auditLogWriter,
         ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
+        _eventDefinitionRepository = eventDefinitionRepository;
         _auditLogWriter = auditLogWriter;
         _configurationService = configurationService;
         _timeProvider = timeProvider;
@@ -43,15 +46,11 @@ public sealed class UpdateCampaignActionCommandHandler
                 ct)
             ?? throw new DomainException("CAMPAIGN_ACTION_NOT_FOUND", DomainErrorType.NotFound);
         var oldValue = CampaignAuditSerializer.Action(action);
+        var eventDefinition = await GetSelectableEventDefinitionAsync(campaign.EventTypeVersionId, ct);
         var (actionType, actionConfig) = _configurationService.ParseAction(
-            campaign.EventType,
+            eventDefinition,
             request.ActionType,
             request.ActionConfigJson);
-        _configurationService.EnsureActionCompatibleWithCondition(
-            campaign.EventType,
-            campaign.Condition,
-            actionType,
-            actionConfig);
 
         if (await _campaignRepository.ActionOrderExistsAsync(
                 request.CampaignId,
@@ -65,7 +64,7 @@ public sealed class UpdateCampaignActionCommandHandler
         }
 
         var actionKey = _configurationService.GetActionUniquenessKey(
-            campaign.EventType,
+            eventDefinition,
             actionType,
             actionConfig);
         var existingActions = await _campaignRepository.GetActionsForUpdateAsync(
@@ -74,7 +73,7 @@ public sealed class UpdateCampaignActionCommandHandler
         if (existingActions.Any(existingAction =>
                 existingAction.ActionId != request.ActionId &&
                 _configurationService.GetActionUniquenessKey(
-                    campaign.EventType,
+                    eventDefinition,
                     existingAction.ActionType,
                     existingAction.ActionConfig) == actionKey))
         {
@@ -115,5 +114,15 @@ public sealed class UpdateCampaignActionCommandHandler
         {
             throw new DomainException("CAMPAIGN_ACTION_ID_REQUIRED", DomainErrorType.Validation);
         }
+    }
+
+    private async Task<CampaignEventDefinitionResult> GetSelectableEventDefinitionAsync(
+        Guid eventTypeVersionId,
+        CancellationToken ct)
+    {
+        return await _eventDefinitionRepository.GetForCampaignWriteAsync(eventTypeVersionId, ct)
+            ?? throw new DomainException(
+                "CAMPAIGN_EVENT_TYPE_VERSION_NOT_FOUND",
+                DomainErrorType.Validation);
     }
 }

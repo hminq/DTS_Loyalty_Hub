@@ -6,7 +6,7 @@ namespace Api.Dtos.Responses.Campaigns;
 public sealed record CampaignOptionsResponseDto(
     IReadOnlyCollection<string> CampaignStatuses,
     CampaignScheduleOptionsResponseDto Schedule,
-    IReadOnlyCollection<CampaignEventTypeOptionResponseDto> EventTypes,
+    IReadOnlyCollection<CampaignEventTypeVersionOptionResponseDto> EventTypeVersions,
     IReadOnlyCollection<CampaignActionTypeOptionResponseDto> ActionTypes);
 
 /// <summary>Represents the fixed campaign scheduling contract.</summary>
@@ -15,34 +15,35 @@ public sealed record CampaignScheduleOptionsResponseDto(
     IReadOnlyCollection<string> DaysOfWeek);
 
 /// <summary>Represents one supported campaign event and its compatible actions.</summary>
-public sealed record CampaignEventTypeOptionResponseDto(
+public sealed record CampaignEventTypeVersionOptionResponseDto(
+    Guid EventTypeId,
+    Guid EventTypeVersionId,
     string Code,
+    string RoutingKey,
+    string Name,
+    int Version,
     CampaignConditionOptionsResponseDto Condition,
     IReadOnlyCollection<CampaignTargetOptionResponseDto> Targets);
 
 /// <summary>Represents condition capabilities for one event type.</summary>
 public sealed record CampaignConditionOptionsResponseDto(
     IReadOnlyCollection<string> Combinators,
-    IReadOnlyCollection<CampaignConditionFieldOptionResponseDto> Fields,
-    IReadOnlyCollection<CampaignConditionPresetOptionResponseDto> Presets);
+    IReadOnlyCollection<CampaignConditionFieldOptionResponseDto> Fields);
 
 /// <summary>Represents one condition field supported by an event type.</summary>
 public sealed record CampaignConditionFieldOptionResponseDto(
     string Code,
     string DataType,
+    string? Format,
+    bool Required,
     IReadOnlyCollection<string> Operators,
     IReadOnlyCollection<string> Options);
 
-/// <summary>Represents one selectable condition preset.</summary>
-public sealed record CampaignConditionPresetOptionResponseDto(
-    string Code,
-    JsonElement Condition);
-
 /// <summary>Represents one selectable event target.</summary>
 public sealed record CampaignTargetOptionResponseDto(
-    string Code,
+    string Selector,
     string TargetKind,
-    JsonElement Applicability);
+    string IdField);
 
 /// <summary>Represents one action type and its compatible configuration values.</summary>
 public sealed record CampaignActionTypeOptionResponseDto(

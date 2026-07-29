@@ -1,7 +1,6 @@
 using Api.Dtos.Requests.Campaigns;
 using Campaign.Contracts.Constants;
 using FluentValidation;
-using Messaging.Contracts.Events;
 
 namespace Api.Validators.Campaigns;
 
@@ -31,13 +30,10 @@ public sealed class GetCampaignsRequestDtoValidator : AbstractValidator<GetCampa
             .When(request => !string.IsNullOrWhiteSpace(request.Status))
             .OverridePropertyName("status");
 
-        RuleFor(request => request.EventType)
-            .Must(eventType => string.Equals(
-                eventType?.Trim(),
-                EventTypeCodes.CustomerAccountRegistered,
-                StringComparison.OrdinalIgnoreCase))
-            .WithErrorCode("CAMPAIGN_EVENT_TYPE_INVALID")
-            .When(request => !string.IsNullOrWhiteSpace(request.EventType))
-            .OverridePropertyName("eventType");
+        RuleFor(request => request.EventTypeId)
+            .NotEmpty()
+            .WithErrorCode("CAMPAIGN_EVENT_TYPE_VERSION_REQUIRED")
+            .When(request => request.EventTypeId.HasValue)
+            .OverridePropertyName("eventTypeId");
     }
 }

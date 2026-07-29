@@ -14,17 +14,20 @@ public sealed class CreateCampaignActionCommandHandler
     : IRequestHandler<CreateCampaignActionCommand, CampaignActionResult>
 {
     private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignEventDefinitionRepository _eventDefinitionRepository;
     private readonly IAuditLogWriter _auditLogWriter;
     private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public CreateCampaignActionCommandHandler(
         ICampaignRepository campaignRepository,
+        ICampaignEventDefinitionRepository eventDefinitionRepository,
         IAuditLogWriter auditLogWriter,
         ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
+        _eventDefinitionRepository = eventDefinitionRepository;
         _auditLogWriter = auditLogWriter;
         _configurationService = configurationService;
         _timeProvider = timeProvider;
@@ -35,15 +38,11 @@ public sealed class CreateCampaignActionCommandHandler
         CancellationToken ct)
     {
         var campaign = await GetDraftCampaignAsync(request.CampaignId, ct);
+        var eventDefinition = await GetSelectableEventDefinitionAsync(campaign.EventTypeVersionId, ct);
         var (actionType, actionConfig) = _configurationService.ParseAction(
-            campaign.EventType,
+            eventDefinition,
             request.ActionType,
             request.ActionConfigJson);
-        _configurationService.EnsureActionCompatibleWithCondition(
-            campaign.EventType,
-            campaign.Condition,
-            actionType,
-            actionConfig);
 
         if (await _campaignRepository.ActionOrderExistsAsync(
                 request.CampaignId,
@@ -57,7 +56,7 @@ public sealed class CreateCampaignActionCommandHandler
         }
 
         var actionKey = _configurationService.GetActionUniquenessKey(
-            campaign.EventType,
+            eventDefinition,
             actionType,
             actionConfig);
         var existingActions = await _campaignRepository.GetActionsForUpdateAsync(
@@ -65,7 +64,7 @@ public sealed class CreateCampaignActionCommandHandler
             ct);
         if (existingActions.Any(existingAction =>
                 _configurationService.GetActionUniquenessKey(
-                    campaign.EventType,
+                    eventDefinition,
                     existingAction.ActionType,
                     existingAction.ActionConfig) == actionKey))
         {
@@ -111,5 +110,15 @@ public sealed class CreateCampaignActionCommandHandler
             ?? throw new DomainException("CAMPAIGN_NOT_FOUND", DomainErrorType.NotFound);
         campaign.EnsureDraft();
         return campaign;
+    }
+
+    private async Task<CampaignEventDefinitionResult> GetSelectableEventDefinitionAsync(
+        Guid eventTypeVersionId,
+        CancellationToken ct)
+    {
+        return await _eventDefinitionRepository.GetForCampaignWriteAsync(eventTypeVersionId, ct)
+            ?? throw new DomainException(
+                "CAMPAIGN_EVENT_TYPE_VERSION_NOT_FOUND",
+                DomainErrorType.Validation);
     }
 }

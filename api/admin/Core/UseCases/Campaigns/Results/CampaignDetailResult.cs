@@ -6,7 +6,7 @@ public sealed record CampaignDetailResult(
     string? Description,
     string? BannerImageKey,
     string? BannerImageUrl,
-    string EventType,
+    CampaignEventDefinitionReferenceResult EventDefinition,
     DateTime StartDate,
     DateTime EndDate,
     string Condition,

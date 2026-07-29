@@ -27,10 +27,13 @@ public sealed class CampaignRepository : ICampaignRepository
         int pageSize,
         string? keyword,
         string? status,
-        string? eventType,
+        Guid? eventTypeId,
         CancellationToken ct = default)
     {
-        var query = _dbContext.Campaigns.AsNoTracking();
+        IQueryable<PersistenceCampaign> query = _dbContext.Campaigns
+            .AsNoTracking()
+            .Include(campaign => campaign.EventTypeVersion)
+            .ThenInclude(version => version.EventType);
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -44,9 +47,9 @@ public sealed class CampaignRepository : ICampaignRepository
             query = query.Where(campaign => campaign.Status == status);
         }
 
-        if (eventType is not null)
+        if (eventTypeId is not null)
         {
-            query = query.Where(campaign => campaign.EventType == eventType);
+            query = query.Where(campaign => campaign.EventTypeVersion.EventTypeId == eventTypeId.Value);
         }
 
         var totalItems = await query.CountAsync(ct);
@@ -59,7 +62,12 @@ public sealed class CampaignRepository : ICampaignRepository
             .Select(campaign => new CampaignListItemResult(
                 campaign.CampaignId,
                 campaign.CampaignName,
-                campaign.EventType,
+                new CampaignEventDefinitionReferenceResult(
+                    campaign.EventTypeVersion.EventType.EventTypeId,
+                    campaign.EventTypeVersion.EventTypeVersionId,
+                    campaign.EventTypeVersion.EventType.Code,
+                    campaign.EventTypeVersion.EventType.Name,
+                    campaign.EventTypeVersion.Version),
                 campaign.Status,
                 campaign.StartDate,
                 campaign.EndDate,
@@ -90,6 +98,8 @@ public sealed class CampaignRepository : ICampaignRepository
     {
         var campaign = await _dbContext.Campaigns
             .AsNoTracking()
+            .Include(item => item.EventTypeVersion)
+            .ThenInclude(version => version.EventType)
             .Where(item => item.CampaignId == campaignId)
             .Select(item => new
             {
@@ -97,7 +107,7 @@ public sealed class CampaignRepository : ICampaignRepository
                 item.CampaignName,
                 item.Description,
                 item.BannerImageUrl,
-                item.EventType,
+                item.EventTypeVersion,
                 item.StartDate,
                 item.EndDate,
                 item.Condition,
@@ -159,7 +169,12 @@ public sealed class CampaignRepository : ICampaignRepository
             campaign.Description,
             campaign.BannerImageUrl,
             null,
-            campaign.EventType,
+            new CampaignEventDefinitionReferenceResult(
+                campaign.EventTypeVersion.EventType.EventTypeId,
+                campaign.EventTypeVersion.EventTypeVersionId,
+                campaign.EventTypeVersion.EventType.Code,
+                campaign.EventTypeVersion.EventType.Name,
+                campaign.EventTypeVersion.Version),
             campaign.StartDate,
             campaign.EndDate,
             campaign.Condition,
@@ -191,7 +206,7 @@ public sealed class CampaignRepository : ICampaignRepository
                 campaign.CampaignName,
                 campaign.Description,
                 campaign.BannerImageUrl,
-                campaign.EventType,
+                campaign.EventTypeVersionId,
                 campaign.Condition,
                 campaign.StartDate,
                 campaign.EndDate,
@@ -306,12 +321,10 @@ public sealed class CampaignRepository : ICampaignRepository
             CampaignName = campaign.CampaignName,
             Description = campaign.Description,
             BannerImageUrl = campaign.BannerImageUrl,
-            EventType = campaign.EventType,
+            EventTypeVersionId = campaign.EventTypeVersionId,
             StartDate = campaign.StartDate,
             EndDate = campaign.EndDate,
             Condition = campaign.Condition,
-            MinAmount = null,
-            CurrencyCode = null,
             ScheduleCron = campaign.ScheduleCron,
             DurationHour = campaign.DurationHour,
             UserLimitTotal = campaign.UserLimitTotal,
@@ -332,12 +345,10 @@ public sealed class CampaignRepository : ICampaignRepository
         persistedCampaign.CampaignName = campaign.CampaignName;
         persistedCampaign.Description = campaign.Description;
         persistedCampaign.BannerImageUrl = campaign.BannerImageUrl;
-        persistedCampaign.EventType = campaign.EventType;
+        persistedCampaign.EventTypeVersionId = campaign.EventTypeVersionId;
         persistedCampaign.StartDate = campaign.StartDate;
         persistedCampaign.EndDate = campaign.EndDate;
         persistedCampaign.Condition = campaign.Condition;
-        persistedCampaign.MinAmount = null;
-        persistedCampaign.CurrencyCode = null;
         persistedCampaign.ScheduleCron = campaign.ScheduleCron;
         persistedCampaign.DurationHour = campaign.DurationHour;
         persistedCampaign.UserLimitTotal = campaign.UserLimitTotal;

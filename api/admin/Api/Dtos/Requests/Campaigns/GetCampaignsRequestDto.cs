@@ -11,5 +11,5 @@ public sealed record GetCampaignsRequestDto
 
     public string? Status { get; init; }
 
-    public string? EventType { get; init; }
+    public Guid? EventTypeId { get; init; }
 }

@@ -36,6 +36,9 @@ public static class PermissionCodes
         Campaigns.Create,
         Campaigns.Update,
         Campaigns.Delete,
+        EventDefinitions.View,
+        EventDefinitions.Create,
+        EventDefinitions.Update,
         CustomerVouchers.View
     ];
 
@@ -96,6 +99,13 @@ public static class PermissionCodes
         public const string Create = "campaign.create";
         public const string Update = "campaign.update";
         public const string Delete = "campaign.delete";
+    }
+
+    public static class EventDefinitions
+    {
+        public const string View = "event_definition.view";
+        public const string Create = "event_definition.create";
+        public const string Update = "event_definition.update";
     }
 
     private static string Normalize(string code)

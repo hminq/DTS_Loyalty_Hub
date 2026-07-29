@@ -10,6 +10,8 @@ public static class AuditEntityTypes
     public const string NotificationTemplate = "NotificationTemplate";
     public const string Campaign = "Campaign";
     public const string CampaignAction = "CampaignAction";
+    public const string EventType = "EventType";
+    public const string EventTypeVersion = "EventTypeVersion";
 
     public static IReadOnlyCollection<string> All { get; } =
     [
@@ -20,6 +22,8 @@ public static class AuditEntityTypes
         VoucherDefinition,
         NotificationTemplate,
         Campaign,
-        CampaignAction
+        CampaignAction,
+        EventType,
+        EventTypeVersion
     ];
 }

@@ -14,7 +14,7 @@ internal static class CampaignAuditSerializer
             campaignName = campaign.CampaignName,
             description = campaign.Description,
             bannerImageUrl = campaign.BannerImageUrl,
-            eventType = campaign.EventType,
+            eventTypeVersionId = campaign.EventTypeVersionId,
             condition = JsonSerializer.Deserialize<JsonElement>(campaign.Condition),
             startDate = campaign.StartDate,
             endDate = campaign.EndDate,

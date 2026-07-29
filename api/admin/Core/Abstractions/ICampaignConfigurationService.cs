@@ -4,25 +4,25 @@ namespace Core.Abstractions;
 
 public interface ICampaignConfigurationService
 {
-    (string EventType, string Condition) ParseCondition(
-        string eventType,
+    string ParseCondition(
+        CampaignEventDefinitionResult eventDefinition,
         string conditionJson);
 
     (string ActionType, string ActionConfig) ParseAction(
-        string eventType,
+        CampaignEventDefinitionResult eventDefinition,
         string actionType,
         string actionConfigJson);
 
-    void EnsureActionCompatibleWithCondition(
-        string eventType,
-        string conditionJson,
+    void ValidateAction(
+        CampaignEventDefinitionResult eventDefinition,
         string actionType,
         string actionConfigJson);
 
     string GetActionUniquenessKey(
-        string eventType,
+        CampaignEventDefinitionResult eventDefinition,
         string actionType,
         string actionConfigJson);
 
-    CampaignOptionsResult GetOptions();
+    CampaignOptionsResult BuildOptions(
+        IReadOnlyCollection<CampaignEventDefinitionResult> eventDefinitions);
 }

@@ -15,17 +15,20 @@ public sealed class ActivateCampaignCommandHandler
     : IRequestHandler<ActivateCampaignCommand, CampaignDetailResult>
 {
     private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignEventDefinitionRepository _eventDefinitionRepository;
     private readonly IAuditLogWriter _auditLogWriter;
     private readonly ICampaignConfigurationService _configurationService;
     private readonly TimeProvider _timeProvider;
 
     public ActivateCampaignCommandHandler(
         ICampaignRepository campaignRepository,
+        ICampaignEventDefinitionRepository eventDefinitionRepository,
         IAuditLogWriter auditLogWriter,
         ICampaignConfigurationService configurationService,
         TimeProvider timeProvider)
     {
         _campaignRepository = campaignRepository;
+        _eventDefinitionRepository = eventDefinitionRepository;
         _auditLogWriter = auditLogWriter;
         _configurationService = configurationService;
         _timeProvider = timeProvider;
@@ -71,7 +74,13 @@ public sealed class ActivateCampaignCommandHandler
             throw new DomainException("CAMPAIGN_LIMIT_INVALID", DomainErrorType.Validation);
         }
 
-        _configurationService.ParseCondition(campaign.EventType, campaign.Condition);
+        var eventDefinition = await _eventDefinitionRepository.GetForCampaignWriteAsync(
+                campaign.EventTypeVersionId,
+                ct)
+            ?? throw new DomainException(
+                "CAMPAIGN_EVENT_TYPE_VERSION_NOT_FOUND",
+                DomainErrorType.Validation);
+        _configurationService.ParseCondition(eventDefinition, campaign.Condition);
 
         var actions = await _campaignRepository.GetActionsForUpdateAsync(request.CampaignId, ct);
         if (actions.Count == 0)
@@ -102,7 +111,7 @@ public sealed class ActivateCampaignCommandHandler
             }
 
             _configurationService.ParseAction(
-                campaign.EventType,
+                eventDefinition,
                 action.ActionType,
                 action.ActionConfig);
         }
@@ -153,7 +162,7 @@ public sealed class ActivateCampaignCommandHandler
             .Select(s => s.ToResult())
             .ToArray();
 
-        return campaign.ToDetailResult() with
+        return campaign.ToDetailResult(eventDefinition) with
         {
             Actions = actions.Select(a => a.ToResult()).ToArray(),
             Sessions = sessionResults,
