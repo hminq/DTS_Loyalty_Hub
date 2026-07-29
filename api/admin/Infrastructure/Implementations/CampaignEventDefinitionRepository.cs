@@ -22,7 +22,9 @@ public sealed class CampaignEventDefinitionRepository : ICampaignEventDefinition
         CancellationToken ct = default)
     {
         return ProjectVersions()
-            .SingleOrDefaultAsync(item => item.EventTypeVersionId == eventTypeVersionId, ct);
+            .Where(version => version.EventTypeVersionId == eventTypeVersionId)
+            .Select(ToEventDefinitionResult())
+            .SingleOrDefaultAsync(ct);
     }
 
     public async Task<CampaignEventDefinitionResult?> GetForCampaignWriteAsync(
@@ -49,27 +51,34 @@ public sealed class CampaignEventDefinitionRepository : ICampaignEventDefinition
             .SingleAsync(ct);
 
         return await ProjectVersions()
-            .SingleOrDefaultAsync(item => item.EventTypeVersionId == eventTypeVersionId, ct);
+            .Where(version => version.EventTypeVersionId == eventTypeVersionId)
+            .Select(ToEventDefinitionResult())
+            .SingleOrDefaultAsync(ct);
     }
 
     public async Task<IReadOnlyCollection<CampaignEventDefinitionResult>> GetSelectableVersionsAsync(
         CancellationToken ct = default)
     {
         return await ProjectVersions()
-            .Where(item =>
-                item.EventTypeStatus == Active &&
-                item.VersionStatus == Published)
-            .OrderBy(item => item.Name)
-            .ThenBy(item => item.Code)
-            .ThenByDescending(item => item.Version)
+            .Where(version =>
+                version.EventType.Status == Active &&
+                version.Status == Published)
+            .OrderBy(version => version.EventType.Name)
+            .ThenBy(version => version.EventType.Code)
+            .ThenByDescending(version => version.Version)
+            .Select(ToEventDefinitionResult())
             .ToArrayAsync(ct);
     }
 
-    private IQueryable<CampaignEventDefinitionResult> ProjectVersions()
+    private IQueryable<Persistence.Models.EventTypeVersion> ProjectVersions()
     {
         return _dbContext.EventTypeVersions
-            .AsNoTracking()
-            .Select(version => new CampaignEventDefinitionResult(
+            .AsNoTracking();
+    }
+
+    private static System.Linq.Expressions.Expression<Func<Persistence.Models.EventTypeVersion, CampaignEventDefinitionResult>> ToEventDefinitionResult()
+    {
+        return version => new CampaignEventDefinitionResult(
                 version.EventType.EventTypeId,
                 version.EventTypeVersionId,
                 version.EventType.Code,
@@ -78,6 +87,6 @@ public sealed class CampaignEventDefinitionRepository : ICampaignEventDefinition
                 version.EventType.Status,
                 version.Version,
                 version.Status,
-                version.PayloadSchema));
+                version.PayloadSchema);
     }
 }
