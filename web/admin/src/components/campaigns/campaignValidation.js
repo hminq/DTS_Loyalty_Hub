@@ -303,9 +303,9 @@ export function validateCampaignMetadata(formValues = {}, options = {}, t) {
     formValues.userLimitTotal !== '' && formValues.userLimitTotal != null
       ? Number(formValues.userLimitTotal)
       : null
-  if (total !== null && (!Number.isInteger(total) || total < 0)) {
+  if (total !== null && (!Number.isInteger(total) || total <= 0)) {
     errors.userLimitTotal = t('campaigns.errors.userLimitTotalInvalid', {
-      defaultValue: 'Total limit must be a non-negative integer.',
+      defaultValue: 'Total limit must be a positive integer.',
     })
   }
 
@@ -313,9 +313,9 @@ export function validateCampaignMetadata(formValues = {}, options = {}, t) {
     formValues.userLimitSession !== '' && formValues.userLimitSession != null
       ? Number(formValues.userLimitSession)
       : null
-  if (session !== null && (!Number.isInteger(session) || session < 0)) {
+  if (session !== null && (!Number.isInteger(session) || session <= 0)) {
     errors.userLimitSession = t('campaigns.errors.userLimitSessionInvalid', {
-      defaultValue: 'Session limit must be a non-negative integer.',
+      defaultValue: 'Session limit must be a positive integer.',
     })
   }
 

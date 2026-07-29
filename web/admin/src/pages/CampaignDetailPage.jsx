@@ -203,6 +203,8 @@ function CampaignDetailPage() {
           />
           <CampaignActionsDetails
             actions={campaign.actions || []}
+            eventType={campaign.eventType}
+            options={options}
             language={i18n.resolvedLanguage}
             t={t}
           />
@@ -256,6 +258,7 @@ function CampaignDetailPage() {
           )
           setRetryKey((k) => k + 1)
         }}
+        options={options}
         t={t}
       />
 

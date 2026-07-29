@@ -123,10 +123,6 @@ export const vi = {
     eventTypes: {
       CUSTOMER_ACCOUNT_REGISTERED: 'Đăng ký tài khoản khách hàng',
     },
-    sources: {
-      NORMAL: 'Đăng ký thông thường',
-      REFERRAL: 'Đăng ký qua giới thiệu',
-    },
     actionTypes: {
       ISSUE_POINT: 'Tặng điểm',
     },
@@ -136,14 +132,6 @@ export const vi = {
     },
     parameters: {
       amount: 'Mức thưởng',
-    },
-    calculationTypes: {
-      FIXED_AMOUNT: 'Số lượng cố định',
-      PERCENT: 'Phần trăm',
-    },
-    recipients: {
-      EVENT_CUSTOMER: 'Khách hàng sự kiện',
-      REFERRER: 'Người giới thiệu',
     },
     daysOfWeek: {
       MON: 'Thứ Hai',
@@ -200,10 +188,6 @@ export const vi = {
       selectActionType: 'Chọn loại hành động',
       targetSelectorLabel: 'Đối tượng nhận thưởng',
       selectTarget: 'Chọn đối tượng nhận thưởng',
-      calculationTypeLabel: 'Cách tính thưởng',
-      selectCalculationType: 'Chọn cách tính thưởng',
-      recipientLabel: 'Người nhận',
-      selectRecipient: 'Chọn người nhận',
       amountLabel: 'Mức thưởng',
       executeOrderLabel: 'Thứ tự thực hiện',
       actionLimitsTitle: 'Giới hạn số lần thực thi action',
@@ -231,8 +215,8 @@ export const vi = {
       scheduleCronInvalid:
         'Hãy dùng định dạng CRON được hỗ trợ, ví dụ 0 42 15 * * ? hoặc 0 42 15 ? * MON,WED,SAT.',
       durationHourInvalid: 'Thời lượng phải là số nguyên dương.',
-      userLimitTotalInvalid: 'Giới hạn toàn chiến dịch của mỗi khách hàng phải là số nguyên không âm.',
-      userLimitSessionInvalid: 'Giới hạn mỗi phiên của mỗi khách hàng phải là số nguyên không âm.',
+      userLimitTotalInvalid: 'Giới hạn toàn chiến dịch của mỗi khách hàng phải là số nguyên dương.',
+      userLimitSessionInvalid: 'Giới hạn mỗi phiên của mỗi khách hàng phải là số nguyên dương.',
       userLimitSessionExceedsTotal: 'Giới hạn mỗi phiên của khách hàng không được vượt quá giới hạn toàn chiến dịch.',
       actionsRequired: 'Cần ít nhất một hành động.',
       actionTypeRequired: 'Loại hành động là bắt buộc.',
@@ -249,8 +233,6 @@ export const vi = {
         'Giá trị chỉ được có tối đa {{scale}} chữ số thập phân.',
       parameterTypeUnsupported:
         'Kiểu tham số {{type}} chưa được form này hỗ trợ.',
-      calculationTypeRequired: 'Cách tính thưởng là bắt buộc.',
-      recipientRequired: 'Người nhận là bắt buộc.',
       amountRequired: 'Mức thưởng phải lớn hơn không.',
       amountInvalid: 'Mức thưởng chỉ được có tối đa hai chữ số thập phân.',
       actionLimitTotalInvalid:

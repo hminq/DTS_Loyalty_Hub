@@ -2,8 +2,9 @@ import { GiftIcon } from '@phosphor-icons/react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { formatCampaignNumber } from './campaignFormatters'
+import { describeCampaignAction } from './campaignPresentation'
 
-export function CampaignActionsDetails({ actions = [], language, t }) {
+export function CampaignActionsDetails({ actions = [], eventType, options = {}, language, t }) {
   const orderedActions = [...(actions || [])].sort(
     (a, b) => (a.executeOrder ?? 0) - (b.executeOrder ?? 0),
   )
@@ -40,19 +41,7 @@ export function CampaignActionsDetails({ actions = [], language, t }) {
       <CardContent>
         <div className="grid gap-4">
           {orderedActions.map((action, index) => {
-            const config = action.actionConfig || {}
-            const actionTypeLabel = t(`campaigns.actionTypes.${action.actionType}`, {
-              defaultValue: action.actionType || '—',
-            })
-            const calculationTypeLabel = t(
-              `campaigns.calculationTypes.${config.calculationType}`,
-              {
-                defaultValue: config.calculationType || '—',
-              },
-            )
-            const recipientLabel = t(`campaigns.recipients.${config.recipient}`, {
-              defaultValue: config.recipient || '—',
-            })
+            const actionDesc = describeCampaignAction({ action, eventType, options, t })
 
             return (
               <div
@@ -62,10 +51,10 @@ export function CampaignActionsDetails({ actions = [], language, t }) {
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
                   <div className="flex items-center gap-2">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                      {action.executeOrder ?? index + 1}
+                      {actionDesc.executeOrder}
                     </span>
                     <h4 className="text-sm font-semibold text-foreground">
-                      {actionTypeLabel}
+                      {actionDesc.actionTypeLabel}
                     </h4>
                   </div>
                   <div className="text-xs font-medium text-muted-foreground">
@@ -73,38 +62,34 @@ export function CampaignActionsDetails({ actions = [], language, t }) {
                   </div>
                 </div>
 
+                {!actionDesc.isSupported && (
+                  <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                    {t('campaigns.detail.unsupportedAction', { defaultValue: 'Warning: Unsupported action configuration.' })}
+                  </div>
+                )}
+
                 <div className="mt-3 grid gap-4 sm:grid-cols-4">
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {t('campaigns.form.calculationTypeLabel', {
-                        defaultValue: 'Calculation type',
-                      })}
+                      {t('campaigns.form.targetSelectorLabel', { defaultValue: 'Target' })}
                     </p>
                     <p className="mt-1 text-sm font-medium text-foreground">
-                      {calculationTypeLabel}
+                      {actionDesc.targetLabel}
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {t('campaigns.form.recipientLabel', { defaultValue: 'Recipient' })}
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-foreground">
-                      {recipientLabel}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {t('campaigns.form.amountLabel', { defaultValue: 'Reward amount' })}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-primary">
-                      {config.amount != null
-                        ? formatCampaignNumber(config.amount, language)
-                        : '0'}{' '}
-                      {t('campaigns.detail.points', { defaultValue: 'points' })}
-                    </p>
-                  </div>
+                  {actionDesc.parameters.map(param => (
+                    <div key={param.code}>
+                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        {param.label}
+                      </p>
+                      <p className={`mt-1 text-sm font-semibold ${param.isKnown ? 'text-primary' : 'text-amber-600'}`}>
+                        {param.dataType === 'DECIMAL' && typeof param.value === 'number'
+                          ? formatCampaignNumber(param.value, language)
+                          : String(param.value)}
+                      </p>
+                    </div>
+                  ))}
 
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -119,8 +104,8 @@ export function CampaignActionsDetails({ actions = [], language, t }) {
                             defaultValue: 'Total action execution limit',
                           })}:
                         </span>{' '}
-                        {action.totalCount != null
-                          ? formatCampaignNumber(action.totalCount, language)
+                        {actionDesc.totalCount != null
+                          ? formatCampaignNumber(actionDesc.totalCount, language)
                           : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
                       </div>
                       <div>
@@ -129,8 +114,8 @@ export function CampaignActionsDetails({ actions = [], language, t }) {
                             defaultValue: 'Action execution limit per session',
                           })}:
                         </span>{' '}
-                        {action.sessionCount != null
-                          ? formatCampaignNumber(action.sessionCount, language)
+                        {actionDesc.sessionCount != null
+                          ? formatCampaignNumber(actionDesc.sessionCount, language)
                           : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
                       </div>
                     </div>

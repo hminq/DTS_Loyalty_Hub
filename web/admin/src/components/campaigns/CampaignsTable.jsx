@@ -12,6 +12,7 @@ import {
 
 function CampaignsTable({
   items,
+  options = {},
   isLoading,
   isRefreshing,
   language,
@@ -53,8 +54,12 @@ function CampaignsTable({
           ) : (
             items.map((item) => {
               const statusVariant = getCampaignStatusVariant(item.status)
-              const statusLabel = t(`campaigns.statuses.${item.status}`, { defaultValue: item.status })
-              const eventTypeLabel = t(`campaigns.eventTypes.${item.eventType}`, { defaultValue: item.eventType })
+
+              const statusDef = (options.campaignStatuses || []).find(s => s.value === item.status)
+              const statusLabel = statusDef ? statusDef.label : item.status
+
+              const eventDef = (options.eventTypes || []).find(e => e.value === item.eventType)
+              const eventTypeLabel = eventDef ? eventDef.label : item.eventType
 
               return (
                 <tr

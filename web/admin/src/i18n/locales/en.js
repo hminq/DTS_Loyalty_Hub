@@ -122,10 +122,6 @@ export const en = {
     eventTypes: {
       CUSTOMER_ACCOUNT_REGISTERED: 'Customer Account Registered',
     },
-    sources: {
-      NORMAL: 'Normal registration',
-      REFERRAL: 'Referral registration',
-    },
     actionTypes: {
       ISSUE_POINT: 'Issue points',
     },
@@ -135,14 +131,6 @@ export const en = {
     },
     parameters: {
       amount: 'Reward amount',
-    },
-    calculationTypes: {
-      FIXED_AMOUNT: 'Fixed amount',
-      PERCENT: 'Percentage',
-    },
-    recipients: {
-      EVENT_CUSTOMER: 'Event customer',
-      REFERRER: 'Referrer',
     },
     daysOfWeek: {
       MON: 'Monday',
@@ -199,10 +187,6 @@ export const en = {
       selectActionType: 'Select action type',
       targetSelectorLabel: 'Target',
       selectTarget: 'Select target',
-      calculationTypeLabel: 'Calculation type',
-      selectCalculationType: 'Select calculation type',
-      recipientLabel: 'Recipient',
-      selectRecipient: 'Select recipient',
       amountLabel: 'Reward amount',
       executeOrderLabel: 'Execution order',
       actionLimitsTitle: 'Action execution limits',
@@ -230,8 +214,8 @@ export const en = {
       scheduleCronInvalid:
         'Use a supported CRON format, for example 0 42 15 * * ? or 0 42 15 ? * MON,WED,SAT.',
       durationHourInvalid: 'Duration must be a positive integer.',
-      userLimitTotalInvalid: 'Customer campaign limit must be a non-negative integer.',
-      userLimitSessionInvalid: 'Customer session limit must be a non-negative integer.',
+      userLimitTotalInvalid: 'Customer campaign limit must be a positive integer.',
+      userLimitSessionInvalid: 'Customer session limit must be a positive integer.',
       userLimitSessionExceedsTotal: 'Per-session customer limit cannot exceed the overall customer limit.',
       actionsRequired: 'At least one action is required.',
       actionTypeRequired: 'Action type is required.',
@@ -248,8 +232,6 @@ export const en = {
         'The value must have at most {{scale}} decimal places.',
       parameterTypeUnsupported:
         'Parameter type {{type}} is not supported by this form.',
-      calculationTypeRequired: 'Calculation type is required.',
-      recipientRequired: 'Recipient is required.',
       amountRequired: 'Reward amount must be greater than zero.',
       amountInvalid: 'Reward amount can have at most two decimal places.',
       actionLimitTotalInvalid: 'Action total limit must be a non-negative integer.',

@@ -8,6 +8,7 @@ import { Input } from '../ui/input'
 import { formatCampaignNumber } from './campaignFormatters'
 import { buildCampaignActionPayload, mapCampaignActionToFormValues } from './campaignPayloads'
 import { validateCampaignAction } from './campaignValidation'
+import { describeCampaignAction } from './campaignPresentation'
 import { CampaignActionConfigurationFields } from './CampaignActionConfigurationFields'
 
 export function PersistedCampaignActionCard({
@@ -103,22 +104,16 @@ export function PersistedCampaignActionCard({
   }
 
   if (!isEditing && action) {
-    const config = action.actionConfig || {}
-    const target = config.target || {}
-    const parameters = config.parameters || {}
-    const actionTypeLabel = t(`campaigns.actionTypes.${action.actionType}`, {
-      defaultValue: action.actionType || '—',
-    })
-    const amountValue = parameters.amount ?? null
+    const actionDesc = describeCampaignAction({ action, eventType, options, t })
 
     return (
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-              {action.executeOrder ?? 1}
+              {actionDesc.executeOrder}
             </span>
-            <CardTitle className="text-sm font-semibold">{actionTypeLabel}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{actionDesc.actionTypeLabel}</CardTitle>
           </div>
           {isDraft && canEdit ? (
             <div className="flex items-center gap-2">
@@ -146,29 +141,36 @@ export function PersistedCampaignActionCard({
           ) : null}
         </CardHeader>
         <CardContent>
+          {!actionDesc.isSupported && (
+            <div className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+              {t('campaigns.detail.unsupportedAction', { defaultValue: 'Warning: Unsupported action configuration.' })}
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {t('campaigns.form.targetSelectorLabel', { defaultValue: 'Target' })}
               </p>
               <p className="mt-1 text-sm font-medium text-foreground">
-                {target.selector || '—'}
+                {actionDesc.targetLabel}
               </p>
             </div>
 
-            {amountValue != null ? (
-              <div>
+            {actionDesc.parameters.map(param => (
+              <div key={param.code}>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {t('campaigns.form.amountLabel', { defaultValue: 'Reward amount' })}
+                  {param.label}
                 </p>
-                <p className="mt-1 text-sm font-semibold text-primary">
-                  {formatCampaignNumber(amountValue, language)}{' '}
-                  {t('campaigns.detail.points', { defaultValue: 'points' })}
+                <p className={`mt-1 text-sm font-semibold ${param.isKnown ? 'text-primary' : 'text-amber-600'}`}>
+                  {param.dataType === 'DECIMAL' && typeof param.value === 'number'
+                    ? formatCampaignNumber(param.value, language)
+                    : String(param.value)}
                 </p>
               </div>
-            ) : null}
+            ))}
 
-            <div className={amountValue == null ? 'sm:col-span-2' : ''}>
+            <div className={actionDesc.parameters.length === 0 ? 'sm:col-span-2' : ''}>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {t('campaigns.form.actionLimitsTitle', {
                   defaultValue: 'Action execution limits',

@@ -9,7 +9,7 @@ import {
   formatCampaignSchedule,
   getCampaignStatusVariant,
 } from './campaignFormatters'
-import { resolveConditionPresetCode } from './campaignPayloads'
+import { describeCampaignCondition } from './campaignPresentation'
 
 export function CampaignDetails({ campaign, options = {}, language, t }) {
   const [imageError, setImageError] = useState(false)
@@ -29,14 +29,12 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
     defaultValue: campaign.eventType || '—',
   })
 
-  const conditionCode = resolveConditionPresetCode(
-    campaign.condition,
-    campaign.eventType,
+  const conditionDesc = describeCampaignCondition({
+    condition: campaign.condition,
+    eventType: campaign.eventType,
     options,
-  )
-  const conditionLabel = conditionCode
-    ? t(`campaigns.conditionPresets.${conditionCode}`, { defaultValue: conditionCode })
-    : '—'
+    t,
+  })
 
   const timeZone = options.schedule?.timeZone || 'UTC'
   const hasBanner = Boolean(campaign.bannerImageUrl) && !imageError
@@ -131,7 +129,29 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
             />
             <DetailItem
               label={t('campaigns.form.conditionLabel', { defaultValue: 'Campaign condition' })}
-              value={conditionLabel}
+              value={
+                <div className="space-y-1">
+                  <div>{conditionDesc.label}</div>
+                  {!conditionDesc.isSupported && (
+                    <div className="text-xs text-amber-600 font-medium">
+                      {t('campaigns.detail.unsupportedCondition', { defaultValue: 'Warning: Unsupported condition configuration.' })}
+                    </div>
+                  )}
+                  {conditionDesc.predicates?.length > 0 && (
+                    <ul className="mt-2 space-y-1.5">
+                      {conditionDesc.predicates.map((p, i) => (
+                        <li key={i} className="flex flex-wrap items-center gap-1.5 text-xs">
+                          <span className="font-semibold text-foreground">{p.fieldLabel}</span>
+                          <span className="text-muted-foreground">{p.operatorLabel}</span>
+                          <span className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-[11px] font-medium text-foreground">
+                            {p.valueLabels.join(', ')}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              }
             />
             <DetailItem
               label={t('campaigns.form.userLimitTotalLabel', {
@@ -208,7 +228,11 @@ function DetailItem({
       <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </p>
-      <p className={valueClass}>{value || '—'}</p>
+      {typeof value === 'string' || typeof value === 'number' ? (
+        <p className={valueClass}>{value || '—'}</p>
+      ) : (
+        <div className={valueClass}>{value || '—'}</div>
+      )}
     </div>
   )
 }

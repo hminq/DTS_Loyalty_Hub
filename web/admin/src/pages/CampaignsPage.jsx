@@ -215,6 +215,7 @@ function CampaignsPage() {
             <>
               <CampaignsTable
                 items={items}
+                options={options}
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 language={i18n.resolvedLanguage}

@@ -16,12 +16,14 @@ import {
 } from '../ui/alert-dialog'
 import { Button } from '../ui/button'
 import { formatCampaignSchedule } from './campaignFormatters'
+import { describeCampaignCondition, describeCampaignAction } from './campaignPresentation'
 
 export function ActivateCampaignDialog({
   open,
   onOpenChange,
   campaign,
   onSuccess,
+  options = {},
   t,
 }) {
   const [isActivating, setIsActivating] = useState(false)
@@ -112,7 +114,7 @@ export function ActivateCampaignDialog({
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 space-y-3">
           <div className="rounded-lg border border-border/70 bg-muted/30 p-3.5 text-xs">
             <div className="flex items-center gap-2 font-semibold text-foreground">
               <CalendarCheckIcon size={16} className="text-primary" weight="bold" />
@@ -125,6 +127,33 @@ export function ActivateCampaignDialog({
             <p className="mt-1.5 font-medium text-muted-foreground">
               {scheduleLabel}
             </p>
+          </div>
+
+          <div className="rounded-lg border border-border/70 bg-muted/30 p-3.5 text-xs">
+            <div className="flex flex-col gap-1.5">
+              <span className="font-semibold text-foreground">
+                {t('campaigns.form.conditionLabel', { defaultValue: 'Condition' })}:
+              </span>
+              <span className="text-muted-foreground">
+                {describeCampaignCondition({ condition: campaign.condition, eventType: campaign.eventType, options, t }).label}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-col gap-1.5">
+              <span className="font-semibold text-foreground">
+                {t('campaigns.form.actionsTitle', { defaultValue: 'Reward actions' })}:
+              </span>
+              <ul className="list-disc pl-4 text-muted-foreground space-y-1">
+                {(campaign.actions || []).map((action, i) => {
+                  const desc = describeCampaignAction({ action, eventType: campaign.eventType, options, t })
+                  return (
+                    <li key={action.actionId || i}>
+                      {desc.actionTypeLabel} → {desc.targetLabel}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
           </div>
         </div>
 
