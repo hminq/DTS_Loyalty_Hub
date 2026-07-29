@@ -62,8 +62,8 @@ public sealed class ActivateCampaignCommandHandler
             throw new DomainException("CAMPAIGN_DURATION_INVALID", DomainErrorType.Validation);
         }
 
-        if (campaign.UserLimitTotal is < 0 ||
-            campaign.UserLimitSession is < 0 ||
+        if (campaign.UserLimitTotal is <= 0 ||
+            campaign.UserLimitSession is <= 0 ||
             (campaign.UserLimitTotal.HasValue &&
              campaign.UserLimitSession.HasValue &&
              campaign.UserLimitSession > campaign.UserLimitTotal))

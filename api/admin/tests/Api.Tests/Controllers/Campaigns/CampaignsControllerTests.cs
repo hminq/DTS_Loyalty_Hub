@@ -126,7 +126,8 @@ public sealed class CampaignsControllerTests
                 command.CampaignId == campaignId &&
                 command.ActorUserId == actorUserId &&
                 command.ExecuteOrder == request.ExecuteOrder &&
-                command.ActionConfigJson.Contains("FIXED_AMOUNT")),
+                command.ActionConfigJson.Contains("EVENT_CUSTOMER") &&
+                command.ActionConfigJson.Contains("\"amount\":50")),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -239,7 +240,8 @@ public sealed class CampaignsControllerTests
         CampaignName = "Normal registration reward",
         Description = "Issue points after normal registration.",
         EventType = "CUSTOMER_ACCOUNT_REGISTERED",
-        Condition = Json("""{"sources":["NORMAL"]}"""),
+        Condition = Json(
+            """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}"""),
         StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
         EndDate = new DateTimeOffset(2026, 8, 31, 23, 59, 59, TimeSpan.Zero),
         ScheduleCron = "0 0 2 * * ?",
@@ -252,10 +254,8 @@ public sealed class CampaignsControllerTests
     private static CampaignActionWriteRequestDto ValidActionRequest() => new()
     {
         ActionType = "ISSUE_POINT",
-        ActionConfig = Json("""
-            {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":50,
-             "calculationBase":null,"percentage":null,"maximumPoints":null}
-            """),
+        ActionConfig = Json(
+            """{"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":50}}"""),
         ExecuteOrder = 1
     };
 
@@ -271,7 +271,7 @@ public sealed class CampaignsControllerTests
             "CUSTOMER_ACCOUNT_REGISTERED",
             now.AddDays(1),
             now.AddDays(31),
-            """{"sources":["NORMAL"]}""",
+            """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}""",
             "0 0 2 * * ?",
             2,
             1,
@@ -289,10 +289,7 @@ public sealed class CampaignsControllerTests
         return new CampaignActionResult(
             Guid.NewGuid(),
             "ISSUE_POINT",
-            """
-            {"calculationType":"FIXED_AMOUNT","recipient":"EVENT_CUSTOMER","amount":50,
-             "calculationBase":null,"percentage":null,"maximumPoints":null}
-            """,
+            """{"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":50}}""",
             1,
             null,
             null,

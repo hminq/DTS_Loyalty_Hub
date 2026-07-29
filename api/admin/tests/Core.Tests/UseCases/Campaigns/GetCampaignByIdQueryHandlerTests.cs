@@ -95,7 +95,7 @@ public sealed class GetCampaignByIdQueryHandlerTests
             "CUSTOMER_ACCOUNT_REGISTERED",
             now.AddDays(1),
             now.AddDays(31),
-            """{"sources":[]}""",
+            """{"all":[]}""",
             "0 0 2 * * ?",
             2,
             1,

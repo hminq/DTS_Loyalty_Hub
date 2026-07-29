@@ -62,13 +62,13 @@ internal static class CampaignWriteValidationRules
             .OverridePropertyName("durationHour");
 
         validator.RuleFor(request => request.UserLimitTotal)
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .When(request => request.UserLimitTotal.HasValue)
             .WithErrorCode("CAMPAIGN_LIMIT_INVALID")
             .OverridePropertyName("userLimitTotal");
 
         validator.RuleFor(request => request.UserLimitSession)
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .When(request => request.UserLimitSession.HasValue)
             .WithErrorCode("CAMPAIGN_LIMIT_INVALID")
             .OverridePropertyName("userLimitSession");

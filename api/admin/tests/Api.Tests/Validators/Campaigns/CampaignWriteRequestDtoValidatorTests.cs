@@ -132,7 +132,8 @@ public sealed class CampaignWriteRequestDtoValidatorTests
         var request = new CampaignActionWriteRequestDto
         {
             ActionType = "ISSUE_POINT",
-            ActionConfig = Json("""{"calculationType":"FIXED_AMOUNT"}"""),
+            ActionConfig = Json(
+                """{"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":50}}"""),
             ExecuteOrder = 1,
             TotalCount = 10,
             SessionCount = 5
@@ -169,7 +170,8 @@ public sealed class CampaignWriteRequestDtoValidatorTests
     {
         CampaignName = "Normal registration reward",
         EventType = "CUSTOMER_ACCOUNT_REGISTERED",
-        Condition = Json("""{"sources":["NORMAL"]}"""),
+        Condition = Json(
+            """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}"""),
         StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
         EndDate = new DateTimeOffset(2026, 8, 31, 0, 0, 0, TimeSpan.Zero),
         ScheduleCron = "0 0 2 * * ?",
@@ -182,7 +184,8 @@ public sealed class CampaignWriteRequestDtoValidatorTests
     {
         CampaignName = "Normal registration reward",
         EventType = "CUSTOMER_ACCOUNT_REGISTERED",
-        Condition = Json("""{"sources":["NORMAL"]}"""),
+        Condition = Json(
+            """{"all":[{"field":"source","operator":"EQUALS","value":"NORMAL"}]}"""),
         StartDate = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero),
         EndDate = new DateTimeOffset(2026, 8, 31, 0, 0, 0, TimeSpan.Zero),
         ScheduleCron = "0 0 2 * * ?",
@@ -194,7 +197,8 @@ public sealed class CampaignWriteRequestDtoValidatorTests
             new CampaignActionWriteRequestDto
             {
                 ActionType = "ISSUE_POINT",
-                ActionConfig = Json("""{"calculationType":"FIXED_AMOUNT"}"""),
+                ActionConfig = Json(
+                    """{"target":{"selector":"EVENT_CUSTOMER"},"parameters":{"amount":50}}"""),
                 ExecuteOrder = 1
             }
         ]

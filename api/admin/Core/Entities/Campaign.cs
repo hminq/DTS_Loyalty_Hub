@@ -292,8 +292,8 @@ public sealed class Campaign
             throw ValidationError("CAMPAIGN_DURATION_INVALID");
         }
 
-        if (userLimitTotal is < 0 ||
-            userLimitSession is < 0 ||
+        if (userLimitTotal is <= 0 ||
+            userLimitSession is <= 0 ||
             userLimitTotal.HasValue &&
             userLimitSession.HasValue &&
             userLimitSession > userLimitTotal)
