@@ -107,7 +107,7 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
                 from campaign in _dbContext.Campaigns.AsNoTracking()
                 join session in _dbContext.CampaignSessions.AsNoTracking()
                     on campaign.CampaignId equals session.CampaignId
-                where campaign.EventType == eventType
+                where campaign.EventTypeVersion.EventType.Code == eventType
                       && (campaign.Status == CampaignStatuses.Active ||
                           campaign.Status == CampaignStatuses.Ended)
                       && campaign.StartDate <= occurredAt

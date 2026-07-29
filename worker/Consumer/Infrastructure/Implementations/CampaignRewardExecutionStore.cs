@@ -77,7 +77,7 @@ public sealed class CampaignRewardExecutionStore : ICampaignRewardExecutionStore
             eventProcessing.OccurredAt,
             eventProcessing.Payload,
             eventProcessing.PayloadHash,
-            campaign.EventType,
+            campaign.EventTypeVersion.EventType.Code,
             campaign.Condition,
             campaign.Status,
             campaign.UserLimitTotal,
