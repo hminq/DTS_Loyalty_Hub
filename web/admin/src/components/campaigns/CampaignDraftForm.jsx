@@ -3,11 +3,22 @@ import { useState } from 'react'
 
 import { Button } from '../ui/button'
 import { CampaignActionCard } from './CampaignActionCard'
+import { createMatchAllConditionFormState } from './campaignConditions'
 import { CampaignMetadataFormFields } from './CampaignMetadataFormFields'
-import {
-  getCompatibleActionTypes,
-  isTargetCompatible,
-} from './campaignCompatibility'
+
+function isTargetCompatible(target, actionType) {
+  if (!target || !actionType) return false
+  return target.targetKind === actionType.requiredTargetKind
+}
+
+function getCompatibleActionTypes(actionTypes = [], eventVersion) {
+  if (!eventVersion) return []
+  return actionTypes.filter((actionType) =>
+    (eventVersion.targets || []).some((target) =>
+      isTargetCompatible(target, actionType),
+    ),
+  )
+}
 
 function createDefaultAction() {
   return {
@@ -19,11 +30,10 @@ function createDefaultAction() {
   }
 }
 
-function reconcileAction(action, selectedEvent, conditionPreset, actionTypes) {
+function reconcileAction(action, selectedVersion, actionTypes) {
   const compatibleActionTypes = getCompatibleActionTypes(
     actionTypes,
-    selectedEvent,
-    conditionPreset,
+    selectedVersion,
   )
   const actionDefinition = compatibleActionTypes.find(
     (actionType) => actionType.value === action.actionType,
@@ -38,13 +48,12 @@ function reconcileAction(action, selectedEvent, conditionPreset, actionTypes) {
     }
   }
 
-  const targetDefinition = (selectedEvent?.targets || []).find(
+  const targetDefinition = (selectedVersion?.targets || []).find(
     (target) => target.value === action.targetSelector,
   )
   const targetSelector = isTargetCompatible(
     targetDefinition,
     actionDefinition,
-    conditionPreset,
   )
     ? action.targetSelector
     : ''
@@ -77,8 +86,8 @@ export function CampaignDraftForm({
     bannerFile: null,
     bannerImageKey: '',
     bannerImageUrl: '',
-    eventType: '',
-    conditionPresetCode: '',
+    eventTypeVersionId: '',
+    ...createMatchAllConditionFormState(),
     startDate: '',
     endDate: '',
     scheduleCron: '0 0 2 * * ?',
@@ -92,45 +101,18 @@ export function CampaignDraftForm({
     setFormValues((prev) => ({ ...prev, [field]: value }))
   }
 
-  function handleEventTypeChange(nextEventType) {
-    const selectedEvent = (options.eventTypes || []).find((e) => e.value === nextEventType)
-    const compatibleConditionOptions = (selectedEvent?.conditionPresets || []).map((option) => option.value)
+  function handleEventTypeChange(nextVersionId) {
+    const selectedVersion = (options.eventTypeVersions || []).find((e) => e.value === nextVersionId)
 
     setFormValues((prev) => {
-      const nextConditionPresetCode = compatibleConditionOptions.includes(prev.conditionPresetCode)
-        ? prev.conditionPresetCode
-        : ''
-      const nextConditionPreset = (selectedEvent?.conditionPresets || []).find(
-        (option) => option.value === nextConditionPresetCode,
-      )
-
       const nextActions = prev.actions.map((action) =>
-        reconcileAction(action, selectedEvent, nextConditionPreset, options.actionTypes),
+        reconcileAction(action, selectedVersion, options.actionTypes),
       )
 
       return {
         ...prev,
-        eventType: nextEventType,
-        conditionPresetCode: nextConditionPresetCode,
-        actions: nextActions,
-      }
-    })
-  }
-
-  function handleConditionOptionChange(nextConditionPresetCode) {
-    setFormValues((prev) => {
-      const selectedEvent = (options.eventTypes || []).find((event) => event.value === prev.eventType)
-      const nextConditionPreset = (selectedEvent?.conditionPresets || []).find(
-        (option) => option.value === nextConditionPresetCode,
-      )
-
-      const nextActions = prev.actions.map((action) =>
-        reconcileAction(action, selectedEvent, nextConditionPreset, options.actionTypes),
-      )
-
-      return {
-        ...prev,
-        conditionPresetCode: nextConditionPresetCode,
+        eventTypeVersionId: nextVersionId,
+        ...createMatchAllConditionFormState(),
         actions: nextActions,
       }
     })
@@ -183,7 +165,6 @@ export function CampaignDraftForm({
         fieldErrors={fieldErrors}
         updateField={updateField}
         handleEventTypeChange={handleEventTypeChange}
-        handleConditionOptionChange={handleConditionOptionChange}
         t={t}
       />
 
@@ -209,8 +190,7 @@ export function CampaignDraftForm({
             onClick={handleAddAction}
             disabled={
               isSubmitting ||
-              !formValues.eventType ||
-              !formValues.conditionPresetCode
+              !formValues.eventTypeVersionId
             }
           >
             <PlusIcon size={14} weight="bold" />
@@ -230,8 +210,7 @@ export function CampaignDraftForm({
             index={index}
             action={action}
             options={options}
-            eventType={formValues.eventType}
-            conditionPresetCode={formValues.conditionPresetCode}
+            eventDefinition={(options.eventTypeVersions || []).find(e => e.value === formValues.eventTypeVersionId)}
             fieldErrors={fieldErrors}
             cardError={fieldErrors[`actions[${index}].actionConfig`] || ''}
             isSubmitting={isSubmitting}

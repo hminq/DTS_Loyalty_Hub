@@ -6,6 +6,7 @@ import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'rea
 import { getCampaignOptions, getCampaigns } from '../api/campaignsApi'
 import { CampaignsFilters, hasCampaignFilters } from '../components/campaigns/CampaignsFilters'
 import { CampaignsTable } from '../components/campaigns/CampaignsTable'
+import { DeleteCampaignDialog } from '../components/campaigns/DeleteCampaignDialog'
 import { mapCampaignOptions } from '../components/campaigns/campaignOptions'
 import { DataTableCard } from '../components/data-list/DataTableCard'
 import { EmptyState } from '../components/data-list/EmptyState'
@@ -28,13 +29,13 @@ function CampaignsPage() {
   const pageSize = Math.min(readPositiveInteger(searchParams.get('pageSize'), 20), 100)
   const keyword = searchParams.get('keyword') || ''
   const status = searchParams.get('status') || ''
-  const eventType = searchParams.get('eventType') || ''
+  const eventTypeId = searchParams.get('eventTypeId') || ''
 
   const filters = useMemo(() => ({
     keyword,
     status,
-    eventType,
-  }), [keyword, status, eventType])
+    eventTypeId,
+  }), [keyword, status, eventTypeId])
 
   const [items, setItems] = useState([])
   const [meta, setMeta] = useState({ page, pageSize, totalItems: 0, totalPages: 0 })
@@ -54,6 +55,14 @@ function CampaignsPage() {
   )
 
   const hasActiveFilters = hasCampaignFilters(filters)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+
+  const capabilities = useMemo(() => ({
+    canView: hasPermission(PermissionCodes.Campaigns.View),
+    canEdit: hasPermission(PermissionCodes.Campaigns.Update),
+    canDelete: hasPermission(PermissionCodes.Campaigns.Delete),
+  }), [hasPermission])
 
   const updateSearchParams = useCallback((updates, replace = false) => {
     setSearchParams((current) => {
@@ -125,7 +134,7 @@ function CampaignsPage() {
           pageSize,
           keyword,
           status,
-          eventType,
+          eventTypeId,
         }, controller.signal)
 
         if (controller.signal.aborted) return
@@ -152,7 +161,7 @@ function CampaignsPage() {
 
     loadCampaignsList()
     return () => controller.abort()
-  }, [page, pageSize, keyword, status, eventType, refreshKey, t, updateSearchParams])
+  }, [page, pageSize, keyword, status, eventTypeId, refreshKey, t, updateSearchParams])
 
   function applyFilters(nextFilters) {
     updateSearchParams({ ...nextFilters, page: 1 })
@@ -162,9 +171,14 @@ function CampaignsPage() {
     updateSearchParams({
       keyword: '',
       status: '',
-      eventType: '',
+      eventTypeId: '',
       page: 1,
     })
+  }
+
+  function handleDeleteRequest(campaign) {
+    setDeleteTarget(campaign)
+    setDeleteOpen(true)
   }
 
   const showEmptyState = !isLoading && items.length === 0
@@ -219,6 +233,10 @@ function CampaignsPage() {
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 language={i18n.resolvedLanguage}
+                capabilities={capabilities}
+                onView={(campaignId) => navigate(`/campaigns/${campaignId}`)}
+                onEdit={(campaignId) => navigate(`/campaigns/${campaignId}/edit`)}
+                onDelete={handleDeleteRequest}
                 t={t}
               />
               <ListPagination
@@ -239,6 +257,30 @@ function CampaignsPage() {
           )}
         </DataTableCard>
       </div>
+
+      <DeleteCampaignDialog
+        open={deleteOpen}
+        onOpenChange={(open) => {
+          setDeleteOpen(open)
+          if (!open) setDeleteTarget(null)
+        }}
+        campaign={deleteTarget}
+        onSuccess={() => {
+          setSuccessMessage(t('campaigns.deleteSuccess', {
+            defaultValue: 'Campaign deleted successfully.',
+          }))
+          setRefreshKey((key) => key + 1)
+        }}
+        onNotFound={(message) => {
+          setLoadError(message)
+          setRefreshKey((key) => key + 1)
+        }}
+        onNotDraft={(message) => {
+          setLoadError(message)
+          setRefreshKey((key) => key + 1)
+        }}
+        t={t}
+      />
     </>
   )
 }

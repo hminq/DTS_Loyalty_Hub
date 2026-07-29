@@ -203,7 +203,7 @@ function CampaignDetailPage() {
           />
           <CampaignActionsDetails
             actions={campaign.actions || []}
-            eventType={campaign.eventType}
+            eventDefinition={campaign.eventDefinition}
             options={options}
             language={i18n.resolvedLanguage}
             t={t}

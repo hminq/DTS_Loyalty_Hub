@@ -101,9 +101,16 @@ function CreateCampaignPage() {
         bannerImageKey: bannerKey,
       }, options)
 
-      await createCampaign(payload)
+      const created = await createCampaign(payload)
+      if (!created?.campaignId) {
+        throw new Error(
+          t('campaigns.errors.createFailed', {
+            defaultValue: 'Failed to create campaign.',
+          }),
+        )
+      }
 
-      navigate('/campaigns', {
+      navigate(`/campaigns/${created.campaignId}`, {
         replace: true,
         state: {
           successMessage: t('campaigns.createSuccess', {

@@ -1,3 +1,5 @@
+import { buildConditionFromFormState, mapConditionToFormState } from './campaignConditions.js'
+
 function toNullableInteger(value) {
   if (value === '' || value == null) return null
   return Number(value)
@@ -54,19 +56,17 @@ function buildCampaignMetadataPayload(formValues = {}, options = {}) {
   // The write contract persists the S3 object key in the legacy bannerImageUrl field.
   // Presigned bannerImageUrl values returned by reads must never be written back.
   const bannerImageUrl = formValues.bannerImageKey || null
-  const eventType = formValues.eventType || null
+  const eventTypeVersionId = formValues.eventTypeVersionId || null
   const scheduleCron = formValues.scheduleCron?.trim() || null
 
-  const selectedEvent = (options.eventTypes || []).find(
-    (option) => option.value === eventType,
+  const selectedVersion = (options.eventTypeVersions || []).find(
+    (option) => option.value === eventTypeVersionId,
   )
-  const selectedPreset = (selectedEvent?.conditionPresets || []).find(
-    (preset) => preset.value === formValues.conditionPresetCode,
-  )
-  if (!selectedPreset) {
-    throw new Error('Campaign condition preset is not registered.')
+  if (!selectedVersion) {
+    throw new Error('Campaign event version is not selected or unknown.')
   }
-  const condition = selectedPreset.condition
+
+  const condition = buildConditionFromFormState(formValues, selectedVersion)
 
   const startDate = formValues.startDate ? new Date(formValues.startDate).toISOString() : null
   const endDate = formValues.endDate ? new Date(formValues.endDate).toISOString() : null
@@ -90,7 +90,7 @@ function buildCampaignMetadataPayload(formValues = {}, options = {}) {
     campaignName,
     description,
     bannerImageUrl,
-    eventType,
+    eventTypeVersionId,
     condition,
     startDate,
     endDate,
@@ -117,47 +117,13 @@ export function buildCampaignUpdatePayload(formValues = {}, options = {}) {
   return buildCampaignMetadataPayload(formValues, options)
 }
 
-function deepEqualCondition(a, b) {
-  if (a === b) return true
-  if (typeof a !== 'object' || a == null || typeof b !== 'object' || b == null) return false
-
-  const keysA = Object.keys(a)
-  const keysB = Object.keys(b)
-  if (keysA.length !== keysB.length) return false
-
-  for (const key of keysA) {
-    if (!keysB.includes(key)) return false
-
-    // Arrays representing predicates (e.g. "all": [...])
-    if (Array.isArray(a[key]) && Array.isArray(b[key])) {
-      if (a[key].length !== b[key].length) return false
-      // We assume order matters for array comparison in canonical condition JSON
-      for (let i = 0; i < a[key].length; i++) {
-        if (!deepEqualCondition(a[key][i], b[key][i])) return false
-      }
-    } else {
-      if (!deepEqualCondition(a[key], b[key])) return false
-    }
-  }
-  return true
-}
-
-export function resolveConditionPresetCode(condition = {}, eventType = '', options = {}) {
-  const selectedEvent = (options.eventTypes || []).find((event) => event.value === eventType)
-  const presets = selectedEvent?.conditionPresets || []
-
-  for (const preset of presets) {
-    if (deepEqualCondition(preset.condition, condition)) {
-      return preset.value
-    }
-  }
-  return ''
-}
-
 export function mapCampaignDetailToFormValues(campaign = {}, options = {}) {
-  const eventType = campaign.eventType || ''
-  const condition = campaign.condition || {}
-  const conditionPresetCode = resolveConditionPresetCode(condition, eventType, options)
+  const eventTypeVersionId = campaign.eventDefinition?.eventTypeVersionId || ''
+
+  const selectedVersion = (options.eventTypeVersions || []).find(
+    (option) => option.value === eventTypeVersionId,
+  )
+  const conditionState = mapConditionToFormState(campaign.condition, selectedVersion)
 
   return {
     campaignName: campaign.campaignName || '',
@@ -165,8 +131,8 @@ export function mapCampaignDetailToFormValues(campaign = {}, options = {}) {
     bannerFile: null,
     bannerImageKey: campaign.bannerImageKey || '',
     bannerImageUrl: campaign.bannerImageUrl || '',
-    eventType,
-    conditionPresetCode,
+    eventTypeVersionId,
+    ...conditionState,
     startDate: campaign.startDate || '',
     endDate: campaign.endDate || '',
     scheduleCron: campaign.scheduleCron || '',

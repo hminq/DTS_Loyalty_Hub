@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { formatCampaignNumber } from './campaignFormatters'
 import { describeCampaignAction } from './campaignPresentation'
 
-export function CampaignActionsDetails({ actions = [], eventType, options = {}, language, t }) {
+export function CampaignActionsDetails({ actions = [], eventDefinition, options = {}, language, t }) {
   const orderedActions = [...(actions || [])].sort(
     (a, b) => (a.executeOrder ?? 0) - (b.executeOrder ?? 0),
   )
@@ -41,7 +41,7 @@ export function CampaignActionsDetails({ actions = [], eventType, options = {}, 
       <CardContent>
         <div className="grid gap-4">
           {orderedActions.map((action, index) => {
-            const actionDesc = describeCampaignAction({ action, eventType, options, t })
+            const actionDesc = describeCampaignAction({ action, eventDefinition, options, t })
 
             return (
               <div

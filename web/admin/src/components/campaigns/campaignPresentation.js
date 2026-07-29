@@ -1,11 +1,12 @@
-import { resolveConditionPresetCode } from './campaignPayloads'
+import { describeCondition, inspectPersistedCondition } from './campaignConditions.js'
 
-export function describeCampaignCondition({ condition, eventType, options, t }) {
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === eventType)
-  
+export function describeCampaignCondition({ condition, eventDefinition, options, t }) {
+  const selectedVersion = (options?.eventTypeVersions || []).find(
+    (v) => v.value === eventDefinition?.eventTypeVersionId
+  )
+
   if (!condition) {
     return {
-      presetCode: '',
       label: '—',
       predicates: [],
       isMatchAll: false,
@@ -13,132 +14,156 @@ export function describeCampaignCondition({ condition, eventType, options, t }) 
     }
   }
 
-  // 1. Check if it's a known preset
-  const presetCode = resolveConditionPresetCode(condition, selectedEvent)
-  if (presetCode) {
-    const presetDef = (selectedEvent?.conditionPresets || []).find(p => p.value === presetCode)
+  const inspection = inspectPersistedCondition(condition, selectedVersion)
+
+  if (!inspection.isSupported) {
     return {
-      presetCode,
-      label: presetDef?.label || presetCode,
+      label: t('campaigns.condition.unsupported', { defaultValue: 'Unsupported configuration' }),
       predicates: [],
-      isMatchAll: presetCode === 'ALL_REGISTRATIONS', // Conventionally
-      isSupported: true,
+      isMatchAll: false,
+      isSupported: false,
     }
   }
 
-  // 2. Not a preset, it's a raw condition. We only support "all" with EQUALS or IN
-  const allPredicates = condition.all || []
-  const isMatchAll = Object.keys(condition).length === 1 && allPredicates.length === 0
-  
-  if (isMatchAll) {
+  if (inspection.isMatchAll) {
     return {
-      presetCode: '',
-      label: t('campaigns.conditionPresets.ALL_REGISTRATIONS', { defaultValue: 'All events' }),
+      label: t('campaigns.condition.allValidEvents', { defaultValue: 'All valid events' }),
       predicates: [],
       isMatchAll: true,
       isSupported: true,
     }
   }
 
-  const isSupported = Array.isArray(condition.all)
-  const predicates = []
-
-  if (isSupported) {
-    for (const pred of allPredicates) {
-      if (pred.fact) { // Simplified matching
-        const fieldDef = (selectedEvent?.conditionFields || []).find(f => f.code === pred.fact)
-        
-        let operatorLabel = pred.operator
-        if (pred.operator === 'equal') operatorLabel = t('campaigns.operators.equal', { defaultValue: 'Equals' })
-        else if (pred.operator === 'in') operatorLabel = t('campaigns.operators.in', { defaultValue: 'In' })
-        
-        let value = pred.value
-        let valueLabels = []
-        
-        if (Array.isArray(value)) {
-           valueLabels = value.map(v => {
-             const opt = (fieldDef?.options || []).find(o => o === v)
-             return opt ? opt : v
-           })
-        } else {
-           const opt = (fieldDef?.options || []).find(o => o === value)
-           valueLabels = [opt ? opt : value]
-        }
-
-        predicates.push({
-          fieldCode: pred.fact,
-          fieldLabel: fieldDef ? t(`campaigns.conditionFields.${pred.fact}`, { defaultValue: pred.fact }) : pred.fact,
-          operator: pred.operator,
-          operatorLabel: operatorLabel,
-          values: Array.isArray(value) ? value : [value],
-          valueLabels: valueLabels
-        })
-      }
+  const fieldsMeta = selectedVersion?.conditionFields || selectedVersion?.condition?.fields || []
+  const predicates = inspection.predicates.map((p) => {
+    const fieldMeta = fieldsMeta.find((f) => f.code === p.field)
+    const fieldLabel = fieldMeta ? fieldMeta.label : p.field
+    const operatorLabel = t(`campaigns.conditionOperators.${p.operator}`, { defaultValue: p.operator })
+    return {
+      fieldCode: p.field,
+      fieldLabel,
+      operator: p.operator,
+      operatorLabel,
+      values: [p.value],
+      valueLabels: [String(p.value)],
     }
-  }
+  })
+
+  const description = describeCondition({ condition, eventDefinition, selectedVersion, t })
 
   return {
-    presetCode: '',
-    label: t('campaigns.conditionPresets.CUSTOM', { defaultValue: 'Custom condition' }),
+    label: description,
     predicates,
-    isMatchAll,
-    isSupported,
+    isMatchAll: false,
+    isSupported: true,
   }
 }
 
-export function describeCampaignAction({ action, eventType, options, t }) {
-  if (!action) {
+export function describeCampaignAction({ action, eventDefinition, options, t }) {
+  if (!action || typeof action !== 'object') {
     return { isSupported: false }
   }
 
   const config = action.actionConfig || {}
+  const configKeys = Object.keys(config)
+  if (
+    typeof config !== 'object' ||
+    config === null ||
+    Array.isArray(config) ||
+    configKeys.length !== 2 ||
+    !configKeys.includes('target') ||
+    !configKeys.includes('parameters') ||
+    !config.target ||
+    typeof config.target !== 'object' ||
+    config.target === null ||
+    Array.isArray(config.target) ||
+    Object.keys(config.target).length !== 1 ||
+    !Object.keys(config.target).includes('selector') ||
+    typeof config.parameters !== 'object' ||
+    config.parameters === null ||
+    Array.isArray(config.parameters)
+  ) {
+    return { isSupported: false }
+  }
+
   const targetSelector = config.target?.selector
   const parametersRaw = config.parameters || {}
 
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === eventType)
-  const actionDef = (options.actionTypes || []).find((a) => a.value === action.actionType)
-  const targetDef = (selectedEvent?.targets || []).find((t) => t.value === targetSelector)
+  const selectedVersion = (options?.eventTypeVersions || []).find(
+    (v) => v.value === eventDefinition?.eventTypeVersionId
+  )
+  const actionDef = (options?.actionTypes || []).find((a) => a.value === action.actionType)
+
+  const availableTargets = selectedVersion?.targets || []
+  const targetDef = availableTargets.find(
+    (t) => t.value === targetSelector || t.selector === targetSelector
+  )
 
   const actionTypeCode = action.actionType
-  const actionTypeLabel = actionDef 
-    ? actionDef.label 
+  const actionTypeLabel = actionDef
+    ? actionDef.label
     : actionTypeCode || '—'
 
   const targetLabel = targetDef
     ? targetDef.label
     : targetSelector || '—'
 
+  let isSupported = Boolean(
+    actionDef &&
+    targetDef &&
+    targetSelector &&
+    targetDef.targetKind &&
+    actionDef.requiredTargetKind &&
+    targetDef.targetKind === actionDef.requiredTargetKind
+  )
+
   const parameters = []
-  
+
   if (actionDef) {
     for (const paramDef of actionDef.parameters || []) {
+      if (paramDef.dataType !== 'DECIMAL') {
+        isSupported = false
+      }
+
       const val = parametersRaw[paramDef.code]
-      if (val !== undefined) {
+      if (val !== undefined && val !== null && val !== '') {
+        let isParamValid = true
+        if (paramDef.dataType === 'DECIMAL') {
+          if (typeof val !== 'number' || !Number.isFinite(val)) {
+            isParamValid = false
+          }
+        }
+        if (!isParamValid) {
+          isSupported = false
+        }
         parameters.push({
           code: paramDef.code,
           label: paramDef.label,
           dataType: paramDef.dataType,
           value: val,
-          isKnown: true
+          isKnown: true,
         })
+      } else if (paramDef.required) {
+        isSupported = false
       }
     }
+  } else {
+    isSupported = false
   }
 
   // Add unknown parameters
   for (const key of Object.keys(parametersRaw)) {
-    if (!parameters.find(p => p.code === key)) {
+    if (!parameters.find((p) => p.code === key)) {
+      isSupported = false
       parameters.push({
         code: key,
         label: key,
         dataType: 'UNKNOWN',
         value: parametersRaw[key],
-        isKnown: false
+        isKnown: false,
       })
     }
   }
-
-  const isSupported = Boolean(actionTypeCode && targetSelector)
 
   return {
     actionTypeCode,

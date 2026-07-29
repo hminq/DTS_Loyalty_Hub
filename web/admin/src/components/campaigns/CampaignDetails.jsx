@@ -25,13 +25,13 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
     defaultValue: campaign.status || '—',
   })
 
-  const eventTypeLabel = t(`campaigns.eventTypes.${campaign.eventType}`, {
-    defaultValue: campaign.eventType || '—',
-  })
+  const eventTypeLabel = campaign.eventDefinition
+    ? `${campaign.eventDefinition.name} (${campaign.eventDefinition.code}) · v${campaign.eventDefinition.version}`
+    : t('campaigns.detail.unknownEvent', { defaultValue: 'Unknown event' })
 
   const conditionDesc = describeCampaignCondition({
     condition: campaign.condition,
-    eventType: campaign.eventType,
+    eventDefinition: campaign.eventDefinition,
     options,
     t,
   })

@@ -9,8 +9,7 @@ export function CampaignActionCard({
   index,
   action,
   options = {},
-  eventType = '',
-  conditionPresetCode = '',
+  eventDefinition = null,
   fieldErrors = {},
   cardError = '',
   isSubmitting = false,
@@ -64,8 +63,7 @@ export function CampaignActionCard({
             prefix={`${prefix}.`}
             action={action}
             options={options}
-            eventType={eventType}
-            conditionPresetCode={conditionPresetCode}
+            eventDefinition={eventDefinition}
             fieldErrors={fieldErrors}
             isSubmitting={isSubmitting}
             onChange={handleConfigChange}

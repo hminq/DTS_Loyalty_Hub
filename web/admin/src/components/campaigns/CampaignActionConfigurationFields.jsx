@@ -1,37 +1,40 @@
 import { Combobox } from '../ui/combobox'
 import { Field, FieldError, FieldLabel } from '../ui/field'
 import { Input } from '../ui/input'
-import {
-  getCompatibleActionTypes,
-  isTargetCompatible,
-} from './campaignCompatibility'
-
 function getDecimalStep(scale) {
   return Number.isInteger(scale) && scale >= 0 ? 10 ** -scale : 'any'
+}
+
+function isTargetCompatible(target, actionType) {
+  if (!target || !actionType) return false
+  return target.targetKind === actionType.requiredTargetKind
+}
+
+function getCompatibleActionTypes(actionTypes = [], eventVersion) {
+  if (!eventVersion) return []
+  return actionTypes.filter((actionType) =>
+    (eventVersion.targets || []).some((target) =>
+      isTargetCompatible(target, actionType),
+    ),
+  )
 }
 
 export function CampaignActionConfigurationFields({
   prefix = '',
   action,
   options = {},
-  eventType = '',
-  conditionPresetCode = '',
+  eventDefinition = null,
   fieldErrors = {},
   isSubmitting = false,
   onChange,
   t,
 }) {
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === eventType)
-  const conditionPreset = (selectedEvent?.conditionPresets || []).find(
-    (preset) => preset.value === conditionPresetCode,
-  )
-  const eventTargets = selectedEvent?.targets || []
-  const hasCampaignContext = Boolean(selectedEvent && conditionPreset)
+  const eventTargets = eventDefinition?.targets || []
+  const hasCampaignContext = Boolean(eventDefinition && eventTargets.length > 0)
 
   const actionTypeOptions = getCompatibleActionTypes(
     options.actionTypes,
-    selectedEvent,
-    conditionPreset,
+    eventDefinition,
   )
 
   const selectedActionDef = (options.actionTypes || []).find(
@@ -40,7 +43,7 @@ export function CampaignActionConfigurationFields({
 
   const targetOptions = eventTargets.map((target) => {
     const isCompatible = selectedActionDef
-      ? isTargetCompatible(target, selectedActionDef, conditionPreset)
+      ? isTargetCompatible(target, selectedActionDef)
       : false
 
     return {
@@ -55,7 +58,7 @@ export function CampaignActionConfigurationFields({
     let nextTarget = action.targetSelector
     if (nextTarget) {
       const currentTargetDef = eventTargets.find((target) => target.value === nextTarget)
-      if (!isTargetCompatible(currentTargetDef, nextDef, conditionPreset)) {
+      if (!isTargetCompatible(currentTargetDef, nextDef)) {
         nextTarget = ''
       }
     }

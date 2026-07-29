@@ -23,7 +23,7 @@ function CampaignsFilters({
 
   useEffect(() => {
     setDraft(toDraft(filters))
-  }, [filters.keyword, filters.status, filters.eventType])
+  }, [filters.keyword, filters.status, filters.eventTypeId])
 
   function update(name, value) {
     setDraft((current) => ({ ...current, [name]: value }))
@@ -34,7 +34,7 @@ function CampaignsFilters({
     onApply({
       keyword: draft.keyword.trim(),
       status: draft.status,
-      eventType: draft.eventType,
+      eventTypeId: draft.eventTypeId,
     })
     setIsOpen(false)
   }
@@ -48,7 +48,7 @@ function CampaignsFilters({
     onApply({
       keyword: filterKey === 'keyword' ? '' : filters.keyword,
       status: filterKey === 'status' ? '' : filters.status,
-      eventType: filterKey === 'eventType' ? '' : filters.eventType,
+      eventTypeId: filterKey === 'eventTypeId' ? '' : filters.eventTypeId,
     })
   }
 
@@ -88,9 +88,9 @@ function CampaignsFilters({
 
         <FilterField label={t('campaigns.filters.eventTypeLabel')}>
           <Combobox
-            value={draft.eventType}
-            onValueChange={(value) => update('eventType', value)}
-            options={options?.eventTypes ?? []}
+            value={draft.eventTypeId}
+            onValueChange={(value) => update('eventTypeId', value)}
+            options={options?.eventTypeFilters ?? []}
             placeholder={t('campaigns.filters.allEventTypes')}
             emptyOptionLabel={t('campaigns.filters.allEventTypes')}
             isLoading={isLoadingOptions}
@@ -153,7 +153,7 @@ function toDraft(filters) {
   return {
     keyword: filters.keyword || '',
     status: filters.status || '',
-    eventType: filters.eventType || '',
+    eventTypeId: filters.eventTypeId || '',
   }
 }
 
@@ -182,11 +182,11 @@ function getActiveFilterChips(filters, { options, t }) {
     })
   }
 
-  if (filters.eventType) {
+  if (filters.eventTypeId) {
     chips.push({
-      key: 'eventType',
+      key: 'eventTypeId',
       label: t('campaigns.filters.eventTypeLabel'),
-      value: getOptionLabel(options?.eventTypes, filters.eventType),
+      value: getOptionLabel(options?.eventTypeFilters, filters.eventTypeId),
     })
   }
 
@@ -197,7 +197,7 @@ function hasCampaignFilters(filters) {
   return Boolean(
     filters.keyword
     || filters.status
-    || filters.eventType,
+    || filters.eventTypeId,
   )
 }
 

@@ -4,6 +4,7 @@ import { DateTimePicker } from '../ui/date-time-picker'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { Input } from '../ui/input'
 import { CampaignBannerField } from './CampaignBannerField'
+import { CampaignConditionBuilder } from './CampaignConditionBuilder'
 
 export function CampaignMetadataFormFields({
   formValues,
@@ -13,11 +14,9 @@ export function CampaignMetadataFormFields({
   fieldErrors = {},
   updateField,
   handleEventTypeChange,
-  handleConditionOptionChange,
   t,
 }) {
-  const selectedEvent = (options.eventTypes || []).find((e) => e.value === formValues.eventType)
-  const conditionPresets = selectedEvent?.conditionPresets || []
+  const selectedVersion = (options.eventTypeVersions || []).find((e) => e.value === formValues.eventTypeVersionId)
 
   const timeZoneText = t('campaigns.form.timeZoneHelper', {
     timeZone: options.schedule?.timeZone || 'UTC',
@@ -72,61 +71,38 @@ export function CampaignMetadataFormFields({
                 ) : null}
               </Field>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field invalid={Boolean(fieldErrors.eventType)} disabled={isSubmitting}>
+              <div className="space-y-4">
+                <Field invalid={Boolean(fieldErrors.eventTypeVersionId)} disabled={isSubmitting}>
                   <FieldLabel>
-                    {t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
+                    {t('campaigns.form.eventVersionLabel', { defaultValue: 'Event type' })}
                   </FieldLabel>
                   <Combobox
-                    value={formValues.eventType}
+                    value={formValues.eventTypeVersionId}
                     onValueChange={handleEventTypeChange}
-                    options={options.eventTypes ?? []}
-                    placeholder={t('campaigns.form.selectEventType', {
+                    options={options.eventTypeVersions ?? []}
+                    placeholder={t('campaigns.form.selectEventVersion', {
                       defaultValue: 'Select event type',
                     })}
-                    emptyOptionLabel={t('campaigns.form.selectEventType', {
+                    emptyOptionLabel={t('campaigns.form.selectEventVersion', {
                       defaultValue: 'Select event type',
                     })}
-                    ariaLabel={t('campaigns.form.eventTypeLabel', {
+                    ariaLabel={t('campaigns.form.eventVersionLabel', {
                       defaultValue: 'Event type',
                     })}
                     disabled={isSubmitting}
                   />
-                  {fieldErrors.eventType ? (
-                    <FieldError>{fieldErrors.eventType}</FieldError>
+                  {fieldErrors.eventTypeVersionId ? (
+                    <FieldError>{fieldErrors.eventTypeVersionId}</FieldError>
                   ) : null}
                 </Field>
 
-                <Field
-                  invalid={Boolean(fieldErrors.conditionPresetCode || fieldErrors.condition)}
-                  disabled={!formValues.eventType || isSubmitting}
-                >
-                  <FieldLabel>
-                    {t('campaigns.form.conditionLabel', {
-                      defaultValue: 'Campaign condition',
-                    })}
-                  </FieldLabel>
-                  <Combobox
-                    value={formValues.conditionPresetCode}
-                    onValueChange={handleConditionOptionChange}
-                    options={conditionPresets}
-                    placeholder={t('campaigns.form.selectCondition', {
-                      defaultValue: 'Select campaign condition',
-                    })}
-                    emptyOptionLabel={t('campaigns.form.selectCondition', {
-                      defaultValue: 'Select campaign condition',
-                    })}
-                    disabled={!formValues.eventType || isSubmitting}
-                    ariaLabel={t('campaigns.form.conditionLabel', {
-                      defaultValue: 'Campaign condition',
-                    })}
-                  />
-                  {fieldErrors.conditionPresetCode || fieldErrors.condition ? (
-                    <FieldError>
-                      {fieldErrors.conditionPresetCode || fieldErrors.condition}
-                    </FieldError>
-                  ) : null}
-                </Field>
+                <CampaignConditionBuilder
+                  formValues={formValues}
+                  setFormValue={updateField}
+                  selectedVersion={selectedVersion}
+                  errors={fieldErrors}
+                  disabled={isSubmitting}
+                />
               </div>
             </FieldGroup>
 

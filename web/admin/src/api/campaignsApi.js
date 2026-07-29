@@ -1,6 +1,6 @@
 import httpClient from './httpClient'
 
-export async function getCampaigns({ page = 1, pageSize = 20, keyword, status, eventType } = {}, signal) {
+export async function getCampaigns({ page = 1, pageSize = 20, keyword, status, eventTypeId } = {}, signal) {
   const params = { page, pageSize }
   if (keyword && keyword.trim()) {
     params.keyword = keyword.trim()
@@ -8,8 +8,8 @@ export async function getCampaigns({ page = 1, pageSize = 20, keyword, status, e
   if (status) {
     params.status = status
   }
-  if (eventType) {
-    params.eventType = eventType
+  if (eventTypeId) {
+    params.eventTypeId = eventTypeId
   }
   const response = await httpClient.get('/campaigns', { params, signal })
   return response.data
@@ -55,7 +55,7 @@ export async function deleteCampaign(campaignId, signal) {
     throw new Error('campaignId is required')
   }
   const response = await httpClient.delete(`/campaigns/${encodeURIComponent(campaignId)}`, { signal })
-  return response.data.data
+  return response?.data?.data
 }
 
 export async function getCampaignAction(campaignId, actionId, signal) {
@@ -87,7 +87,7 @@ export async function deleteCampaignAction(campaignId, actionId, signal) {
     throw new Error('campaignId and actionId are required')
   }
   const response = await httpClient.delete(`/campaigns/${encodeURIComponent(campaignId)}/actions/${encodeURIComponent(actionId)}`, { signal })
-  return response.data.data
+  return response?.data?.data
 }
 
 export async function activateCampaign(campaignId, signal) {

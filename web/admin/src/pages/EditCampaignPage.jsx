@@ -57,6 +57,16 @@ function EditCampaignPage() {
     [campaign, options],
   )
 
+  const selectedCampaignVersion = useMemo(
+    () =>
+      (options.eventTypeVersions || []).find(
+        (version) =>
+          version.eventTypeVersionId === campaign?.eventDefinition?.eventTypeVersionId ||
+          version.value === campaign?.eventDefinition?.eventTypeVersionId,
+      ) ?? null,
+    [campaign?.eventDefinition?.eventTypeVersionId, options.eventTypeVersions],
+  )
+
   const loadData = useCallback(async (signal) => {
     setIsLoading(true)
     setErrorMessage('')
@@ -291,8 +301,8 @@ function EditCampaignPage() {
               isDraft={isDraft}
               canEdit={canUpdate}
               options={options}
-              eventType={initialFormValues.eventType || campaign.eventType || ''}
-              conditionPresetCode={initialFormValues.conditionPresetCode || ''}
+              selectedVersion={selectedCampaignVersion}
+              eventDefinition={campaign.eventDefinition}
               onActionsChanged={handleRefreshActions}
               language={i18n.resolvedLanguage}
               t={t}

@@ -16,8 +16,14 @@ function CampaignsTable({
   isLoading,
   isRefreshing,
   language,
+  capabilities = {},
+  onView,
+  onEdit,
+  onDelete,
   t,
 }) {
+  const hasActions = capabilities.canView || capabilities.canEdit || capabilities.canDelete
+
   return (
     <div className="relative overflow-x-auto">
       {isRefreshing ? (
@@ -27,24 +33,25 @@ function CampaignsTable({
         </div>
       ) : null}
 
-      <table className="w-full min-w-[960px] border-collapse text-left text-[13px]">
+      <table className="w-full min-w-[860px] border-collapse text-left text-[13px]">
         <thead className="bg-muted/55 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.campaign')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.eventType')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.status')}</th>
-            <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.activeRange')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.schedule')}</th>
             <th className="px-4 py-2.5 text-right font-semibold">{t('campaigns.columns.actionCount')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.nextSession')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.updatedAt')}</th>
-            <th className="px-4 py-2.5 text-right font-semibold">{t('common.actions', { defaultValue: 'Actions' })}</th>
+            {hasActions ? (
+              <th className="px-4 py-2.5 text-right font-semibold">{t('common.actions', { defaultValue: 'Actions' })}</th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             <tr className="border-t border-border">
-              <td className="px-4 py-8 text-center text-muted-foreground" colSpan={9}>
+              <td className="px-4 py-8 text-center text-muted-foreground" colSpan={hasActions ? 8 : 7}>
                 <span className="inline-flex items-center gap-2">
                   <CircleNotchIcon className="animate-spin" size={16} aria-hidden="true" />
                   {t('campaigns.loading')}
@@ -58,8 +65,9 @@ function CampaignsTable({
               const statusDef = (options.campaignStatuses || []).find(s => s.value === item.status)
               const statusLabel = statusDef ? statusDef.label : item.status
 
-              const eventDef = (options.eventTypes || []).find(e => e.value === item.eventType)
-              const eventTypeLabel = eventDef ? eventDef.label : item.eventType
+              const ev = item.eventDefinition || {}
+              const eventTypeCode = ev.code || t('campaigns.detail.unknownEvent', { defaultValue: 'Unknown Event' })
+              const isDraft = item.status === 'DRAFT'
 
               return (
                 <tr
@@ -74,17 +82,13 @@ function CampaignsTable({
                       {item.campaignName}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {eventTypeLabel}
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    {eventTypeCode}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={statusVariant}>
                       {statusLabel}
                     </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    <div>{formatCampaignDateTime(item.startDate, language)}</div>
-                    <div className="text-xs opacity-80">{formatCampaignDateTime(item.endDate, language)}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatCampaignSchedule(item.scheduleCron, item.durationHour, t)}
@@ -98,18 +102,42 @@ function CampaignsTable({
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatCampaignDateTime(item.updatedAt, language)}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2.5 text-xs font-medium"
-                      asChild
-                    >
-                      <Link to={`/campaigns/${item.campaignId}`}>
-                        {t('common.view', { defaultValue: 'View' })}
-                      </Link>
-                    </Button>
-                  </td>
+                  {hasActions ? (
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        {capabilities.canView ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs font-medium"
+                            onClick={() => onView?.(item.campaignId)}
+                          >
+                            {t('common.view', { defaultValue: 'View' })}
+                          </Button>
+                        ) : null}
+                        {capabilities.canEdit && isDraft ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs font-medium"
+                            onClick={() => onEdit?.(item.campaignId)}
+                          >
+                            {t('common.edit')}
+                          </Button>
+                        ) : null}
+                        {capabilities.canDelete && isDraft ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs font-medium"
+                            onClick={() => onDelete?.(item)}
+                          >
+                            {t('common.delete')}
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  ) : null}
                 </tr>
               )
             })

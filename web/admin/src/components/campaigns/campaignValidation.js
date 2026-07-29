@@ -1,4 +1,4 @@
-import { isTargetCompatible } from './campaignCompatibility.js'
+import { validateConditionFormState } from './campaignConditions.js'
 
 const CAMPAIGN_SCHEDULE_WEEKDAYS = [
   'MON',
@@ -136,23 +136,21 @@ function validateSingleAction(
     })
   }
 
-  const selectedEvent = (options.eventTypes || []).find(
-    (event) => event.value === campaignContext.eventType,
+  const selectedVersion = (options.eventTypeVersions || []).find(
+    (version) => version.value === campaignContext.eventTypeVersionId,
   )
-  const selectedConditionPreset = (selectedEvent?.conditionPresets || []).find(
-    (preset) => preset.value === campaignContext.conditionPresetCode,
-  )
-  const selectedTarget = (selectedEvent?.targets || []).find(
+
+  const selectedTarget = (selectedVersion?.targets || []).find(
     (target) => target.value === action.targetSelector,
   )
 
   if (
     action.targetSelector &&
     (!selectedTarget ||
-      !isTargetCompatible(selectedTarget, selectedActionDef, selectedConditionPreset))
+      (selectedActionDef && selectedTarget.targetKind !== selectedActionDef.requiredTargetKind))
   ) {
     errors[targetSelectorKey] = t('campaigns.errors.targetSelectorIncompatible', {
-      defaultValue: 'The selected target is not compatible with this campaign condition.',
+      defaultValue: 'The selected target is not compatible with this action type.',
     })
   }
 
@@ -226,27 +224,23 @@ export function validateCampaignMetadata(formValues = {}, options = {}, t) {
     })
   }
 
-  if (!formValues.eventType) {
-    errors.eventType = t('campaigns.errors.eventTypeRequired', {
+  if (!formValues.eventTypeVersionId) {
+    errors.eventTypeVersionId = t('campaigns.errors.eventTypeVersionIdRequired', {
       defaultValue: 'Event type is required.',
     })
-  }
-
-  if (!formValues.conditionPresetCode) {
-    errors.conditionPresetCode = t('campaigns.errors.conditionRequired', {
-      defaultValue: 'Campaign condition is required.',
-    })
   } else {
-    const selectedEvent = (options.eventTypes || []).find(
-      (event) => event.value === formValues.eventType,
+    const selectedVersion = (options.eventTypeVersions || []).find(
+      (version) => version.value === formValues.eventTypeVersionId,
     )
-    const selectedConditionPreset = (selectedEvent?.conditionPresets || []).find(
-      (preset) => preset.value === formValues.conditionPresetCode,
-    )
-    if (!selectedConditionPreset) {
-      errors.conditionPresetCode = t('campaigns.errors.conditionUnsupported', {
-        defaultValue: 'The selected campaign condition is not supported.',
+    if (!selectedVersion) {
+      errors.eventTypeVersionId = t('campaigns.errors.eventTypeVersionIdUnsupported', {
+        defaultValue: 'The selected event type is unknown or unsupported.',
       })
+    } else {
+      const conditionErrors = validateConditionFormState(formValues, selectedVersion, t)
+      if (conditionErrors) {
+        Object.assign(errors, conditionErrors)
+      }
     }
   }
 
@@ -356,8 +350,7 @@ export function validateCampaignCreate(formValues = {}, options = {}, t) {
         `actions[${i}]`,
         options,
         {
-          eventType: formValues.eventType,
-          conditionPresetCode: formValues.conditionPresetCode,
+          eventTypeVersionId: formValues.eventTypeVersionId,
         },
         t,
       ),

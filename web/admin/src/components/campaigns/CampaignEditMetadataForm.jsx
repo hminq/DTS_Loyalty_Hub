@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { Button } from '../ui/button'
+import { createMatchAllConditionFormState } from './campaignConditions'
 import { CampaignMetadataFormFields } from './CampaignMetadataFormFields'
 
 export function CampaignEditMetadataForm({
@@ -24,31 +25,11 @@ export function CampaignEditMetadataForm({
     setFormValues((prev) => ({ ...prev, [field]: value }))
   }
 
-  function handleEventTypeChange(nextEventType) {
-    const selectedEvent = (options.eventTypes || []).find((e) => e.value === nextEventType)
-    const compatibleConditionPresets = (selectedEvent?.conditionPresets || []).map(
-      (option) => option.value,
-    )
-
-    setFormValues((prev) => {
-      const nextConditionPresetCode = compatibleConditionPresets.includes(
-        prev.conditionPresetCode,
-      )
-        ? prev.conditionPresetCode
-        : ''
-
-      return {
-        ...prev,
-        eventType: nextEventType,
-        conditionPresetCode: nextConditionPresetCode,
-      }
-    })
-  }
-
-  function handleConditionOptionChange(nextConditionPresetCode) {
+  function handleEventTypeChange(nextVersionId) {
     setFormValues((prev) => ({
       ...prev,
-      conditionPresetCode: nextConditionPresetCode,
+      eventTypeVersionId: nextVersionId,
+      ...createMatchAllConditionFormState(),
     }))
   }
 
@@ -82,7 +63,6 @@ export function CampaignEditMetadataForm({
         fieldErrors={fieldErrors}
         updateField={updateField}
         handleEventTypeChange={handleEventTypeChange}
-        handleConditionOptionChange={handleConditionOptionChange}
         t={t}
       />
 

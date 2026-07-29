@@ -17,8 +17,8 @@ export function CampaignActionManager({
   isDraft = true,
   canEdit = true,
   options = {},
-  eventType = '',
-  conditionPresetCode = '',
+  selectedVersion = null,
+  eventDefinition = null,
   onActionsChanged,
   language,
   t,
@@ -31,7 +31,7 @@ export function CampaignActionManager({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [actionToDelete, setActionToDelete] = useState(null)
-  const hasCampaignContext = Boolean(eventType && conditionPresetCode)
+  const hasCampaignContext = Boolean(selectedVersion)
 
   const orderedActions = [...(actions || [])].sort(
     (a, b) => (a.executeOrder ?? 0) - (b.executeOrder ?? 0),
@@ -120,6 +120,14 @@ export function CampaignActionManager({
         ) : null}
       </div>
 
+      {!hasCampaignContext && eventDefinition ? (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-[13px] font-medium text-amber-600 dark:text-amber-400">
+          {t('campaigns.messages.versionNotSelectable', {
+            defaultValue: 'Pinned event type is no longer selectable. Action modifications are disabled.',
+          })}
+        </div>
+      ) : null}
+
       {successMessage ? (
         <div className="rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
           {successMessage}
@@ -166,10 +174,9 @@ export function CampaignActionManager({
           action={action}
           isNew={false}
           isDraft={isDraft}
-          canEdit={canEdit}
+          canEdit={canEdit && hasCampaignContext}
           options={options}
-          eventType={eventType}
-          conditionPresetCode={conditionPresetCode}
+          selectedVersion={selectedVersion}
           externalError={cardErrors[action.actionId] || ''}
           externalFieldErrors={cardFieldErrors[action.actionId] || {}}
           onSave={handleSaveAction}
@@ -194,10 +201,9 @@ export function CampaignActionManager({
           }}
           isNew={true}
           isDraft={isDraft}
-          canEdit={canEdit}
+          canEdit={canEdit && hasCampaignContext}
           options={options}
-          eventType={eventType}
-          conditionPresetCode={conditionPresetCode}
+          selectedVersion={selectedVersion}
           externalError={cardErrors.NEW || ''}
           externalFieldErrors={cardFieldErrors.NEW || {}}
           onSave={handleSaveAction}

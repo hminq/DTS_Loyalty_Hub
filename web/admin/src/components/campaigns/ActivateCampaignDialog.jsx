@@ -135,7 +135,7 @@ export function ActivateCampaignDialog({
                 {t('campaigns.form.conditionLabel', { defaultValue: 'Condition' })}:
               </span>
               <span className="text-muted-foreground">
-                {describeCampaignCondition({ condition: campaign.condition, eventType: campaign.eventType, options, t }).label}
+                {describeCampaignCondition({ condition: campaign.condition, eventDefinition: campaign.eventDefinition, options, t }).label}
               </span>
             </div>
 
@@ -145,7 +145,7 @@ export function ActivateCampaignDialog({
               </span>
               <ul className="list-disc pl-4 text-muted-foreground space-y-1">
                 {(campaign.actions || []).map((action, i) => {
-                  const desc = describeCampaignAction({ action, eventType: campaign.eventType, options, t })
+                  const desc = describeCampaignAction({ action, eventDefinition: campaign.eventDefinition, options, t })
                   return (
                     <li key={action.actionId || i}>
                       {desc.actionTypeLabel} → {desc.targetLabel}

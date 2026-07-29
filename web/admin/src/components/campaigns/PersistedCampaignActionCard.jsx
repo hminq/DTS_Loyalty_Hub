@@ -17,8 +17,7 @@ export function PersistedCampaignActionCard({
   isDraft = true,
   canEdit = true,
   options = {},
-  eventType = '',
-  conditionPresetCode = '',
+  selectedVersion = null,
   isSubmitting = false,
   externalError = '',
   externalFieldErrors = {},
@@ -58,10 +57,19 @@ export function PersistedCampaignActionCard({
     setCardError('')
     setFieldErrors({})
 
+    if (!selectedVersion) {
+      setCardError(
+        t('campaigns.messages.versionNotSelectable', {
+          defaultValue: 'Pinned event type is no longer selectable. Action modifications are disabled.',
+        }),
+      )
+      return
+    }
+
     const validation = validateCampaignAction(
       formValues,
       options,
-      { eventType, conditionPresetCode },
+      { eventTypeVersionId: selectedVersion.eventTypeVersionId || selectedVersion.value },
       t,
     )
     if (!validation.isValid) {
@@ -104,7 +112,13 @@ export function PersistedCampaignActionCard({
   }
 
   if (!isEditing && action) {
-    const actionDesc = describeCampaignAction({ action, eventType, options, t })
+    const actionDesc = describeCampaignAction({
+      action,
+      eventDefinition: selectedVersion,
+      options,
+      t,
+    })
+    const canModifyAction = isDraft && canEdit && actionDesc.isSupported
 
     return (
       <Card className="shadow-sm">
@@ -115,7 +129,7 @@ export function PersistedCampaignActionCard({
             </span>
             <CardTitle className="text-sm font-semibold">{actionDesc.actionTypeLabel}</CardTitle>
           </div>
-          {isDraft && canEdit ? (
+          {canModifyAction ? (
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -228,8 +242,7 @@ export function PersistedCampaignActionCard({
             <CampaignActionConfigurationFields
               action={formValues}
               options={options}
-              eventType={eventType}
-              conditionPresetCode={conditionPresetCode}
+              eventDefinition={selectedVersion}
               fieldErrors={allErrors}
               isSubmitting={isSubmitting}
               onChange={handleConfigChange}

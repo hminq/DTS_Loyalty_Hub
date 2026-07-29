@@ -15,35 +15,64 @@ function mapSchedule(schedule = {}, t) {
   }
 }
 
-function mapEventTypes(eventTypes = [], t) {
-  return (eventTypes || []).map((item) => {
+function mapEventTypeVersions(eventTypeVersions = [], t) {
+  return (eventTypeVersions || []).map((item) => {
+    const eventTypeId = item?.eventTypeId || ''
+    const eventTypeVersionId = item?.eventTypeVersionId || ''
     const code = item?.code || ''
+    const routingKey = item?.routingKey || ''
+    const name = item?.name || ''
+    const version = item?.version || 1
 
     const condition = item?.condition || {}
     const combinators = condition.combinators || []
-    const fields = condition.fields || []
-    const presets = (condition.presets || []).map(preset => ({
-      value: preset.code,
-      label: t(`campaigns.conditionPresets.${preset.code}`, { defaultValue: preset.code }),
-      condition: preset.condition,
+    const fields = (condition.fields || []).map(field => ({
+      code: field.code,
+      label: t(`campaigns.conditionFields.${field.code}`, { defaultValue: field.code }),
+      dataType: field.dataType,
+      format: field.format,
+      required: field.required,
+      operators: field.operators,
+      options: field.options,
     }))
 
     const targets = (item?.targets || []).map(target => ({
-      value: target.code,
-      label: t(`campaigns.targetSelectors.${target.code}`, { defaultValue: target.code }),
+      value: target.selector,
+      selector: target.selector,
+      label: t(`campaigns.targetSelectors.${target.selector}`, { defaultValue: target.selector }),
       targetKind: target.targetKind,
-      applicability: target.applicability,
+      idField: target.idField,
     }))
 
     return {
-      value: code,
-      label: t(`campaigns.eventTypes.${code}`, { defaultValue: code }),
+      value: eventTypeVersionId,
+      label: `${name} - ${code} (v${version})`,
+      eventTypeId,
+      eventTypeVersionId,
+      code,
+      routingKey,
+      name,
+      version,
       conditionCombinators: combinators,
       conditionFields: fields,
-      conditionPresets: presets,
       targets: targets,
     }
   })
+}
+
+function mapEventTypeFilters(eventTypeVersions = []) {
+  const uniqueTypes = new Map()
+
+  ;(eventTypeVersions || []).forEach((item) => {
+    if (item?.eventTypeId && !uniqueTypes.has(item.eventTypeId)) {
+      uniqueTypes.set(item.eventTypeId, {
+        value: item.eventTypeId,
+        label: `${item.name} (${item.code})`
+      })
+    }
+  })
+
+  return Array.from(uniqueTypes.values())
 }
 
 function mapActionTypes(actionTypes = [], t) {
@@ -68,9 +97,11 @@ function mapActionTypes(actionTypes = [], t) {
 
 export function mapCampaignOptions(rawOptions = {}, t) {
   const opts = rawOptions || {}
+  const eventTypeVersions = mapEventTypeVersions(opts.eventTypeVersions, t)
   return {
     campaignStatuses: mapStatuses(opts.campaignStatuses, t),
-    eventTypes: mapEventTypes(opts.eventTypes, t),
+    eventTypeVersions,
+    eventTypeFilters: mapEventTypeFilters(opts.eventTypeVersions),
     actionTypes: mapActionTypes(opts.actionTypes, t),
     schedule: mapSchedule(opts.schedule, t),
   }
