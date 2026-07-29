@@ -1,4 +1,4 @@
-using Core.Requests;
+using Scheduler.Core.Requests;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

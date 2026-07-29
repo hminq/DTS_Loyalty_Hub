@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Core.Abstractions;
-using Core.Services;
+using Consumer.Core.Abstractions;
+using Consumer.Core.Services;
 
 namespace Consumer;
 

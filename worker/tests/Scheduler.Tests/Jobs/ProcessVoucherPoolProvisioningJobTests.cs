@@ -1,7 +1,7 @@
-using Core.Abstractions;
-using Core.Entities;
-using Core.Entities.Constants;
-using Core.Requests;
+using Scheduler.Core.Abstractions;
+using Scheduler.Core.Entities;
+using Scheduler.Core.Entities.Constants;
+using Scheduler.Core.Requests;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;

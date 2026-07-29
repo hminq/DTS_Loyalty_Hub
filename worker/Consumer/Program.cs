@@ -1,6 +1,6 @@
 using DotNetEnv;
 using Consumer;
-using Infrastructure;
+using Consumer.Infrastructure;
 using Microsoft.Extensions.Configuration;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -38,4 +38,5 @@ builder.Services.AddRabbitMqCampaignConsumer(builder.Configuration);
 builder.Services.AddHostedService<ConsumerWorker>();
 
 var host = builder.Build();
+host.Services.ValidateCampaignEventProcessing();
 host.Run();

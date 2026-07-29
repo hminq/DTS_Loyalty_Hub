@@ -1,10 +1,10 @@
 using DotNetEnv;
-using Infrastructure;
+using Scheduler.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Quartz;
 using Scheduler.Jobs;
 using Scheduler.Options;
-using Core.Entities.Constants;
+using Scheduler.Core.Entities.Constants;
 
 var builder = Host.CreateApplicationBuilder(args);
 

@@ -4,8 +4,8 @@ WORKDIR /src
 COPY shared/Persistence/Persistence.csproj shared/Persistence/
 COPY shared/Campaign.Contracts/Campaign.Contracts.csproj shared/Campaign.Contracts/
 COPY shared/Messaging.Contracts/Messaging.Contracts.csproj shared/Messaging.Contracts/
-COPY worker/Core/Core.csproj worker/Core/
-COPY worker/Infrastructure/Infrastructure.csproj worker/Infrastructure/
+COPY worker/Consumer/Core/Consumer.Core.csproj worker/Consumer/Core/
+COPY worker/Consumer/Infrastructure/Consumer.Infrastructure.csproj worker/Consumer/Infrastructure/
 COPY worker/Consumer/Consumer.csproj worker/Consumer/
 
 RUN dotnet restore worker/Consumer/Consumer.csproj

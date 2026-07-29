@@ -1,4 +1,4 @@
-using Infrastructure.Options;
+using Scheduler.Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace Scheduler.Tests.Options;
