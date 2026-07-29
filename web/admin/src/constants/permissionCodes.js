@@ -56,4 +56,9 @@ export const PermissionCodes = Object.freeze({
     Update: 'campaign.update',
     Delete: 'campaign.delete',
   }),
+  EventDefinitions: Object.freeze({
+    View: 'event_definition.view',
+    Create: 'event_definition.create',
+    Update: 'event_definition.update',
+  }),
 })

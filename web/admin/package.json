@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "campaign:m3-smoke": "node scripts/campaign-m3-contract-smoke.mjs",
+    "event-definitions:m7-smoke": "node scripts/event-definitions-m7-contract-smoke.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

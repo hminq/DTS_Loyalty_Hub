@@ -3,6 +3,7 @@ import {
   GiftIcon,
   HouseIcon,
   IdentificationBadgeIcon,
+  LightningIcon,
   MegaphoneIcon,
   TicketIcon,
   UsersThreeIcon,
@@ -18,6 +19,13 @@ const navigationItems = [
     icon: MegaphoneIcon,
     path: '/campaigns',
     permission: PermissionCodes.Campaigns.View,
+  },
+  {
+    id: 'event-definitions',
+    labelKey: 'navigation.eventDefinitions',
+    icon: LightningIcon,
+    path: '/event-definitions',
+    permission: PermissionCodes.EventDefinitions.View,
   },
   {
     id: 'role-permission',
