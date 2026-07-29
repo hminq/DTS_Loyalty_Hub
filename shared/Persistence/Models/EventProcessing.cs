@@ -11,6 +11,10 @@ public partial class EventProcessing
 
     public string RoutingKey { get; set; } = null!;
 
+    public Guid? EventTypeVersionId { get; set; }
+
+    public int? EventVersion { get; set; }
+
     public DateTime OccurredAt { get; set; }
 
     public string Payload { get; set; } = null!;
@@ -27,4 +31,6 @@ public partial class EventProcessing
 
     public virtual ICollection<EventCampaignProcessing> EventCampaignProcessings { get; set; } =
         new List<EventCampaignProcessing>();
+
+    public virtual EventTypeVersion? EventTypeVersion { get; set; }
 }

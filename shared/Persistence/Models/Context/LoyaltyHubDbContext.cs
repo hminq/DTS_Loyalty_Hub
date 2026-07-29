@@ -29,6 +29,10 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<EventProcessing> EventProcessings { get; set; }
 
+    public virtual DbSet<EventType> EventTypes { get; set; }
+
+    public virtual DbSet<EventTypeVersion> EventTypeVersions { get; set; }
+
     public virtual DbSet<Customer> Customers { get; set; }
 
     public virtual DbSet<CustomerPoint> CustomerPoints { get; set; }
@@ -252,6 +256,8 @@ public partial class LoyaltyHubDbContext : DbContext
 
             entity.ToTable("campaigns");
 
+            entity.HasIndex(e => new { e.EventTypeVersionId, e.Status, e.StartDate, e.EndDate }, "ix_campaigns_event_type_version_status_dates");
+
             entity.HasIndex(e => new { e.Status, e.EndDate }, "ix_campaigns_status_end_date");
 
             entity.Property(e => e.CampaignId)
@@ -278,6 +284,7 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.EventType)
                 .HasMaxLength(50)
                 .HasColumnName("event_type");
+            entity.Property(e => e.EventTypeVersionId).HasColumnName("event_type_version_id");
             entity.Property(e => e.MinAmount)
                 .HasPrecision(18, 2)
                 .HasColumnName("min_amount");
@@ -294,6 +301,11 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserLimitSession).HasColumnName("user_limit_session");
             entity.Property(e => e.UserLimitTotal).HasColumnName("user_limit_total");
+
+            entity.HasOne(d => d.EventTypeVersion).WithMany(p => p.Campaigns)
+                .HasForeignKey(d => d.EventTypeVersionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_campaigns_event_type_version");
         });
 
         modelBuilder.Entity<CampaignSession>(entity =>
@@ -500,6 +512,9 @@ public partial class LoyaltyHubDbContext : DbContext
                     "ck_event_processings_event_type",
                     "NULLIF(BTRIM(event_type), '') IS NOT NULL");
                 table.HasCheckConstraint(
+                    "ck_event_processings_event_version",
+                    "event_version IS NULL OR event_version > 0");
+                table.HasCheckConstraint(
                     "ck_event_processings_routing_key",
                     "NULLIF(BTRIM(routing_key), '') IS NOT NULL");
                 table.HasCheckConstraint(
@@ -532,6 +547,8 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.EventType)
                 .HasMaxLength(100)
                 .HasColumnName("event_type");
+            entity.Property(e => e.EventTypeVersionId).HasColumnName("event_type_version_id");
+            entity.Property(e => e.EventVersion).HasColumnName("event_version");
             entity.Property(e => e.FailedAt).HasColumnName("failed_at");
             entity.Property(e => e.OccurredAt).HasColumnName("occurred_at");
             entity.Property(e => e.Payload)
@@ -547,6 +564,114 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasMaxLength(25)
                 .HasDefaultValueSql("'PENDING'::character varying")
                 .HasColumnName("status");
+
+            entity.HasOne(d => d.EventTypeVersion).WithMany(p => p.EventProcessings)
+                .HasForeignKey(d => d.EventTypeVersionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_event_processings_event_type_version");
+        });
+
+        modelBuilder.Entity<EventType>(entity =>
+        {
+            entity.HasKey(e => e.EventTypeId).HasName("event_types_pkey");
+
+            entity.ToTable("event_types", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_event_types_code_not_blank",
+                    "NULLIF(BTRIM(code), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_event_types_name_not_blank",
+                    "NULLIF(BTRIM(name), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_event_types_routing_key_not_blank",
+                    "NULLIF(BTRIM(routing_key), '') IS NOT NULL");
+                table.HasCheckConstraint(
+                    "ck_event_types_status",
+                    "status IN ('ACTIVE', 'RETIRED')");
+            });
+
+            entity.HasIndex(e => e.Code, "uq_event_types_code").IsUnique();
+
+            entity.HasIndex(e => e.RoutingKey, "uq_event_types_routing_key").IsUnique();
+
+            entity.Property(e => e.EventTypeId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("event_type_id");
+            entity.Property(e => e.Code)
+                .HasMaxLength(100)
+                .HasColumnName("code");
+            entity.Property(e => e.RoutingKey)
+                .HasMaxLength(255)
+                .HasColumnName("routing_key");
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .HasColumnName("name");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Status)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'ACTIVE'::character varying")
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<EventTypeVersion>(entity =>
+        {
+            entity.HasKey(e => e.EventTypeVersionId).HasName("event_type_versions_pkey");
+
+            entity.ToTable("event_type_versions", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_event_type_versions_payload_schema",
+                    "jsonb_typeof(payload_schema) = 'object'");
+                table.HasCheckConstraint(
+                    "ck_event_type_versions_publication_state",
+                    "(status = 'DRAFT' AND published_at IS NULL) OR "
+                    + "(status IN ('PUBLISHED', 'RETIRED') AND published_at IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_event_type_versions_status",
+                    "status IN ('DRAFT', 'PUBLISHED', 'RETIRED')");
+                table.HasCheckConstraint(
+                    "ck_event_type_versions_version",
+                    "version > 0");
+            });
+
+            entity.HasIndex(e => new { e.EventTypeId, e.Version }, "uq_event_type_versions_event_type_version")
+                .IsUnique();
+
+            entity.HasIndex(e => e.EventTypeId, "uq_event_type_versions_one_draft_per_event_type")
+                .IsUnique()
+                .HasFilter("status = 'DRAFT'");
+
+            entity.Property(e => e.EventTypeVersionId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("event_type_version_id");
+            entity.Property(e => e.EventTypeId).HasColumnName("event_type_id");
+            entity.Property(e => e.Version).HasColumnName("version");
+            entity.Property(e => e.PayloadSchema)
+                .HasColumnType("jsonb")
+                .HasColumnName("payload_schema");
+            entity.Property(e => e.Status)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'DRAFT'::character varying")
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.PublishedAt).HasColumnName("published_at");
+
+            entity.HasOne(d => d.EventType).WithMany(p => p.EventTypeVersions)
+                .HasForeignKey(d => d.EventTypeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_event_type_versions_event_type");
         });
 
         modelBuilder.Entity<Customer>(entity =>
@@ -1242,6 +1367,9 @@ public partial class LoyaltyHubDbContext : DbContext
                     "ck_outbox_messages_event_type",
                     "NULLIF(BTRIM(event_type), '') IS NOT NULL");
                 table.HasCheckConstraint(
+                    "ck_outbox_messages_event_version",
+                    "event_version IS NULL OR event_version > 0");
+                table.HasCheckConstraint(
                     "ck_outbox_messages_routing_key",
                     "NULLIF(BTRIM(routing_key), '') IS NOT NULL");
                 table.HasCheckConstraint(
@@ -1276,6 +1404,8 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.RoutingKey)
                 .HasMaxLength(255)
                 .HasColumnName("routing_key");
+            entity.Property(e => e.EventTypeVersionId).HasColumnName("event_type_version_id");
+            entity.Property(e => e.EventVersion).HasColumnName("event_version");
             entity.Property(e => e.Payload)
                 .HasColumnType("jsonb")
                 .HasColumnName("payload");
@@ -1298,6 +1428,11 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
             entity.Property(e => e.PublishedAt).HasColumnName("published_at");
+
+            entity.HasOne(d => d.EventTypeVersion).WithMany(p => p.OutboxMessages)
+                .HasForeignKey(d => d.EventTypeVersionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_outbox_messages_event_type_version");
         });
 
         OnModelCreatingPartial(modelBuilder);

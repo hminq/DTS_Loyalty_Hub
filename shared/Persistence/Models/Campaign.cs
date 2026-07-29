@@ -15,6 +15,8 @@ public partial class Campaign
 
     public string EventType { get; set; } = null!;
 
+    public Guid? EventTypeVersionId { get; set; }
+
     public DateTime StartDate { get; set; }
 
     public DateTime EndDate { get; set; }
@@ -45,6 +47,8 @@ public partial class Campaign
 
     public virtual ICollection<EventCampaignProcessing> EventCampaignProcessings { get; set; } =
         new List<EventCampaignProcessing>();
+
+    public virtual EventTypeVersion? EventTypeVersion { get; set; }
 
     public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 
