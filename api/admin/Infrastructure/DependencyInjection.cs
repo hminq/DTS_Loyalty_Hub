@@ -13,6 +13,7 @@ using MediatR;
 using Infrastructure.Auditing;
 using Infrastructure.Behaviors;
 using Core.UseCases.Campaigns;
+using Core.UseCases.EventDefinitions;
 
 namespace Infrastructure;
 
@@ -47,7 +48,10 @@ public static class DependencyInjection
         services.AddScoped<ITierRepository, TierRepository>();
         services.AddScoped<IVoucherDefinitionRepository, VoucherDefinitionRepository>();
         services.AddScoped<ICampaignRepository, CampaignRepository>();
+        services.AddScoped<ICampaignEventDefinitionRepository, CampaignEventDefinitionRepository>();
         services.AddSingleton<ICampaignConfigurationService, CampaignConfigurationService>();
+        services.AddSingleton<EventDefinitionSchemaService>();
+        services.AddScoped<IEventDefinitionRepository, EventDefinitionRepository>();
         services.AddScoped<IVoucherPoolProvisioningJobWriter, VoucherPoolProvisioningJobWriter>();
         services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
         services.AddScoped<IPasswordVerifier, PasswordVerifier>();
