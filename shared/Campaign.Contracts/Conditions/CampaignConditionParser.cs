@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Campaign.Contracts.Constants;
 using Campaign.Contracts.Definitions;
+using Messaging.Contracts.Events;
 
 namespace Campaign.Contracts.Conditions;
 
@@ -35,7 +36,7 @@ public sealed class CampaignConditionParser
         var errors = new List<CampaignDefinitionError>();
         var fields = eventDefinition.ConditionFields.ToDictionary(
             field => field.Code,
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.Ordinal);
 
         if (conditionJson.ValueKind != JsonValueKind.Object)
         {
@@ -104,8 +105,8 @@ public sealed class CampaignConditionParser
             {
                 field = predicate.Field,
                 @operator = predicate.Operator,
-                value = predicate.Operator == CampaignConditionOperators.Equals
-                    ? (object)predicate.Values[0]
+                value = predicate.Operator is not CampaignConditionOperators.In
+                    ? ToJsonValue(predicate.Values[0], predicate.DataType)
                     : predicate.Values
             })
         };
@@ -160,15 +161,7 @@ public sealed class CampaignConditionParser
             return;
         }
 
-        if (field.DataType != CampaignConditionFieldTypes.Enum)
-        {
-            errors.Add(new CampaignDefinitionError(
-                "CAMPAIGN_CONDITION_FIELD_TYPE_UNSUPPORTED",
-                $"Campaign condition field '{field.Code}' is not executable."));
-            return;
-        }
-
-        if (!field.Operators.Contains(operatorCode, StringComparer.OrdinalIgnoreCase))
+        if (!field.Operators.Contains(operatorCode, StringComparer.Ordinal))
         {
             errors.Add(new CampaignDefinitionError(
                 "CAMPAIGN_CONDITION_OPERATOR_INVALID",
@@ -176,24 +169,27 @@ public sealed class CampaignConditionParser
             return;
         }
 
-        var values = ReadEnumValues(predicateElement.GetProperty("value"), operatorCode, errors);
+        var values = ReadValues(predicateElement.GetProperty("value"), operatorCode, field, errors);
         if (values.Count == 0)
         {
             return;
         }
 
-        var allowedValues = field.Options.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var normalizedValues = values
-            .Select(value => value.Trim().ToUpperInvariant())
+            .Select(value => NormalizeValue(value, field.DataType))
             .OrderBy(value => value, StringComparer.Ordinal)
             .ToArray();
 
-        if (normalizedValues.Any(value => !allowedValues.Contains(value)))
+        if (field.DataType == CampaignConditionFieldTypes.Enum)
         {
-            errors.Add(new CampaignDefinitionError(
-                "CAMPAIGN_CONDITION_VALUE_INVALID",
-                $"Campaign condition contains an unregistered value for field '{field.Code}'."));
-            return;
+            var allowedValues = field.Options.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (normalizedValues.Any(value => !allowedValues.Contains(value)))
+            {
+                errors.Add(new CampaignDefinitionError(
+                    "CAMPAIGN_CONDITION_VALUE_INVALID",
+                    $"Campaign condition contains an unregistered value for field '{field.Code}'."));
+                return;
+            }
         }
 
         if (normalizedValues.Length != normalizedValues.Distinct(StringComparer.Ordinal).Count())
@@ -204,41 +200,27 @@ public sealed class CampaignConditionParser
             return;
         }
 
-        if (operatorCode == CampaignConditionOperators.Equals && normalizedValues.Length != 1)
+        if (operatorCode is not CampaignConditionOperators.In && normalizedValues.Length != 1)
         {
             errors.Add(new CampaignDefinitionError(
                 "CAMPAIGN_CONDITION_VALUE_INVALID",
-                "EQUALS requires exactly one value."));
+                "Predicate operator requires exactly one value."));
             return;
         }
 
-        predicates.Add(new CampaignConditionPredicate(field.Code, operatorCode, normalizedValues));
+        predicates.Add(new CampaignConditionPredicate(field.Code, operatorCode, normalizedValues, field.DataType));
     }
 
-    private static IReadOnlyList<string> ReadEnumValues(
+    private static IReadOnlyList<string> ReadValues(
         JsonElement valueElement,
         string operatorCode,
+        CampaignConditionFieldDefinition field,
         List<CampaignDefinitionError> errors)
     {
-        if (operatorCode == CampaignConditionOperators.Equals)
-        {
-            var value = valueElement.ValueKind == JsonValueKind.String
-                ? valueElement.GetString()
-                : null;
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                errors.Add(new CampaignDefinitionError(
-                    "CAMPAIGN_CONDITION_VALUE_INVALID",
-                    "EQUALS requires one non-empty string value."));
-                return Array.Empty<string>();
-            }
-
-            return [value];
-        }
-
         if (operatorCode == CampaignConditionOperators.In)
         {
-            if (valueElement.ValueKind != JsonValueKind.Array)
+            if (field.DataType != CampaignConditionFieldTypes.Enum ||
+                valueElement.ValueKind != JsonValueKind.Array)
             {
                 errors.Add(new CampaignDefinitionError(
                     "CAMPAIGN_CONDITION_VALUE_INVALID",
@@ -261,10 +243,89 @@ public sealed class CampaignConditionParser
             return values!;
         }
 
+        if (valueElement.ValueKind is JsonValueKind.Null or JsonValueKind.Array)
+        {
+            errors.Add(new CampaignDefinitionError(
+                "CAMPAIGN_CONDITION_VALUE_INVALID",
+                "Campaign condition value type is invalid."));
+            return Array.Empty<string>();
+        }
+
+        if (field.DataType is CampaignConditionFieldTypes.String or CampaignConditionFieldTypes.Enum)
+        {
+            var value = valueElement.ValueKind == JsonValueKind.String
+                ? valueElement.GetString()
+                : null;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                errors.Add(new CampaignDefinitionError(
+                    "CAMPAIGN_CONDITION_VALUE_INVALID",
+                    "EQUALS requires one non-empty string value."));
+                return Array.Empty<string>();
+            }
+
+            if (field.Format == EventPayloadFormats.Uuid &&
+                !Guid.TryParse(value, out _))
+            {
+                errors.Add(new CampaignDefinitionError(
+                    "CAMPAIGN_CONDITION_VALUE_INVALID",
+                    "UUID condition values must be valid UUID strings."));
+                return Array.Empty<string>();
+            }
+
+            return [value];
+        }
+
+        if (field.DataType == CampaignConditionFieldTypes.Number)
+        {
+            if (valueElement.ValueKind != JsonValueKind.Number ||
+                !valueElement.TryGetDecimal(out var number))
+            {
+                errors.Add(new CampaignDefinitionError(
+                    "CAMPAIGN_CONDITION_VALUE_INVALID",
+                    "NUMBER condition values must be decimal numbers."));
+                return Array.Empty<string>();
+            }
+
+            return [number.ToString(System.Globalization.CultureInfo.InvariantCulture)];
+        }
+
+        if (field.DataType == CampaignConditionFieldTypes.Boolean)
+        {
+            if (valueElement.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+            {
+                errors.Add(new CampaignDefinitionError(
+                    "CAMPAIGN_CONDITION_VALUE_INVALID",
+                    "BOOLEAN condition values must be boolean."));
+                return Array.Empty<string>();
+            }
+
+            return [valueElement.GetBoolean() ? "true" : "false"];
+        }
+
         errors.Add(new CampaignDefinitionError(
             "CAMPAIGN_CONDITION_OPERATOR_INVALID",
             $"Campaign condition operator '{operatorCode}' is not supported."));
         return Array.Empty<string>();
+    }
+
+    private static string NormalizeValue(string value, string dataType)
+    {
+        return dataType == CampaignConditionFieldTypes.Enum
+            ? value.Trim().ToUpperInvariant()
+            : value.Trim();
+    }
+
+    private static object ToJsonValue(string value, string dataType)
+    {
+        return dataType switch
+        {
+            CampaignConditionFieldTypes.Number => decimal.Parse(
+                value,
+                System.Globalization.CultureInfo.InvariantCulture),
+            CampaignConditionFieldTypes.Boolean => bool.Parse(value),
+            _ => value
+        };
     }
 
     private static string? ReadString(JsonElement element, string propertyName)

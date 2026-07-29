@@ -268,26 +268,15 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("campaign_name");
             entity.Property(e => e.Condition)
-                .HasDefaultValueSql("'{}'::jsonb")
                 .HasColumnType("jsonb")
                 .HasColumnName("condition");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
-            entity.Property(e => e.CurrencyCode)
-                .HasMaxLength(3)
-                .IsFixedLength()
-                .HasColumnName("currency_code");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.DurationHour).HasColumnName("duration_hour");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
-            entity.Property(e => e.EventType)
-                .HasMaxLength(50)
-                .HasColumnName("event_type");
             entity.Property(e => e.EventTypeVersionId).HasColumnName("event_type_version_id");
-            entity.Property(e => e.MinAmount)
-                .HasPrecision(18, 2)
-                .HasColumnName("min_amount");
             entity.Property(e => e.ScheduleCron)
                 .HasMaxLength(100)
                 .HasColumnName("schedule_cron");

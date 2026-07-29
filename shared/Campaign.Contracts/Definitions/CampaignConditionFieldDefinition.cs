@@ -5,4 +5,6 @@ public sealed record CampaignConditionFieldDefinition(
     string DataType,
     IReadOnlyList<string> Operators,
     IReadOnlyList<string> Options,
-    bool Required);
+    bool Required,
+    string? Format = null,
+    bool Conditionable = true);

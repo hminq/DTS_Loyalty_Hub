@@ -84,7 +84,7 @@ public sealed class CampaignActionBindingParser
         }
 
         var target = eventDefinition.Targets.FirstOrDefault(candidate =>
-            string.Equals(candidate.Selector, selector, StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.Selector, selector, StringComparison.Ordinal));
         if (target is null)
         {
             return Invalid("CAMPAIGN_ACTION_TARGET_INVALID", "Campaign action target selector is not registered.");
