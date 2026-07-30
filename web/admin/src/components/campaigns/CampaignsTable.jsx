@@ -36,12 +36,11 @@ function CampaignsTable({
       <table className="w-full min-w-[860px] border-collapse text-left text-[13px]">
         <thead className="bg-muted/55 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
-            <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.campaign')}</th>
+            <th className="w-72 max-w-72 px-4 py-2.5 font-semibold">{t('campaigns.columns.campaign')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.eventType')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.status')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.schedule')}</th>
             <th className="px-4 py-2.5 text-right font-semibold">{t('campaigns.columns.actionCount')}</th>
-            <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.nextSession')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('campaigns.columns.updatedAt')}</th>
             {hasActions ? (
               <th className="px-4 py-2.5 text-right font-semibold">{t('common.actions', { defaultValue: 'Actions' })}</th>
@@ -51,7 +50,7 @@ function CampaignsTable({
         <tbody>
           {isLoading ? (
             <tr className="border-t border-border">
-              <td className="px-4 py-8 text-center text-muted-foreground" colSpan={hasActions ? 8 : 7}>
+              <td className="px-4 py-8 text-center text-muted-foreground" colSpan={hasActions ? 7 : 6}>
                 <span className="inline-flex items-center gap-2">
                   <CircleNotchIcon className="animate-spin" size={16} aria-hidden="true" />
                   {t('campaigns.loading')}
@@ -74,10 +73,11 @@ function CampaignsTable({
                   key={item.campaignId}
                   className="border-t border-border transition-colors hover:bg-muted/25"
                 >
-                  <td className="px-4 py-3 font-medium text-foreground">
+                  <td className="w-72 max-w-72 px-4 py-3 font-medium text-foreground">
                     <Link
                       to={`/campaigns/${item.campaignId}`}
                       className="block truncate font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      title={item.campaignName}
                     >
                       {item.campaignName}
                     </Link>
@@ -95,9 +95,6 @@ function CampaignsTable({
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
                     {formatCampaignNumber(item.actionCount, language)}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {formatCampaignDateTime(item.nextSessionStart, language)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatCampaignDateTime(item.updatedAt, language)}

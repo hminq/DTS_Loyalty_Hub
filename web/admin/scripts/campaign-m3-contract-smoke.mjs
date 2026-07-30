@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mapCampaignOptions } from '../src/components/campaigns/campaignOptions.js'
 import {
   buildConditionFromFormState,
+  createConditionRow,
   createMatchAllConditionFormState,
   inspectPersistedCondition,
   mapConditionToFormState,
@@ -173,7 +174,32 @@ async function runSmokeTests() {
   assert.throws(() => buildConditionFromFormState({ conditionMode: 'MATCH_FIELDS', conditionPredicates: [{ field: 'age', operator: 'GT', value: '1' }, { field: 'age', operator: 'GT', value: '01' }] }, selectedVersion))
   assert.ok(validateConditionFormState({ conditionMode: 'MATCH_FIELDS', conditionPredicates: [{ field: 'age', operator: 'GT', value: '1' }, { field: 'age', operator: 'GT', value: '01' }] }, selectedVersion, t)?.conditionRows?.[1]?.duplicate)
 
-  // 15. Shared version change reset helper
+  // 15. UI-only row IDs are omitted from the persisted condition contract
+  const conditionRow = {
+    ...createConditionRow(),
+    field: 'username',
+    operator: 'EQUALS',
+    value: 'nguyenminhspecial'
+  }
+  assert.deepEqual(
+    buildConditionFromFormState({
+      conditionMode: 'MATCH_FIELDS',
+      conditionPredicates: [conditionRow]
+    }, selectedVersion),
+    {
+      all: [{
+        field: 'username',
+        operator: 'EQUALS',
+        value: 'nguyenminhspecial'
+      }]
+    }
+  )
+  assert.equal(
+    inspectPersistedCondition({ all: [conditionRow] }, selectedVersion).isSupported,
+    false
+  )
+
+  // 16. Shared version change reset helper
   const resetState = createMatchAllConditionFormState()
   assert.equal(resetState.conditionMode, 'MATCH_ALL')
   assert.deepEqual(resetState.conditionPredicates, [])

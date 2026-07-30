@@ -214,7 +214,14 @@ export function buildConditionFromFormState(formValues, selectedVersion) {
       throw new Error('Incomplete condition predicate row')
     }
 
-    const normalized = normalizeConditionPredicate(predicate, fieldsMeta)
+    const normalized = normalizeConditionPredicate(
+      {
+        field: predicate.field,
+        operator: predicate.operator,
+        value: predicate.value,
+      },
+      fieldsMeta,
+    )
     const key = getPredicateKey(normalized)
     if (seenKeys.has(key)) {
       throw new Error(`Duplicate condition predicate: ${key}`)
