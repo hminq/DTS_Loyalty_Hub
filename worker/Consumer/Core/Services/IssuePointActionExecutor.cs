@@ -32,7 +32,7 @@ public sealed class IssuePointActionExecutor : ICampaignActionExecutor
             .Order()
             .ToArray();
 
-        return _store.LockCustomerPointsAsync(customerIds, cancellationToken);
+        return _store.PrepareIssuePointExecutionAsync(customerIds, cancellationToken);
     }
 
     public void Execute(

@@ -4,7 +4,7 @@ namespace Consumer.Core.Abstractions;
 
 public interface IIssuePointExecutionStore
 {
-    Task LockCustomerPointsAsync(
+    Task PrepareIssuePointExecutionAsync(
         IReadOnlyCollection<Guid> customerIds,
         CancellationToken cancellationToken = default);
 

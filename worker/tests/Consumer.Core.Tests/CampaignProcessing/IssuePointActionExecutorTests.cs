@@ -28,7 +28,7 @@ public sealed class IssuePointActionExecutorTests
 
         await executor.PrepareAsync(actions, CancellationToken.None);
 
-        _store.Verify(store => store.LockCustomerPointsAsync(
+        _store.Verify(store => store.PrepareIssuePointExecutionAsync(
             It.Is<IReadOnlyCollection<Guid>>(ids =>
                 ids.SequenceEqual(new[] { firstCustomerId, secondCustomerId })),
             It.IsAny<CancellationToken>()), Times.Once);

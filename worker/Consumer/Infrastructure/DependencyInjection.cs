@@ -70,6 +70,7 @@ public static class DependencyInjection
 
         services.AddScoped<ICampaignEventPreparationStore, CampaignEventPreparationStore>();
         services.AddScoped<ICampaignRewardExecutionStore, CampaignRewardExecutionStore>();
+        services.AddScoped<Core.Services.CustomerTierProgressionService>();
         services.AddScoped<IIssuePointExecutionStore, IssuePointExecutionStore>();
         services.AddScoped<IEventProcessingFinalizationStore, EventProcessingFinalizationStore>();
         services.AddSingleton<ICampaignProcessingScopeExecutor, CampaignProcessingScopeExecutor>();

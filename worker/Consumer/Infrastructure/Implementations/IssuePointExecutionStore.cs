@@ -1,7 +1,9 @@
 using Consumer.Core.Abstractions;
 using Consumer.Core.Entities.Campaigns;
 using Consumer.Core.Entities.Constants;
+using Consumer.Core.Entities.Points;
 using Consumer.Core.Exceptions;
+using Consumer.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Models;
 using Persistence.Models.Context;
@@ -10,19 +12,33 @@ namespace Consumer.Infrastructure.Implementations;
 
 public sealed class IssuePointExecutionStore : IIssuePointExecutionStore
 {
-    private const decimal MaximumNumeric18Scale2 = 9999999999999999.99m;
-
     private readonly LoyaltyHubDbContext _dbContext;
+    private readonly CustomerTierProgressionService _tierProgressionService;
+    private IReadOnlyList<TierProgressionConfiguration> _tierConfigurations = [];
 
-    public IssuePointExecutionStore(LoyaltyHubDbContext dbContext)
+    public IssuePointExecutionStore(
+        LoyaltyHubDbContext dbContext,
+        CustomerTierProgressionService tierProgressionService)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _tierProgressionService = tierProgressionService ??
+            throw new ArgumentNullException(nameof(tierProgressionService));
     }
 
-    public async Task LockCustomerPointsAsync(
+    public async Task PrepareIssuePointExecutionAsync(
         IReadOnlyCollection<Guid> customerIds,
         CancellationToken cancellationToken = default)
     {
+        _tierConfigurations = await _dbContext.TiersConfigs
+            .AsNoTracking()
+            .OrderBy(tier => tier.Priority)
+            .Select(tier => new TierProgressionConfiguration(
+                tier.TierConfigId,
+                tier.PointsRequired,
+                tier.CycleMonth,
+                tier.Priority))
+            .ToArrayAsync(cancellationToken);
+
         if (customerIds.Count == 0)
         {
             return;
@@ -42,6 +58,9 @@ public sealed class IssuePointExecutionStore : IIssuePointExecutionStore
 
     public void ApplyIssuePoint(IssuePointMutation mutation)
     {
+        var customer = _dbContext.Customers.Local.SingleOrDefault(
+            item => item.CustomerId == mutation.CustomerId)
+            ?? throw PersistenceFailure();
         var customerPoint = _dbContext.CustomerPoints.Local.SingleOrDefault(
             item => item.CustomerId == mutation.CustomerId);
 
@@ -62,27 +81,29 @@ public sealed class IssuePointExecutionStore : IIssuePointExecutionStore
             _dbContext.CustomerPoints.Add(customerPoint);
         }
 
-        decimal balanceAfter;
-        decimal lifetimeAfter;
-        try
-        {
-            balanceAfter = checked(customerPoint.ActivePoint + mutation.Amount);
-            lifetimeAfter = checked(customerPoint.LifetimePoint + mutation.Amount);
-        }
-        catch (OverflowException)
-        {
-            throw PersistenceFailure();
-        }
+        var tierMutation = _tierProgressionService.Calculate(
+            new CustomerPointTierState(
+                customer.CustomerId,
+                customer.TierId,
+                customer.CurrentTierPoint,
+                customer.NextTierPoint,
+                customer.StartTier,
+                customer.ExpiredTier,
+                customer.NextTierId,
+                customerPoint.ActivePoint,
+                customerPoint.LifetimePoint),
+            _tierConfigurations,
+            mutation.Amount,
+            mutation.CreatedAt);
 
-        if (balanceAfter > MaximumNumeric18Scale2 ||
-            lifetimeAfter > MaximumNumeric18Scale2)
-        {
-            throw PersistenceFailure();
-        }
-
-        var balanceBefore = customerPoint.ActivePoint;
-        customerPoint.ActivePoint = balanceAfter;
-        customerPoint.LifetimePoint = lifetimeAfter;
+        customer.TierId = tierMutation.TierId;
+        customer.CurrentTierPoint = tierMutation.CurrentTierPoint;
+        customer.NextTierId = tierMutation.NextTierId;
+        customer.NextTierPoint = tierMutation.NextTierPoint;
+        customer.StartTier = tierMutation.StartTier;
+        customer.ExpiredTier = tierMutation.ExpiredTier;
+        customerPoint.ActivePoint = tierMutation.ActivePointAfter;
+        customerPoint.LifetimePoint = tierMutation.LifetimePointAfter;
         customerPoint.UpdatedAt = mutation.CreatedAt;
 
         _dbContext.PointTransactions.Add(
@@ -96,8 +117,8 @@ public sealed class IssuePointExecutionStore : IIssuePointExecutionStore
                 SourceEventId = mutation.EventId.ToString("D"),
                 TransactionType = PointTransactionTypes.CampaignReward,
                 Amount = mutation.Amount,
-                BalanceBefore = balanceBefore,
-                BalanceAfter = balanceAfter,
+                BalanceBefore = tierMutation.ActivePointBefore,
+                BalanceAfter = tierMutation.ActivePointAfter,
                 CreatedAt = mutation.CreatedAt
             });
     }
