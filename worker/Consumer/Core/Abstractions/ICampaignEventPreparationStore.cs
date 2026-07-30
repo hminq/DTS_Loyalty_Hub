@@ -14,13 +14,12 @@ public interface ICampaignEventPreparationStore
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CampaignEventCandidate>> GetCandidateTargetsAsync(
-        string eventType,
+        Guid eventTypeVersionId,
         DateTime occurredAt,
         CancellationToken cancellationToken = default);
 
     void AddTargets(
         Guid eventId,
-        Guid eventCustomerId,
         IReadOnlyList<PreparedCampaignTarget> targets,
         DateTime createdAt);
 

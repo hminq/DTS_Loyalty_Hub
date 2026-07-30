@@ -24,7 +24,7 @@ public static class DependencyInjection
         return services
             .AddWorkerPersistence(configuration)
             .AddWorkerPersistenceBehaviors()
-            .AddCampaignEventProcessing()
+            .AddCampaignEventProcessing(configuration)
             .AddRabbitMqCampaignConsumer(configuration);
     }
 
@@ -56,8 +56,17 @@ public static class DependencyInjection
     }
 
     public static IServiceCollection AddCampaignEventProcessing(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        var cacheOptions = EventDefinitionCacheOptions.FromConfiguration(configuration);
+        services.AddSingleton(cacheOptions);
+
+        services.AddSingleton<IVersionedEnvelopeParser, Core.Services.VersionedEnvelopeParser>();
+        services.AddScoped<IEventDefinitionStore, EfEventDefinitionStore>();
+        services.AddSingleton<IEventDefinitionProvider, BoundedEventDefinitionCache>();
+        services.AddSingleton<Core.Services.GenericCampaignEventFactory>();
+
         services.AddScoped<ICampaignEventPreparationStore, CampaignEventPreparationStore>();
         services.AddScoped<ICampaignRewardExecutionStore, CampaignRewardExecutionStore>();
         services.AddScoped<IIssuePointExecutionStore, IssuePointExecutionStore>();
@@ -66,15 +75,6 @@ public static class DependencyInjection
         services.AddSingleton<Core.Services.CampaignEventProcessingCoordinator>();
         services.AddSingleton<Core.Services.CampaignEventDeliveryProcessor>();
         services.AddSingleton(CampaignDefinitionCatalog.BuiltIn);
-        services.AddSingleton<
-            ICustomerAccountRegisteredEventValidator,
-            Core.Services.CustomerAccountRegisteredEventValidator>();
-        services.AddSingleton<
-            ICampaignEventRuntimeDefinition,
-            Core.Services.CustomerAccountRegisteredEventRuntimeDefinition>();
-        services.AddSingleton<
-            ICampaignEventRuntimeRegistry,
-            Core.Services.CampaignEventRuntimeRegistry>();
         services.AddScoped<
             ICampaignActionExecutor,
             Core.Services.IssuePointActionExecutor>();
@@ -108,7 +108,9 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.GetRequiredService<ICampaignEventRuntimeRegistry>();
+        services.GetRequiredService<IEventDefinitionProvider>();
+        services.GetRequiredService<IVersionedEnvelopeParser>();
+        services.GetRequiredService<Core.Services.GenericCampaignEventFactory>();
         using var scope = services.CreateScope();
         scope.ServiceProvider.GetRequiredService<ICampaignActionExecutorRegistry>();
 

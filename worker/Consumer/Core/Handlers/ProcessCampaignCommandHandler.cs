@@ -8,6 +8,7 @@ using Consumer.Core.Entities.Campaigns;
 using Consumer.Core.Entities.Constants;
 using Consumer.Core.Exceptions;
 using Consumer.Core.Requests;
+using Consumer.Core.Services;
 using MediatR;
 
 namespace Consumer.Core.Handlers;
@@ -18,7 +19,9 @@ public sealed class ProcessCampaignCommandHandler
         ProcessCampaignResult>
 {
     private readonly ICampaignRewardExecutionStore _store;
-    private readonly ICampaignEventRuntimeRegistry _eventRuntimeRegistry;
+    private readonly IVersionedEnvelopeParser _envelopeParser;
+    private readonly IEventDefinitionProvider _definitionProvider;
+    private readonly GenericCampaignEventFactory _eventFactory;
     private readonly ICampaignActionExecutorRegistry _actionExecutorRegistry;
     private readonly CampaignDefinitionCatalog _definitionCatalog;
     private readonly CampaignConditionParser _conditionParser;
@@ -29,7 +32,9 @@ public sealed class ProcessCampaignCommandHandler
 
     public ProcessCampaignCommandHandler(
         ICampaignRewardExecutionStore store,
-        ICampaignEventRuntimeRegistry eventRuntimeRegistry,
+        IVersionedEnvelopeParser envelopeParser,
+        IEventDefinitionProvider definitionProvider,
+        GenericCampaignEventFactory eventFactory,
         ICampaignActionExecutorRegistry actionExecutorRegistry,
         CampaignDefinitionCatalog definitionCatalog,
         CampaignConditionParser conditionParser,
@@ -39,8 +44,12 @@ public sealed class ProcessCampaignCommandHandler
         TimeProvider timeProvider)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
-        _eventRuntimeRegistry = eventRuntimeRegistry ??
-            throw new ArgumentNullException(nameof(eventRuntimeRegistry));
+        _envelopeParser = envelopeParser ??
+            throw new ArgumentNullException(nameof(envelopeParser));
+        _definitionProvider = definitionProvider ??
+            throw new ArgumentNullException(nameof(definitionProvider));
+        _eventFactory = eventFactory ??
+            throw new ArgumentNullException(nameof(eventFactory));
         _actionExecutorRegistry = actionExecutorRegistry ??
             throw new ArgumentNullException(nameof(actionExecutorRegistry));
         _definitionCatalog = definitionCatalog ??
@@ -88,17 +97,14 @@ public sealed class ProcessCampaignCommandHandler
 
         EnsureEligibleLifecycle(context);
 
-        var eventRuntime = _eventRuntimeRegistry.GetRequired(context.EventType);
-        var campaignEvent = ValidatePersistedEvent(context, eventRuntime);
+        var campaignEvent = await ValidatePersistedEventAsync(
+            context,
+            cancellationToken);
         EnsurePinnedConfiguration(context, campaignEvent);
 
         var operationTime = _timeProvider.GetUtcNow().UtcDateTime;
-        if (!_definitionCatalog.TryGetEvent(
-                campaignEvent.EventType,
-                out var eventDefinition))
-        {
-            throw InvalidConfiguration();
-        }
+        var eventDefinition = _eventFactory.ToCampaignDefinition(
+            campaignEvent.Definition);
 
         var conditionResult = _conditionParser.Parse(
             context.CampaignConditionJson,
@@ -110,8 +116,8 @@ public sealed class ProcessCampaignCommandHandler
 
         var facts = eventDefinition.ConditionFields.ToDictionary(
             field => field.Code,
-            field => eventRuntime.GetFact(campaignEvent, field.Code).Value,
-            StringComparer.OrdinalIgnoreCase);
+            field => _eventFactory.GetFact(campaignEvent, field.Code).Value,
+            StringComparer.Ordinal);
         if (!_conditionEvaluator.Matches(
                 conditionResult.Condition,
                 eventDefinition,
@@ -167,7 +173,7 @@ public sealed class ProcessCampaignCommandHandler
                 throw InvalidActionConfiguration();
             }
 
-            var resolution = eventRuntime.ResolveTarget(
+            var resolution = _eventFactory.ResolveTarget(
                 campaignEvent,
                 parseResult.Binding.Target.Selector);
             if (resolution.Status == CampaignTargetResolutionStatuses.NotApplicable)
@@ -336,17 +342,23 @@ public sealed class ProcessCampaignCommandHandler
             executableActions.Count);
     }
 
-    private static IValidatedCampaignEvent ValidatePersistedEvent(
+    private async Task<GenericValidatedCampaignEvent> ValidatePersistedEventAsync(
         CampaignRewardProcessingContext context,
-        ICampaignEventRuntimeDefinition eventRuntime)
+        CancellationToken cancellationToken)
     {
-        var campaignEvent = eventRuntime.ValidateDelivery(
-            new CampaignEventDelivery(
-                Encoding.UTF8.GetBytes(context.NormalizedPayload),
-                context.EventId.ToString("D"),
-                context.EventType,
-                context.RoutingKey,
-                Redelivered: true));
+        var envelope = _envelopeParser.Parse(
+            Encoding.UTF8.GetBytes(context.NormalizedPayload),
+            context.EventId.ToString("D"),
+            context.EventType);
+        var definition = await _definitionProvider.GetDefinitionAsync(
+            envelope.EventType,
+            envelope.EventVersion,
+            cancellationToken)
+            ?? throw InvalidConfiguration();
+        var campaignEvent = _eventFactory.Create(
+            envelope,
+            definition,
+            context.RoutingKey);
 
         if (campaignEvent.PayloadHash != context.PayloadHash)
         {
@@ -360,11 +372,12 @@ public sealed class ProcessCampaignCommandHandler
 
     private static void EnsurePinnedConfiguration(
         CampaignRewardProcessingContext context,
-        IValidatedCampaignEvent campaignEvent)
+        GenericValidatedCampaignEvent campaignEvent)
     {
         if (context.EventId != campaignEvent.EventId ||
-            context.EventCustomerId != campaignEvent.PrimaryCustomerId ||
-            context.CampaignEventType != campaignEvent.EventType ||
+            context.EventTypeVersionId != campaignEvent.EventTypeVersionId ||
+            context.EventVersion != campaignEvent.EventVersion ||
+            context.CampaignEventTypeVersionId != campaignEvent.EventTypeVersionId ||
             context.SessionCampaignId != context.CampaignId ||
             campaignEvent.OccurredAt < context.SessionStart ||
             campaignEvent.OccurredAt >= context.SessionEnd)

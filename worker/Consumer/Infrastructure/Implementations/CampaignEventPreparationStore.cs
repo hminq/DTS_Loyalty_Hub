@@ -27,6 +27,8 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
                 event_id,
                 event_type,
                 routing_key,
+                event_type_version_id,
+                event_version,
                 occurred_at,
                 payload,
                 payload_hash,
@@ -39,6 +41,8 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
                 {{campaignEvent.EventId}},
                 {{campaignEvent.EventType}},
                 {{campaignEvent.RoutingKey}},
+                {{campaignEvent.EventTypeVersionId}},
+                {{campaignEvent.EventVersion}},
                 {{campaignEvent.OccurredAt}},
                 CAST({{campaignEvent.NormalizedPayload}} AS jsonb),
                 {{campaignEvent.PayloadHash}},
@@ -64,6 +68,8 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
             {
                 processing.EventId,
                 processing.EventType,
+                processing.EventTypeVersionId,
+                processing.EventVersion,
                 processing.RoutingKey,
                 processing.OccurredAt,
                 processing.PayloadHash,
@@ -91,6 +97,8 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
         return new EventPreparationState(
             eventState.EventId,
             eventState.EventType,
+            eventState.EventTypeVersionId,
+            eventState.EventVersion,
             eventState.RoutingKey,
             eventState.OccurredAt,
             eventState.PayloadHash,
@@ -99,7 +107,7 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
     }
 
     public async Task<IReadOnlyList<CampaignEventCandidate>> GetCandidateTargetsAsync(
-        string eventType,
+        Guid eventTypeVersionId,
         DateTime occurredAt,
         CancellationToken cancellationToken = default)
     {
@@ -107,14 +115,11 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
                 from campaign in _dbContext.Campaigns.AsNoTracking()
                 join session in _dbContext.CampaignSessions.AsNoTracking()
                     on campaign.CampaignId equals session.CampaignId
-                where campaign.EventTypeVersion.EventType.Code == eventType
-                      && (campaign.Status == CampaignStatuses.Active ||
-                          campaign.Status == CampaignStatuses.Ended)
+                where campaign.EventTypeVersionId == eventTypeVersionId
+                      && campaign.Status == CampaignStatuses.Active
                       && campaign.StartDate <= occurredAt
                       && occurredAt < campaign.EndDate
-                      && (session.Status == CampaignSessionStatuses.Scheduled ||
-                          session.Status == CampaignSessionStatuses.Running ||
-                          session.Status == CampaignSessionStatuses.Ended)
+                      && session.Status == CampaignSessionStatuses.Running
                       && session.SessionStart <= occurredAt
                       && occurredAt < session.SessionEnd
                 orderby campaign.CampaignId, session.CampaignSessionId
@@ -126,7 +131,6 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
 
     public void AddTargets(
         Guid eventId,
-        Guid eventCustomerId,
         IReadOnlyList<PreparedCampaignTarget> targets,
         DateTime createdAt)
     {
@@ -139,7 +143,6 @@ public sealed class CampaignEventPreparationStore : ICampaignEventPreparationSto
                     EventId = eventId,
                     CampaignId = target.CampaignId,
                     CampaignSessionId = target.CampaignSessionId,
-                    EventCustomerId = eventCustomerId,
                     Status = target.Status,
                     AttemptCount = 0,
                     OutcomeCode = null,

@@ -33,7 +33,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerPersistence(builder.Configuration);
 builder.Services.AddWorkerPersistenceBehaviors();
-builder.Services.AddCampaignEventProcessing();
+builder.Services.AddCampaignEventProcessing(builder.Configuration);
 builder.Services.AddRabbitMqCampaignConsumer(builder.Configuration);
 builder.Services.AddHostedService<ConsumerWorker>();
 

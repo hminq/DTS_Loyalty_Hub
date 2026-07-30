@@ -81,6 +81,8 @@ public sealed class CustomerAccountRegisteredEventValidator
         return new ValidatedCustomerAccountRegisteredEvent(
             normalizedEnvelope.EventId,
             normalizedEnvelope.EventType,
+            Guid.Empty,
+            1,
             normalizedEnvelope.RoutingKey,
             normalizedEnvelope.OccurredAt,
             normalizedEnvelope.Data.UserId,

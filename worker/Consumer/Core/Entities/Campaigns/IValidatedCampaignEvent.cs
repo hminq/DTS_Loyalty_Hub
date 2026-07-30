@@ -6,11 +6,13 @@ public interface IValidatedCampaignEvent
 
     string EventType { get; }
 
+    Guid EventTypeVersionId { get; }
+
+    int EventVersion { get; }
+
     string RoutingKey { get; }
 
     DateTime OccurredAt { get; }
-
-    Guid PrimaryCustomerId { get; }
 
     string NormalizedPayload { get; }
 

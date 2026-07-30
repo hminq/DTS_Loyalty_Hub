@@ -8,17 +8,25 @@ namespace Consumer.Core.Services;
 
 public sealed class CampaignEventDeliveryProcessor
 {
-    private readonly ICampaignEventRuntimeRegistry _eventRuntimeRegistry;
+    private readonly IVersionedEnvelopeParser _envelopeParser;
+    private readonly IEventDefinitionProvider _definitionProvider;
+    private readonly GenericCampaignEventFactory _eventFactory;
     private readonly ICampaignProcessingScopeExecutor _scopeExecutor;
     private readonly CampaignEventProcessingCoordinator _coordinator;
 
     public CampaignEventDeliveryProcessor(
-        ICampaignEventRuntimeRegistry eventRuntimeRegistry,
+        IVersionedEnvelopeParser envelopeParser,
+        IEventDefinitionProvider definitionProvider,
+        GenericCampaignEventFactory eventFactory,
         ICampaignProcessingScopeExecutor scopeExecutor,
         CampaignEventProcessingCoordinator coordinator)
     {
-        _eventRuntimeRegistry = eventRuntimeRegistry ??
-            throw new ArgumentNullException(nameof(eventRuntimeRegistry));
+        _envelopeParser = envelopeParser ??
+            throw new ArgumentNullException(nameof(envelopeParser));
+        _definitionProvider = definitionProvider ??
+            throw new ArgumentNullException(nameof(definitionProvider));
+        _eventFactory = eventFactory ??
+            throw new ArgumentNullException(nameof(eventFactory));
         _scopeExecutor = scopeExecutor ??
             throw new ArgumentNullException(nameof(scopeExecutor));
         _coordinator = coordinator ??
@@ -32,8 +40,27 @@ public sealed class CampaignEventDeliveryProcessor
         IValidatedCampaignEvent campaignEvent;
         try
         {
-            var runtime = _eventRuntimeRegistry.GetRequired(delivery.MessageType);
-            campaignEvent = runtime.ValidateDelivery(delivery);
+            var envelope = _envelopeParser.Parse(
+                delivery.Body.Span,
+                delivery.MessageId,
+                delivery.MessageType);
+            var definition = await _definitionProvider.GetDefinitionAsync(
+                envelope.EventType,
+                envelope.EventVersion,
+                cancellationToken);
+            if (definition is null)
+            {
+                return Rejected(envelope.EventId, CampaignProcessingErrorCodes.EventTypeUnsupported);
+            }
+
+            campaignEvent = _eventFactory.Create(
+                envelope,
+                definition,
+                delivery.RoutingKey);
+        }
+        catch (EventEnvelopeParseException exception)
+        {
+            return Rejected(null, exception.ErrorCode);
         }
         catch (CampaignEventValidationException exception)
         {

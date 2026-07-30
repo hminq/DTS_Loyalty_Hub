@@ -61,7 +61,7 @@ public sealed class PrepareCampaignEventCommandHandler
         }
 
         var candidates = await _store.GetCandidateTargetsAsync(
-            request.CampaignEvent.EventType,
+            request.CampaignEvent.EventTypeVersionId,
             request.CampaignEvent.OccurredAt,
             cancellationToken);
 
@@ -99,7 +99,6 @@ public sealed class PrepareCampaignEventCommandHandler
 
         _store.AddTargets(
             request.CampaignEvent.EventId,
-            request.CampaignEvent.PrimaryCustomerId,
             targets,
             operationTime);
 
@@ -115,6 +114,8 @@ public sealed class PrepareCampaignEventCommandHandler
         IValidatedCampaignEvent campaignEvent)
     {
         if (state.EventType != campaignEvent.EventType ||
+            state.EventTypeVersionId != campaignEvent.EventTypeVersionId ||
+            state.EventVersion != campaignEvent.EventVersion ||
             state.RoutingKey != campaignEvent.RoutingKey ||
             state.OccurredAt != campaignEvent.OccurredAt ||
             state.PayloadHash != campaignEvent.PayloadHash)
