@@ -54,5 +54,14 @@ public sealed class RegisterRequestDtoValidator : AbstractValidator<RegisterRequ
             .Matches(ValidationConstants.PhonePattern)
             .WithErrorCode("PHONE_INVALID_FORMAT")
             .OverridePropertyName("phone");
+
+        When(
+            request => !string.IsNullOrWhiteSpace(request.ReferralUsername),
+            () => RuleFor(request => request.ReferralUsername)
+                .Length(
+                    ValidationConstants.MinUsernameLength,
+                    ValidationConstants.MaxUsernameLength)
+                .WithErrorCode("REFERRAL_USERNAME_INVALID_LENGTH")
+                .OverridePropertyName("referralUsername"));
     }
 }

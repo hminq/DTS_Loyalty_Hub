@@ -23,12 +23,6 @@ public partial class Action
 
     public int UsedCount { get; set; }
 
-    public decimal? TotalAmount { get; set; }
-
-    public decimal? SessionAmount { get; set; }
-
-    public decimal UsedAmount { get; set; }
-
     public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<ActionUsage> ActionUsages { get; set; } = new List<ActionUsage>();

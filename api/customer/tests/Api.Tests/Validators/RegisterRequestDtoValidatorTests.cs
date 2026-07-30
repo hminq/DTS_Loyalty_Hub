@@ -46,12 +46,36 @@ public sealed class RegisterRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor("phone").WithErrorCode("PHONE_INVALID_FORMAT");
     }
 
+    [Fact]
+    public void ReferralUsername_IsOptional()
+    {
+        var request = ValidRequest();
+        request.ReferralUsername = null;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor("referralUsername");
+    }
+
+    [Fact]
+    public void ReferralUsername_UsesUsernameLengthRules()
+    {
+        var request = ValidRequest();
+        request.ReferralUsername = "ref";
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor("referralUsername")
+            .WithErrorCode("REFERRAL_USERNAME_INVALID_LENGTH");
+    }
+
     private static RegisterRequestDto ValidRequest() => new()
     {
         Username = "customer01",
         Email = "customer@example.com",
         Password = "Password1",
         FullName = "Nguyễn Minh Anh",
-        Phone = "+84901234567"
+        Phone = "+84901234567",
+        ReferralUsername = null
     };
 }

@@ -1,11 +1,12 @@
 import { PlusIcon, ShieldStarIcon } from '@phosphor-icons/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { deleteRole, getRoles } from '../api/rolesApi'
 import { DataTableCard } from '../components/data-list/DataTableCard'
 import { DeleteRoleDialog } from '../components/roles/DeleteRoleDialog'
+import { RolesFilters, hasRoleFilters } from '../components/roles/RolesFilters'
 import { RolesTable } from '../components/roles/RolesTable'
 import { EmptyState } from '../components/data-list/EmptyState'
 import { ListPagination } from '../components/data-list/ListPagination'
@@ -31,12 +32,16 @@ function RolesPage() {
   const [roleToDelete, setRoleToDelete] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
+  const filters = useMemo(() => ({
+    keyword,
+  }), [keyword])
+
   const canCreate = hasPermission(PermissionCodes.Roles.Create)
   const canEdit = hasPermission(PermissionCodes.Roles.Update)
   const canDelete = hasPermission(PermissionCodes.Roles.Delete)
 
   const showEmptyState = !isLoading && roles.length === 0
-  const hasActiveFilters = Boolean(keyword)
+  const hasActiveFilters = hasRoleFilters(filters)
 
   const updateSearchParams = useCallback((updates) => {
     setSearchParams((current) => {
@@ -108,6 +113,14 @@ function RolesPage() {
     }
   }
 
+  function applyFilters(nextFilters) {
+    updateSearchParams({ ...nextFilters, page: 1 })
+  }
+
+  function clearFilters() {
+    updateSearchParams({ keyword: '', page: 1 })
+  }
+
   return (
     <>
       <PageHeader
@@ -138,35 +151,44 @@ function RolesPage() {
         </p>
       ) : null}
 
-      <DataTableCard className="mt-5">
-        {!showEmptyState ? (
-          <>
-            <RolesTable
-              roles={roles}
-              isLoading={isLoading}
-              language={i18n.resolvedLanguage}
-              capabilities={{ canView: true, canEdit, canDelete }}
-              onView={(roleId) => navigate(`/roles/${roleId}`)}
-              onEdit={(roleId) => navigate(`/roles/${roleId}/edit`)}
-              onDelete={setRoleToDelete}
+      <div className="mt-5">
+        <RolesFilters
+          filters={filters}
+          onApply={applyFilters}
+          onClear={clearFilters}
+          presentation="popover"
+        />
+
+        <DataTableCard>
+          {!showEmptyState ? (
+            <>
+              <RolesTable
+                roles={roles}
+                isLoading={isLoading}
+                language={i18n.resolvedLanguage}
+                capabilities={{ canView: true, canEdit, canDelete }}
+                onView={(roleId) => navigate(`/roles/${roleId}`)}
+                onEdit={(roleId) => navigate(`/roles/${roleId}/edit`)}
+                onDelete={setRoleToDelete}
+              />
+              <ListPagination
+                meta={meta}
+                onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
+                onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
+              />
+            </>
+          ) : (
+            <EmptyState
+              icon={ShieldStarIcon}
+              title={t(hasActiveFilters ? 'roles.noResultsTitle' : 'roles.emptyTitle')}
+              description={t(hasActiveFilters ? 'roles.noResultsDescription' : 'roles.emptyDescription')}
+              filtered={hasActiveFilters}
+              onClearSearch={clearFilters}
+              t={t}
             />
-            <ListPagination
-              meta={meta}
-              onPageChange={(nextPage) => updateSearchParams({ page: nextPage })}
-              onPageSizeChange={(nextPageSize) => updateSearchParams({ pageSize: nextPageSize, page: 1 })}
-            />
-          </>
-        ) : (
-          <EmptyState
-            icon={ShieldStarIcon}
-            title={t(hasActiveFilters ? 'roles.noResultsTitle' : 'roles.emptyTitle')}
-            description={t(hasActiveFilters ? 'roles.noResultsDescription' : 'roles.emptyDescription')}
-            filtered={hasActiveFilters}
-            onClearSearch={() => updateSearchParams({ keyword: '', page: 1 })}
-            t={t}
-          />
-        )}
-      </DataTableCard>
+          )}
+        </DataTableCard>
+      </div>
 
       <DeleteRoleDialog
         role={roleToDelete}

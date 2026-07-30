@@ -1,11 +1,11 @@
 import { UsersThreeIcon } from '@phosphor-icons/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { getCustomerAccounts, updateCustomerAccountStatus } from '../api/customerAccountsApi'
 import { getTierConfigs } from '../api/tiersApi'
-import { CustomerAccountsFilters } from '../components/customer-accounts/CustomerAccountsFilters'
+import { CustomerAccountsFilters, hasCustomerAccountFilters } from '../components/customer-accounts/CustomerAccountsFilters'
 import { CustomerAccountStatusDialog } from '../components/customer-accounts/CustomerAccountStatusDialog'
 import { CustomerAccountsTable } from '../components/customer-accounts/CustomerAccountsTable'
 import { DataTableCard } from '../components/data-list/DataTableCard'
@@ -25,7 +25,13 @@ function CustomerAccountsPage() {
   const status = searchParams.get('status') || ''
   const tierId = searchParams.get('tierId') || ''
 
-  const [keywordInput, setKeywordInput] = useState(keyword)
+  const canFilterByTier = hasPermission(PermissionCodes.Tiers.View)
+  const filters = useMemo(() => ({
+    keyword,
+    status,
+    tierId: canFilterByTier ? tierId : '',
+  }), [canFilterByTier, keyword, status, tierId])
+
   const [accounts, setAccounts] = useState([])
   const [meta, setMeta] = useState({ page, pageSize, totalItems: 0, totalPages: 0 })
   const [isLoading, setIsLoading] = useState(true)
@@ -38,10 +44,9 @@ function CustomerAccountsPage() {
   const [isTierLoading, setIsTierLoading] = useState(false)
   const [tierError, setTierError] = useState('')
 
-  const canFilterByTier = hasPermission(PermissionCodes.Tiers.View)
   const canEditAccount = hasPermission(PermissionCodes.CustomerUsers.Update)
   const canUpdateStatus = hasPermission(PermissionCodes.CustomerUsers.Disable)
-  const hasActiveFilters = Boolean(keyword || status || tierId)
+  const hasActiveFilters = hasCustomerAccountFilters(filters, canFilterByTier)
 
   const updateSearchParams = useCallback((updates, replace = false) => {
     setSearchParams((current) => {
@@ -58,24 +63,11 @@ function CustomerAccountsPage() {
     }, { replace })
   }, [pageSize, setSearchParams])
 
-  useEffect(() => setKeywordInput(keyword), [keyword])
-
   useEffect(() => {
     if (searchParams.get('page') !== String(page) || searchParams.get('pageSize') !== String(pageSize)) {
       updateSearchParams({ page, pageSize }, true)
     }
   }, [page, pageSize, searchParams, updateSearchParams])
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const normalizedKeyword = keywordInput.trim()
-      if (normalizedKeyword !== keyword) {
-        updateSearchParams({ keyword: normalizedKeyword, page: 1 })
-      }
-    }, 300)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [keyword, keywordInput, updateSearchParams])
 
   useEffect(() => {
     if (!canFilterByTier && tierId) {
@@ -154,8 +146,11 @@ function CustomerAccountsPage() {
     return () => controller.abort()
   }, [canFilterByTier, t])
 
+  function applyFilters(nextFilters) {
+    updateSearchParams({ ...nextFilters, page: 1 })
+  }
+
   function clearFilters() {
-    setKeywordInput('')
     updateSearchParams({ keyword: '', status: '', tierId: '', page: 1 })
   }
 
@@ -194,17 +189,14 @@ function CustomerAccountsPage() {
 
       <div className="mt-5">
         <CustomerAccountsFilters
-          keyword={keywordInput}
-          onKeywordChange={setKeywordInput}
-          status={status}
-          onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
-          tierId={tierId}
-          onTierChange={(value) => updateSearchParams({ tierId: value, page: 1 })}
+          filters={filters}
+          onApply={applyFilters}
+          onClear={clearFilters}
           canFilterByTier={canFilterByTier}
           tierOptions={tierOptions}
           isTierLoading={isTierLoading}
           tierError={tierError}
-          t={t}
+          presentation="popover"
         />
 
         <DataTableCard>

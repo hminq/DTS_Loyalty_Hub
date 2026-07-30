@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY shared/Persistence/Persistence.csproj shared/Persistence/
+COPY shared/Messaging.Contracts/Messaging.Contracts.csproj shared/Messaging.Contracts/
 COPY api/customer/Core/Core.csproj api/customer/Core/
 COPY api/customer/Infrastructure/Infrastructure.csproj api/customer/Infrastructure/
 COPY api/customer/Api/Api.csproj api/customer/Api/
@@ -9,6 +10,7 @@ COPY api/customer/Api/Api.csproj api/customer/Api/
 RUN dotnet restore api/customer/Api/Api.csproj
 
 COPY shared/Persistence/ shared/Persistence/
+COPY shared/Messaging.Contracts/ shared/Messaging.Contracts/
 COPY api/customer/ api/customer/
 
 RUN dotnet publish api/customer/Api/Api.csproj \

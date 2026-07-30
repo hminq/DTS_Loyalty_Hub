@@ -3,6 +3,8 @@ import {
   GiftIcon,
   HouseIcon,
   IdentificationBadgeIcon,
+  LightningIcon,
+  MegaphoneIcon,
   TicketIcon,
   UsersThreeIcon,
   BellIcon,
@@ -12,6 +14,20 @@ import { PermissionCodes } from './permissionCodes'
 
 const navigationItems = [
   { id: 'dashboard', labelKey: 'navigation.dashboard', icon: HouseIcon, path: '/dashboard' },
+  {
+    id: 'campaigns',
+    labelKey: 'navigation.campaigns',
+    icon: MegaphoneIcon,
+    path: '/campaigns',
+    permission: PermissionCodes.Campaigns.View,
+  },
+  {
+    id: 'event-definitions',
+    labelKey: 'navigation.eventDefinitions',
+    icon: LightningIcon,
+    path: '/event-definitions',
+    permission: PermissionCodes.EventDefinitions.View,
+  },
   {
     id: 'role-permission',
     labelKey: 'navigation.rolePermissions',

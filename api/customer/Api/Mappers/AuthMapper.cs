@@ -40,7 +40,10 @@ public static class AuthMapper
             UserProfileRules.NormalizeEmail(request.Email!),
             request.Password!,
             UserProfileRules.NormalizeFullName(request.FullName!),
-            UserProfileRules.NormalizePhoneNumber(request.Phone!));
+            UserProfileRules.NormalizePhoneNumber(request.Phone!),
+            string.IsNullOrWhiteSpace(request.ReferralUsername)
+                ? null
+                : request.ReferralUsername.Trim());
     }
 
     public static RegisterResponseDto ToResponseDto(this RegisterResult result)

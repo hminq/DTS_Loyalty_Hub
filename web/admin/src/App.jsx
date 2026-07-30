@@ -16,7 +16,12 @@ const AllCustomerVouchersPage = lazyNamed(() => import('./pages/AllCustomerVouch
 const CustomerVoucherDetailPage = lazyNamed(() => import('./pages/CustomerVoucherDetailPage'), 'CustomerVoucherDetailPage')
 const CustomerRedeemDetailPage = lazyNamed(() => import('./pages/CustomerRedeemDetailPage'), 'CustomerRedeemDetailPage')
 const AuditLogsPage = lazyNamed(() => import('./pages/AuditLogsPage'), 'AuditLogsPage')
+const CampaignsPage = lazyNamed(() => import('./pages/CampaignsPage'), 'CampaignsPage')
+const CampaignDetailPage = lazyNamed(() => import('./pages/CampaignDetailPage'), 'CampaignDetailPage')
+const EditCampaignPage = lazyNamed(() => import('./pages/EditCampaignPage'), 'EditCampaignPage')
 const CreateAdminAccountPage = lazyNamed(() => import('./pages/CreateAdminAccountPage'), 'CreateAdminAccountPage')
+const CreateCampaignPage = lazyNamed(() => import('./pages/CreateCampaignPage'), 'CreateCampaignPage')
+const CreateEventDefinitionPage = lazyNamed(() => import('./pages/CreateEventDefinitionPage'), 'CreateEventDefinitionPage')
 const CreateRolePage = lazyNamed(() => import('./pages/CreateRolePage'), 'CreateRolePage')
 const CreateTierConfigPage = lazyNamed(() => import('./pages/CreateTierConfigPage'), 'CreateTierConfigPage')
 const CreateVoucherDefinitionPage = lazyNamed(() => import('./pages/CreateVoucherDefinitionPage'), 'CreateVoucherDefinitionPage')
@@ -30,8 +35,12 @@ const DashboardPage = lazyNamed(() => import('./pages/DashboardPage'), 'Dashboar
 const DesignSystemPage = lazyNamed(() => import('./pages/DesignSystemPage'), 'DesignSystemPage')
 const EditAdminAccountPage = lazyNamed(() => import('./pages/EditAdminAccountPage'), 'EditAdminAccountPage')
 const EditCustomerAccountPage = lazyNamed(() => import('./pages/EditCustomerAccountPage'), 'EditCustomerAccountPage')
+const EditEventDefinitionPage = lazyNamed(() => import('./pages/EditEventDefinitionPage'), 'EditEventDefinitionPage')
 const EditRolePage = lazyNamed(() => import('./pages/EditRolePage'), 'EditRolePage')
 const EditTierConfigPage = lazyNamed(() => import('./pages/EditTierConfigPage'), 'EditTierConfigPage')
+const EventDefinitionDetailPage = lazyNamed(() => import('./pages/EventDefinitionDetailPage'), 'EventDefinitionDetailPage')
+const EventDefinitionVersionPage = lazyNamed(() => import('./pages/EventDefinitionVersionPage'), 'EventDefinitionVersionPage')
+const EventDefinitionsPage = lazyNamed(() => import('./pages/EventDefinitionsPage'), 'EventDefinitionsPage')
 const LoginPage = lazyNamed(() => import('./pages/LoginPage'), 'LoginPage')
 const NotFoundPage = lazyNamed(() => import('./pages/NotFoundPage'), 'NotFoundPage')
 const PermissionsPage = lazyNamed(() => import('./pages/PermissionsPage'), 'PermissionsPage')
@@ -60,6 +69,92 @@ function App() {
         }
       >
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route
+          path="campaigns"
+          element={
+            <RequirePermission permission={PermissionCodes.Campaigns.View}>
+              <CampaignsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="campaigns/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.Campaigns.View,
+              PermissionCodes.Campaigns.Create,
+            ]}>
+              <CreateCampaignPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="campaigns/:campaignId"
+          element={
+            <RequirePermission permission={PermissionCodes.Campaigns.View}>
+              <CampaignDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="campaigns/:campaignId/edit"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.Campaigns.View,
+              PermissionCodes.Campaigns.Update,
+            ]}>
+              <EditCampaignPage />
+            </RequirePermission>
+          }
+        />
+
+        <Route
+          path="event-definitions"
+          element={
+            <RequirePermission permission={PermissionCodes.EventDefinitions.View}>
+              <EventDefinitionsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="event-definitions/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.EventDefinitions.View,
+              PermissionCodes.EventDefinitions.Create,
+            ]}>
+              <CreateEventDefinitionPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="event-definitions/:eventTypeId"
+          element={
+            <RequirePermission permission={PermissionCodes.EventDefinitions.View}>
+              <EventDefinitionDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="event-definitions/:eventTypeId/edit"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.EventDefinitions.View,
+              PermissionCodes.EventDefinitions.Update,
+            ]}>
+              <EditEventDefinitionPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="event-definitions/:eventTypeId/versions/:eventTypeVersionId"
+          element={
+            <RequirePermission permission={PermissionCodes.EventDefinitions.View}>
+              <EventDefinitionVersionPage />
+            </RequirePermission>
+          }
+        />
+
         <Route
           path="roles"
           element={

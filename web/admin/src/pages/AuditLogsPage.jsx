@@ -90,7 +90,14 @@ function AuditLogsPage() {
       <PageHeader eyebrow={t('auditLogs.eyebrow')} title={t('auditLogs.title')} description={t('auditLogs.description')} />
       {errorMessage ? <p className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">{errorMessage}</p> : null}
       <div className="mt-5">
-        <AuditLogsFilters filters={filters} options={options} optionsError={optionsError} onApply={applyFilters} onClear={clearFilters} />
+        <AuditLogsFilters
+          filters={filters}
+          options={options}
+          optionsError={optionsError}
+          onApply={applyFilters}
+          onClear={clearFilters}
+          presentation="popover"
+        />
         <DataTableCard>
           {!isLoading && auditLogs.length === 0 ? (
             <EmptyState

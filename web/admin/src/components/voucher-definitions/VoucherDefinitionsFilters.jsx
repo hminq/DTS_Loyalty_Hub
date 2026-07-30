@@ -1,62 +1,84 @@
-import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
+import { FilterField } from '../data-list/FilterField'
+import { FilterPopoverControls } from '../data-list/FilterPopoverControls'
+import { Button } from '../ui/button'
 import { Combobox } from '../ui/combobox'
 import { Input } from '../ui/input'
-import { Button } from '../ui/button'
 
 function VoucherDefinitionsFilters({
-  keyword,
-  rewardType,
-  validityType,
-  publishType,
-  options,
-  isLoadingOptions,
-  optionsError,
-  onKeywordChange,
-  onRewardTypeChange,
-  onValidityTypeChange,
-  onPublishTypeChange,
+  filters,
+  onApply,
+  onClear,
+  options = {},
+  isLoadingOptions = false,
+  optionsError = '',
   onRetryOptions,
-  onClearFilters,
-  t
+  presentation = 'popover',
 }) {
-  const hasActiveFilters = Boolean(keyword || rewardType || validityType || publishType)
+  const { t } = useTranslation()
+  const [draft, setDraft] = useState(() => toDraft(filters))
+  const [isOpen, setIsOpen] = useState(false)
 
-  return (
-    <div className="mb-4 flex flex-col gap-3 rounded-lg border border-border bg-muted/25 p-3 xl:flex-row xl:items-end">
-      <label className="grid min-w-0 flex-1 gap-1.5">
-        <span className="text-xs font-medium">{t('voucherDefinitions.filters.searchLabel')}</span>
-        <div className="relative">
-          <MagnifyingGlassIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            size={16}
-          />
+  useEffect(() => {
+    setDraft(toDraft(filters))
+  }, [filters.keyword, filters.rewardType, filters.validityType, filters.publishType])
+
+  function update(name, value) {
+    setDraft((current) => ({ ...current, [name]: value }))
+  }
+
+  function submit(event) {
+    event.preventDefault()
+    onApply({
+      keyword: draft.keyword.trim(),
+      rewardType: draft.rewardType,
+      validityType: draft.validityType,
+      publishType: draft.publishType,
+    })
+    setIsOpen(false)
+  }
+
+  function clearAllFilters() {
+    onClear()
+    setIsOpen(false)
+  }
+
+  function removeFilter(filterKey) {
+    onApply({
+      keyword: filterKey === 'keyword' ? '' : filters.keyword,
+      rewardType: filterKey === 'rewardType' ? '' : filters.rewardType,
+      validityType: filterKey === 'validityType' ? '' : filters.validityType,
+      publishType: filterKey === 'publishType' ? '' : filters.publishType,
+    })
+  }
+
+  const activeFilters = getActiveFilterChips(filters, {
+    options,
+    t,
+  })
+  const hasActiveFilters = activeFilters.length > 0
+
+  const form = (
+    <form
+      className={presentation === 'popover' ? 'grid gap-3' : 'mb-4 rounded-lg border border-border bg-muted/25 p-3'}
+      onSubmit={submit}
+    >
+      <div className={presentation === 'popover' ? 'grid gap-3' : 'grid items-end gap-3 md:grid-cols-2 xl:grid-cols-4'}>
+        <FilterField label={t('voucherDefinitions.filters.searchLabel')}>
           <Input
-            className="pl-9 pr-9"
-            value={keyword}
-            onChange={(event) => onKeywordChange(event.target.value)}
+            value={draft.keyword}
+            onChange={(event) => update('keyword', event.target.value)}
             placeholder={t('voucherDefinitions.filters.searchPlaceholder')}
             maxLength={100}
           />
-          {keyword ? (
-            <button
-              type="button"
-              onClick={() => onKeywordChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label={t('voucherDefinitions.filters.clearSearch')}
-            >
-              <XIcon size={14} />
-            </button>
-          ) : null}
-        </div>
-      </label>
+        </FilterField>
 
-      <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
-        <label className="grid gap-1.5">
-          <span className="text-xs font-medium">{t('voucherDefinitions.filters.rewardTypeLabel')}</span>
+        <FilterField label={t('voucherDefinitions.filters.rewardTypeLabel')}>
           <Combobox
-            value={rewardType}
-            onValueChange={onRewardTypeChange}
+            value={draft.rewardType}
+            onValueChange={(value) => update('rewardType', value)}
             options={options?.rewardTypes ?? []}
             placeholder={t('voucherDefinitions.filters.allRewardTypes')}
             emptyOptionLabel={t('voucherDefinitions.filters.allRewardTypes')}
@@ -64,13 +86,12 @@ function VoucherDefinitionsFilters({
             error={optionsError}
             ariaLabel={t('voucherDefinitions.filters.rewardTypeLabel')}
           />
-        </label>
+        </FilterField>
 
-        <label className="grid gap-1.5">
-          <span className="text-xs font-medium">{t('voucherDefinitions.filters.validityTypeLabel')}</span>
+        <FilterField label={t('voucherDefinitions.filters.validityTypeLabel')}>
           <Combobox
-            value={validityType}
-            onValueChange={onValidityTypeChange}
+            value={draft.validityType}
+            onValueChange={(value) => update('validityType', value)}
             options={options?.validityTypes ?? []}
             placeholder={t('voucherDefinitions.filters.allValidityTypes')}
             emptyOptionLabel={t('voucherDefinitions.filters.allValidityTypes')}
@@ -78,13 +99,12 @@ function VoucherDefinitionsFilters({
             error={optionsError}
             ariaLabel={t('voucherDefinitions.filters.validityTypeLabel')}
           />
-        </label>
+        </FilterField>
 
-        <label className="grid gap-1.5">
-          <span className="text-xs font-medium">{t('voucherDefinitions.filters.publishTypeLabel')}</span>
+        <FilterField label={t('voucherDefinitions.filters.publishTypeLabel')}>
           <Combobox
-            value={publishType}
-            onValueChange={onPublishTypeChange}
+            value={draft.publishType}
+            onValueChange={(value) => update('publishType', value)}
             options={options?.publishTypes ?? []}
             placeholder={t('voucherDefinitions.filters.allPublishTypes')}
             emptyOptionLabel={t('voucherDefinitions.filters.allPublishTypes')}
@@ -92,22 +112,118 @@ function VoucherDefinitionsFilters({
             error={optionsError}
             ariaLabel={t('voucherDefinitions.filters.publishTypeLabel')}
           />
-        </label>
-      </div>
+        </FilterField>
 
-      {optionsError ? (
-        <Button variant="outline" type="button" onClick={onRetryOptions} className="shrink-0">
-          {t('common.retry')}
-        </Button>
-      ) : null}
-      
-      {hasActiveFilters ? (
-        <Button variant="outline" type="button" onClick={onClearFilters} className="shrink-0">
-          {t('voucherDefinitions.filters.clearFilters')}
-        </Button>
-      ) : null}
-    </div>
+        {optionsError ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-destructive">{optionsError}</span>
+            <Button variant="outline" size="sm" type="button" onClick={onRetryOptions}>
+              {t('common.retry')}
+            </Button>
+          </div>
+        ) : null}
+
+        <div className="flex h-9 flex-wrap items-center gap-2">
+          <Button type="submit" size="sm">
+            {t('common.filters.apply')}
+          </Button>
+          {hasActiveFilters ? (
+            <Button type="button" variant="outline" size="sm" onClick={clearAllFilters}>
+              {t('common.filters.clearAll')}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </form>
+  )
+
+  if (presentation !== 'popover') {
+    return form
+  }
+
+  const triggerExtra = optionsError ? (
+    <Button variant="outline" size="sm" type="button" onClick={onRetryOptions}>
+      {t('common.retry')}
+    </Button>
+  ) : null
+
+  return (
+    <FilterPopoverControls
+      activeFilters={activeFilters}
+      clearAllLabel={t('common.filters.clearAll')}
+      filterButtonLabel={t('common.filters.filter')}
+      isOpen={isOpen}
+      onClearAll={clearAllFilters}
+      onOpenChange={setIsOpen}
+      onRemoveFilter={removeFilter}
+      removeFilterLabel={(label) => t('common.filters.removeFilter', { label })}
+      triggerExtra={triggerExtra}
+    >
+      {form}
+    </FilterPopoverControls>
   )
 }
 
-export { VoucherDefinitionsFilters }
+function toDraft(filters) {
+  return {
+    keyword: filters.keyword || '',
+    rewardType: filters.rewardType || '',
+    validityType: filters.validityType || '',
+    publishType: filters.publishType || '',
+  }
+}
+
+function getOptionLabel(optionsList, value) {
+  const item = (optionsList || []).find((o) => o.value === value)
+  return item ? item.label : value
+}
+
+function getActiveFilterChips(filters, { options, t }) {
+  const chips = []
+
+  if (filters.keyword) {
+    chips.push({
+      key: 'keyword',
+      label: t('voucherDefinitions.filters.searchLabel'),
+      value: filters.keyword,
+      isText: true,
+    })
+  }
+
+  if (filters.rewardType) {
+    chips.push({
+      key: 'rewardType',
+      label: t('voucherDefinitions.filters.rewardTypeLabel'),
+      value: getOptionLabel(options?.rewardTypes, filters.rewardType),
+    })
+  }
+
+  if (filters.validityType) {
+    chips.push({
+      key: 'validityType',
+      label: t('voucherDefinitions.filters.validityTypeLabel'),
+      value: getOptionLabel(options?.validityTypes, filters.validityType),
+    })
+  }
+
+  if (filters.publishType) {
+    chips.push({
+      key: 'publishType',
+      label: t('voucherDefinitions.filters.publishTypeLabel'),
+      value: getOptionLabel(options?.publishTypes, filters.publishType),
+    })
+  }
+
+  return chips
+}
+
+function hasVoucherDefinitionFilters(filters) {
+  return Boolean(
+    filters.keyword
+    || filters.rewardType
+    || filters.validityType
+    || filters.publishType,
+  )
+}
+
+export { VoucherDefinitionsFilters, hasVoucherDefinitionFilters }

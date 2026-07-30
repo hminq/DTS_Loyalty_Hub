@@ -13,17 +13,13 @@ public partial class Campaign
 
     public string? BannerImageUrl { get; set; }
 
-    public string EventType { get; set; } = null!;
+    public Guid EventTypeVersionId { get; set; }
 
     public DateTime StartDate { get; set; }
 
     public DateTime EndDate { get; set; }
 
     public string Condition { get; set; } = null!;
-
-    public decimal? MinAmount { get; set; }
-
-    public string? CurrencyCode { get; set; }
 
     public string? ScheduleCron { get; set; }
 
@@ -42,6 +38,11 @@ public partial class Campaign
     public virtual ICollection<CampaignSession> CampaignSessions { get; set; } = new List<CampaignSession>();
 
     public virtual ICollection<CampaignUsage> CampaignUsages { get; set; } = new List<CampaignUsage>();
+
+    public virtual ICollection<EventCampaignProcessing> EventCampaignProcessings { get; set; } =
+        new List<EventCampaignProcessing>();
+
+    public virtual EventTypeVersion EventTypeVersion { get; set; } = null!;
 
     public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 

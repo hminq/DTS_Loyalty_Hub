@@ -1,11 +1,11 @@
 import { PlusIcon, UserPlusIcon } from '@phosphor-icons/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { getAdminAccounts, updateAdminAccountStatus } from '../api/adminAccountsApi'
 import { AdminAccountStatusDialog } from '../components/admin-accounts/AdminAccountStatusDialog'
-import { AdminAccountsFilters } from '../components/admin-accounts/AdminAccountsFilters'
+import { AdminAccountsFilters, hasAdminAccountFilters } from '../components/admin-accounts/AdminAccountsFilters'
 import { AdminAccountsTable } from '../components/admin-accounts/AdminAccountsTable'
 import { DataTableCard } from '../components/data-list/DataTableCard'
 import { ListPagination } from '../components/data-list/ListPagination'
@@ -25,7 +25,13 @@ function AdminAccountsPage() {
   const status = searchParams.get('status') || ''
   const roleId = searchParams.get('roleId') || ''
 
-  const [keywordInput, setKeywordInput] = useState(keyword)
+  const canViewRoles = hasPermission(PermissionCodes.Roles.View)
+  const filters = useMemo(() => ({
+    keyword,
+    status,
+    roleId: canViewRoles ? roleId : '',
+  }), [canViewRoles, keyword, roleId, status])
+
   const [accounts, setAccounts] = useState([])
   const [meta, setMeta] = useState({ page, pageSize, totalItems: 0, totalPages: 0 })
   const [isLoading, setIsLoading] = useState(true)
@@ -35,11 +41,10 @@ function AdminAccountsPage() {
   const [statusAccount, setStatusAccount] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const canViewRoles = hasPermission(PermissionCodes.Roles.View)
   const canCreateAccount = hasPermission(PermissionCodes.AdminUsers.Create) && canViewRoles
   const canEditAccount = hasPermission(PermissionCodes.AdminUsers.Update) && canViewRoles
   const canUpdateStatus = hasPermission(PermissionCodes.AdminUsers.Disable)
-  const hasActiveFilters = Boolean(keyword || status || roleId)
+  const hasActiveFilters = hasAdminAccountFilters(filters, canViewRoles)
 
   const updateSearchParams = useCallback((updates, replace = false) => {
     setSearchParams((current) => {
@@ -57,25 +62,16 @@ function AdminAccountsPage() {
   }, [pageSize, setSearchParams])
 
   useEffect(() => {
-    setKeywordInput(keyword)
-  }, [keyword])
+    if (!canViewRoles && searchParams.has('roleId')) {
+      updateSearchParams({ roleId: '' }, true)
+    }
+  }, [canViewRoles, searchParams, updateSearchParams])
 
   useEffect(() => {
     if (searchParams.get('page') !== String(page) || searchParams.get('pageSize') !== String(pageSize)) {
       updateSearchParams({ page, pageSize })
     }
   }, [page, pageSize, searchParams, updateSearchParams])
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const normalizedKeyword = keywordInput.trim()
-      if (normalizedKeyword !== keyword) {
-        updateSearchParams({ keyword: normalizedKeyword, page: 1 })
-      }
-    }, 300)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [keyword, keywordInput, updateSearchParams])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -114,8 +110,11 @@ function AdminAccountsPage() {
     return () => controller.abort()
   }, [keyword, page, pageSize, refreshKey, roleId, status, t, updateSearchParams])
 
+  function applyFilters(nextFilters) {
+    updateSearchParams({ ...nextFilters, page: 1 })
+  }
+
   function clearFilters() {
-    setKeywordInput('')
     updateSearchParams({ keyword: '', status: '', roleId: '', page: 1 })
   }
 
@@ -157,14 +156,11 @@ function AdminAccountsPage() {
 
       <div className="mt-5">
         <AdminAccountsFilters
-          keyword={keywordInput}
-          onKeywordChange={setKeywordInput}
-          status={status}
-          onStatusChange={(value) => updateSearchParams({ status: value, page: 1 })}
-          roleId={roleId}
-          onRoleChange={(value) => updateSearchParams({ roleId: value, page: 1 })}
+          filters={filters}
+          onApply={applyFilters}
+          onClear={clearFilters}
           canFilterByRole={canViewRoles}
-          t={t}
+          presentation="popover"
         />
 
         <DataTableCard>

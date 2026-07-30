@@ -29,6 +29,27 @@ public sealed class UserRepository : IUserRepository
         return await ToCustomerLoginUserAsync(user, ct);
     }
 
+    public Task<ReferralCustomer?> GetReferralCustomerByUsernameAsync(
+        string username,
+        CancellationToken ct = default)
+    {
+        return _dbContext.Users
+            .AsNoTracking()
+            .Where(user =>
+                user.Username == username &&
+                user.UserType == UserTypes.Customer)
+            .Join(
+                _dbContext.Customers.AsNoTracking(),
+                user => user.UserId,
+                customer => customer.UserId,
+                (user, customer) => new ReferralCustomer(
+                    user.UserId,
+                    customer.CustomerId,
+                    user.Username,
+                    user.Status))
+            .SingleOrDefaultAsync(ct);
+    }
+
     public async Task<CustomerLoginUser?> GetByIdAsync(
         Guid userId,
         CancellationToken ct = default)

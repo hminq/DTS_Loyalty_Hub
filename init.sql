@@ -302,34 +302,6 @@ CREATE TABLE campaigns (
     CONSTRAINT ck_campaigns_user_limit_session CHECK (user_limit_session IS NULL OR user_limit_session > 0)
 );
 
-CREATE TABLE campaign_voucher_options (
-    campaign_voucher_option_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    campaign_id UUID NOT NULL,
-    voucher_definition_id UUID NOT NULL,
-    point_cost NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    limit_per_customer INTEGER,
-    display_order INTEGER NOT NULL DEFAULT 0,
-    status VARCHAR(25) NOT NULL DEFAULT 'ACTIVE',
-    available_from TIMESTAMPTZ,
-    available_to TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-    CONSTRAINT fk_campaign_voucher_options_campaign
-        FOREIGN KEY (campaign_id) REFERENCES campaigns (campaign_id) ON DELETE CASCADE,
-    CONSTRAINT fk_campaign_voucher_options_definition
-        FOREIGN KEY (voucher_definition_id) REFERENCES voucher_definitions (voucher_definition_id),
-    CONSTRAINT uq_campaign_voucher_options_campaign_definition UNIQUE (campaign_id, voucher_definition_id),
-    CONSTRAINT ck_campaign_voucher_options_point_cost CHECK (point_cost >= 0),
-    CONSTRAINT ck_campaign_voucher_options_limit_per_customer CHECK (
-        limit_per_customer IS NULL OR limit_per_customer > 0
-    ),
-    CONSTRAINT ck_campaign_voucher_options_display_order CHECK (display_order >= 0),
-    CONSTRAINT ck_campaign_voucher_options_status CHECK (status IN ('ACTIVE', 'DISABLED')),
-    CONSTRAINT ck_campaign_voucher_options_available_range CHECK (
-        available_from IS NULL OR available_to IS NULL OR available_from < available_to
-    )
-);
-
 CREATE TABLE campaign_sessions (
     campaign_session_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     campaign_id UUID NOT NULL,

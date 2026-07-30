@@ -9,11 +9,13 @@ public partial class CampaignUsage
 
     public Guid CampaignId { get; set; }
 
-    public Guid? CampaignSessionId { get; set; }
+    public Guid CampaignSessionId { get; set; }
 
     public Guid CustomerId { get; set; }
 
     public Guid ActionId { get; set; }
+
+    public Guid EventCampaignProcessingId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -21,7 +23,9 @@ public partial class CampaignUsage
 
     public virtual Campaign Campaign { get; set; } = null!;
 
-    public virtual CampaignSession? CampaignSession { get; set; }
+    public virtual CampaignSession CampaignSession { get; set; } = null!;
 
     public virtual Customer Customer { get; set; } = null!;
+
+    public virtual EventCampaignProcessing EventCampaignProcessing { get; set; } = null!;
 }
