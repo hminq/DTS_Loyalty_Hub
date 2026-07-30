@@ -13,8 +13,6 @@ public partial class EventCampaignProcessing
 
     public Guid CampaignSessionId { get; set; }
 
-    public Guid EventCustomerId { get; set; }
-
     public string Status { get; set; } = null!;
 
     public int AttemptCount { get; set; }
@@ -36,5 +34,4 @@ public partial class EventCampaignProcessing
 
     public virtual EventProcessing Event { get; set; } = null!;
 
-    public virtual Customer EventCustomer { get; set; } = null!;
 }

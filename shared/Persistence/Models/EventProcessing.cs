@@ -11,9 +11,9 @@ public partial class EventProcessing
 
     public string RoutingKey { get; set; } = null!;
 
-    public Guid? EventTypeVersionId { get; set; }
+    public Guid EventTypeVersionId { get; set; }
 
-    public int? EventVersion { get; set; }
+    public int EventVersion { get; set; }
 
     public DateTime OccurredAt { get; set; }
 

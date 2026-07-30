@@ -29,8 +29,6 @@ public partial class Customer
 
     public virtual ICollection<CustomerVoucher> CustomerVouchers { get; set; } = new List<CustomerVoucher>();
 
-    public virtual ICollection<EventCampaignProcessing> EventCampaignProcessings { get; set; } =
-        new List<EventCampaignProcessing>();
 
     public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 

@@ -458,7 +458,6 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
-            entity.Property(e => e.EventCustomerId).HasColumnName("event_customer_id");
             entity.Property(e => e.EventId).HasColumnName("event_id");
             entity.Property(e => e.LastError).HasColumnName("last_error");
             entity.Property(e => e.OutcomeCode)
@@ -479,11 +478,6 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasForeignKey(d => d.CampaignSessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_event_campaign_processings_session");
-
-            entity.HasOne(d => d.EventCustomer).WithMany(p => p.EventCampaignProcessings)
-                .HasForeignKey(d => d.EventCustomerId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_event_campaign_processings_customer");
 
             entity.HasOne(d => d.Event).WithMany(p => p.EventCampaignProcessings)
                 .HasForeignKey(d => d.EventId)
