@@ -1,8 +1,8 @@
-import { ArrowRightIcon, CircleNotchIcon } from '@phosphor-icons/react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 
-function NotificationTemplatesTable({ templates, isLoading, isRefreshing, language, onView, onToggleStatus, t }) {
+function NotificationTemplatesTable({ templates, isLoading, isRefreshing, language, onView, onEdit, t }) {
   return (
     <div className="relative overflow-x-auto">
       {isRefreshing ? (
@@ -54,13 +54,24 @@ function NotificationTemplatesTable({ templates, isLoading, isRefreshing, langua
                 {formatDateTime(template.createdAt, language)}
               </td>
               <td className="px-4 py-3 text-right">
-                <Button variant="ghost" size="sm" onClick={() => onToggleStatus(template.templateId)}>
-                  {template.isActive ? t('notifications.actions.deactivate', 'Deactivate') : t('notifications.actions.activate', 'Activate')}
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => onView(template.templateId)}>
-                  {t('notifications.actions.edit', 'Edit')}
-                  <ArrowRightIcon size={14} />
-                </Button>
+                <div className="flex flex-wrap justify-end gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs font-medium"
+                    onClick={() => onView(template.templateId)}
+                  >
+                    {t('common.view', 'View')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs font-medium"
+                    onClick={() => onEdit(template.templateId)}
+                  >
+                    {t('common.edit', 'Edit')}
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}

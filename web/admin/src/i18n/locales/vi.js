@@ -1556,6 +1556,10 @@ export const vi = {
     },
     filters: {
       search: 'Tìm kiếm mẫu...',
+      searchLabel: 'Tìm kiếm',
+      searchPlaceholder: 'Tìm theo tên hoặc mã...',
+      notificationCodeLabel: 'Mã thông báo',
+      notificationCodePlaceholder: 'Lọc theo mã thông báo...',
       allEventTypes: 'Tất cả loại sự kiện',
     },
     fields: {

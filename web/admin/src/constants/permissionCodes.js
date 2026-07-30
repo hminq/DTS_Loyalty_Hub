@@ -27,16 +27,23 @@ export const PermissionCodes = Object.freeze({
   AuditLogs: Object.freeze({
     View: 'audit_log.view',
   }),
+  Notifications: Object.freeze({
+    View: 'notification.view',
+    Create: 'notification.create',
+    Update: 'notification.update',
+    Delete: 'notification.delete',
+  }),
   NotificationEventTypes: Object.freeze({
-    View: 'notification_event_type.view',
+    View: 'notification.view',
   }),
   NotificationTemplates: Object.freeze({
-    View: 'notification_template.view',
-    Create: 'notification_template.create',
-    Update: 'notification_template.update',
+    View: 'notification.view',
+    Create: 'notification.create',
+    Update: 'notification.update',
+    Delete: 'notification.delete',
   }),
   NotificationLogs: Object.freeze({
-    View: 'notification_log.view',
+    View: 'notification.view',
   }),
   Media: Object.freeze({
     Upload: 'media.upload',

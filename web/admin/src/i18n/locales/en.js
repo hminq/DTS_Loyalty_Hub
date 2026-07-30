@@ -1554,6 +1554,10 @@ export const en = {
     },
     filters: {
       search: 'Search templates...',
+      searchLabel: 'Search',
+      searchPlaceholder: 'Search name or code...',
+      notificationCodeLabel: 'Notification Code',
+      notificationCodePlaceholder: 'Filter by notification code...',
       allEventTypes: 'All Event Types',
     },
     fields: {
