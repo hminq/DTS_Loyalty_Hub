@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Core.Abstractions;
-using Messaging.Contracts.Events;
+using Core.UseCases.Events.Models;
 using Messaging.Contracts.Outbox;
 using Persistence.Models;
 using Persistence.Models.Context;
@@ -18,26 +18,41 @@ public sealed class OutboxWriter : IOutboxWriter
         _dbContext = dbContext;
     }
 
-    public void Add<TData>(OutgoingEvent<TData> outgoingEvent)
+    public void Add<TPayload>(VersionedOutboxEvent<TPayload> outboxEvent)
     {
+        if (!string.Equals(
+                outboxEvent.PublishedVersion.EventType,
+                outboxEvent.Envelope.EventType,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Outbox event type does not match the published event reference.");
+        }
+
+        if (outboxEvent.PublishedVersion.EventVersion != outboxEvent.Envelope.EventVersion)
+        {
+            throw new InvalidOperationException("Outbox event version does not match the published event reference.");
+        }
+
         var payload = JsonSerializer.Serialize(
-            outgoingEvent,
+            outboxEvent.Envelope,
             SerializerOptions);
 
         _dbContext.OutboxMessages.Add(
             new OutboxMessage
             {
-                EventId = outgoingEvent.EventId,
-                EventType = outgoingEvent.EventType,
-                RoutingKey = outgoingEvent.RoutingKey,
+                EventId = outboxEvent.Envelope.EventId,
+                EventType = outboxEvent.PublishedVersion.EventType,
+                RoutingKey = outboxEvent.PublishedVersion.RoutingKey,
+                EventTypeVersionId = outboxEvent.PublishedVersion.EventTypeVersionId,
+                EventVersion = outboxEvent.PublishedVersion.EventVersion,
                 Payload = payload,
                 Status = OutboxMessageStatuses.Pending,
                 AttemptCount = 0,
-                NextAttemptAt = outgoingEvent.OccurredAt,
+                NextAttemptAt = outboxEvent.Envelope.OccurredAt,
                 LastErrorCode = null,
                 LastError = null,
-                OccurredAt = outgoingEvent.OccurredAt,
-                CreatedAt = outgoingEvent.OccurredAt,
+                OccurredAt = outboxEvent.Envelope.OccurredAt,
+                CreatedAt = outboxEvent.Envelope.OccurredAt,
                 PublishedAt = null
             });
     }

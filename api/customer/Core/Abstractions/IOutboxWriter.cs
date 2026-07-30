@@ -1,8 +1,8 @@
-using Messaging.Contracts.Events;
+using Core.UseCases.Events.Models;
 
 namespace Core.Abstractions;
 
 public interface IOutboxWriter
 {
-    void Add<TData>(OutgoingEvent<TData> outgoingEvent);
+    void Add<TPayload>(VersionedOutboxEvent<TPayload> outboxEvent);
 }

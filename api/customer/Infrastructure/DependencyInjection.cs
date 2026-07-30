@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddSingleton(jwtOptions);
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPublishedEventVersionRepository, PublishedEventVersionRepository>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IPointTransactionRepository, PointTransactionRepository>();

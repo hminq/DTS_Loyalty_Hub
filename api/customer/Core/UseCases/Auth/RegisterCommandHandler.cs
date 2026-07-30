@@ -5,6 +5,7 @@ using Core.Exceptions;
 using Core.UseCases.Auth.Commands;
 using Core.UseCases.Auth.Models;
 using Core.UseCases.Auth.Results;
+using Core.UseCases.Events.Models;
 using MediatR;
 using Messaging.Contracts.Events;
 
@@ -16,6 +17,7 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
     private readonly IPasswordVerifier _passwordVerifier;
     private readonly IAccessTokenService _accessTokenService;
     private readonly IOutboxWriter _outboxWriter;
+    private readonly IPublishedEventVersionRepository _publishedEventVersionRepository;
     private readonly TimeProvider _timeProvider;
 
     public RegisterCommandHandler(
@@ -23,12 +25,14 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         IPasswordVerifier passwordVerifier,
         IAccessTokenService accessTokenService,
         IOutboxWriter outboxWriter,
+        IPublishedEventVersionRepository publishedEventVersionRepository,
         TimeProvider timeProvider)
     {
         _userRepository = userRepository;
         _passwordVerifier = passwordVerifier;
         _accessTokenService = accessTokenService;
         _outboxWriter = outboxWriter;
+        _publishedEventVersionRepository = publishedEventVersionRepository;
         _timeProvider = timeProvider;
     }
 
@@ -79,11 +83,24 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
             }
         }
 
+        var accountEventReference = await GetRequiredPublishedEventVersionAsync(
+            CustomerPublishedEventVersions.CustomerAccountRegistered.EventType,
+            CustomerPublishedEventVersions.CustomerAccountRegistered.EventVersion,
+            ct);
+
+        PublishedEventVersionReference? referralEventReference = null;
+        if (referrer is not null)
+        {
+            referralEventReference = await GetRequiredPublishedEventVersionAsync(
+                CustomerPublishedEventVersions.CustomerReferralSucceeded.EventType,
+                CustomerPublishedEventVersions.CustomerReferralSucceeded.EventVersion,
+                ct);
+        }
+
         var passwordHash = _passwordVerifier.Hash(request.Password);
 
         var userId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
-        var eventId = Guid.NewGuid();
         var occurredAt = _timeProvider.GetUtcNow().UtcDateTime;
         var created = _userRepository.Add(
             userId,
@@ -96,18 +113,34 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
                 phone));
 
         _outboxWriter.Add(
-            new OutgoingEvent<CustomerAccountRegisteredData>(
-                eventId,
-                EventTypeCodes.CustomerAccountRegistered,
-                EventRoutingKeys.CustomerAccountRegistered,
-                occurredAt,
-                new CustomerAccountRegisteredData(
-                    created.UserId,
-                    created.CustomerId,
-                    referrer is null
-                        ? CustomerRegistrationSources.Normal
-                        : CustomerRegistrationSources.Referral,
-                    referrer?.CustomerId)));
+            new VersionedOutboxEvent<CustomerAccountRegisteredPayload>(
+                accountEventReference,
+                new EventEnvelope<CustomerAccountRegisteredPayload>(
+                    Guid.NewGuid(),
+                    accountEventReference.EventType,
+                    accountEventReference.EventVersion,
+                    occurredAt,
+                    new CustomerAccountRegisteredPayload(
+                        created.UserId,
+                        created.CustomerId,
+                        username,
+                        fullName))));
+
+        if (referrer is not null && referralEventReference is not null)
+        {
+            _outboxWriter.Add(
+                new VersionedOutboxEvent<CustomerReferralSucceededPayload>(
+                    referralEventReference,
+                    new EventEnvelope<CustomerReferralSucceededPayload>(
+                        Guid.NewGuid(),
+                        referralEventReference.EventType,
+                        referralEventReference.EventVersion,
+                        occurredAt,
+                        new CustomerReferralSucceededPayload(
+                            referrer.CustomerId,
+                            created.CustomerId,
+                            username))));
+        }
 
         var expiresAt = _accessTokenService.CreateExpiresAt();
 
@@ -141,5 +174,18 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         return new DomainException(
             "REFERRAL_USERNAME_INVALID",
             DomainErrorType.Validation);
+    }
+
+    private async Task<PublishedEventVersionReference> GetRequiredPublishedEventVersionAsync(
+        string eventType,
+        int eventVersion,
+        CancellationToken cancellationToken)
+    {
+        var reference = await _publishedEventVersionRepository.GetPublishedAsync(
+            eventType,
+            eventVersion,
+            cancellationToken);
+
+        return reference ?? throw new EventPublicationConfigurationException(eventType, eventVersion);
     }
 }
