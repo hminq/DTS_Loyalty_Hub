@@ -1,9 +1,10 @@
 using DotNetEnv;
-using Infrastructure;
+using Scheduler.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Quartz;
 using Scheduler.Jobs;
 using Scheduler.Options;
+using Scheduler.Core.Entities.Constants;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -37,10 +38,13 @@ if (builder.Environment.IsDevelopment())
 var scheduleOptions = TierExpirationScheduleOptions.FromConfiguration(builder.Configuration);
 var voucherPoolScheduleOptions =
     VoucherPoolProvisioningScheduleOptions.FromConfiguration(builder.Configuration);
+var campaignLifecycleScheduleOptions =
+    CampaignSessionLifecycleScheduleOptions.FromConfiguration(builder.Configuration);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(scheduleOptions);
 builder.Services.AddSingleton(voucherPoolScheduleOptions);
+builder.Services.AddSingleton(campaignLifecycleScheduleOptions);
 builder.Services.AddQuartz(quartz =>
 {
     var tierExpirationJobKey = new JobKey(nameof(ProcessExpiredCustomerTiersJob));
@@ -69,13 +73,43 @@ builder.Services.AddQuartz(quartz =>
                 .InTimeZone(TimeZoneInfo.FindSystemTimeZoneById(
                     voucherPoolScheduleOptions.TimeZone))
                 .WithMisfireHandlingInstructionDoNothing()));
+
+    var campaignLifecycleJobKey = new JobKey(nameof(ProcessCampaignSessionLifecycleJob));
+
+    quartz.AddJob<ProcessCampaignSessionLifecycleJob>(
+        job => job.WithIdentity(campaignLifecycleJobKey));
+    quartz.AddTrigger(trigger => trigger
+        .ForJob(campaignLifecycleJobKey)
+        .WithIdentity($"{campaignLifecycleJobKey.Name}-trigger")
+        .WithCronSchedule(
+            campaignLifecycleScheduleOptions.Cron,
+            cron => cron
+                .InTimeZone(TimeZoneInfo.Utc)
+                .WithMisfireHandlingInstructionDoNothing()));
+
+    var outboxDispatchJobKey = new JobKey(nameof(DispatchOutboxMessagesJob));
+
+    quartz.AddJob<DispatchOutboxMessagesJob>(
+        job => job.WithIdentity(outboxDispatchJobKey));
+    quartz.AddTrigger(trigger => trigger
+        .ForJob(outboxDispatchJobKey)
+        .WithIdentity($"{outboxDispatchJobKey.Name}-trigger")
+        .WithSimpleSchedule(schedule => schedule
+            .WithIntervalInSeconds(OutboxDispatchConstants.IntervalSeconds)
+            .RepeatForever()
+            .WithMisfireHandlingInstructionNextWithRemainingCount()));
 });
 builder.Services.AddQuartzHostedService(options =>
 {
     options.WaitForJobsToComplete = true;
 });
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddWorkerPersistence(builder.Configuration);
+builder.Services.AddWorkerPersistenceBehaviors();
+builder.Services.AddCustomerTierInfrastructure();
+builder.Services.AddVoucherPoolInfrastructure(builder.Configuration);
+builder.Services.AddCampaignSessionLifecycle();
+builder.Services.AddOutboxPublishing(builder.Configuration);
 
 var host = builder.Build();
 host.Run();

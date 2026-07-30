@@ -1,0 +1,20 @@
+using Core.Abstractions;
+using Core.UseCases.Campaigns.Results;
+using MediatR;
+
+namespace Core.UseCases.Campaigns.Commands;
+
+public sealed record CreateCampaignCommand(
+    string CampaignName,
+    string? Description,
+    string? BannerImageUrl,
+    Guid EventTypeVersionId,
+    string ConditionJson,
+    DateTimeOffset StartDate,
+    DateTimeOffset EndDate,
+    string ScheduleCron,
+    int DurationHour,
+    int? UserLimitTotal,
+    int? UserLimitSession,
+    IReadOnlyCollection<CreateCampaignActionInput> Actions,
+    Guid? ActorUserId) : IRequest<CampaignDetailResult>, ITransactionalRequest;

@@ -1,0 +1,26 @@
+namespace Consumer.Core.Entities.Campaigns;
+
+public sealed record CampaignRewardProcessingContext(
+    Guid EventCampaignProcessingId,
+    Guid EventId,
+    Guid CampaignId,
+    Guid CampaignSessionId,
+    string Status,
+    int AttemptCount,
+    string? OutcomeCode,
+    string EventType,
+    Guid EventTypeVersionId,
+    int EventVersion,
+    string RoutingKey,
+    DateTime OccurredAt,
+    string NormalizedPayload,
+    string PayloadHash,
+    Guid CampaignEventTypeVersionId,
+    string CampaignConditionJson,
+    string CampaignStatus,
+    int? UserLimitTotal,
+    int? UserLimitSession,
+    Guid SessionCampaignId,
+    string SessionStatus,
+    DateTime SessionStart,
+    DateTime SessionEnd);

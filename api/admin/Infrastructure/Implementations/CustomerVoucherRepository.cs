@@ -236,7 +236,7 @@ public sealed class CustomerVoucherRepository : ICustomerVoucherRepository
                 new CustomerRedeemIssuanceSourceResult(
                     redemption.CampaignId,
                     redemption.Campaign == null ? null : redemption.Campaign.CampaignName,
-                    redemption.Campaign == null ? null : redemption.Campaign.EventType,
+                    redemption.Campaign == null ? null : redemption.Campaign.EventTypeVersion.EventType.Code,
                     redemption.CampaignSessionId,
                     redemption.CampaignSession == null ? null : redemption.CampaignSession.SessionStart,
                     redemption.CampaignSession == null ? null : redemption.CampaignSession.SessionEnd,

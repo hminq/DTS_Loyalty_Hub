@@ -9,6 +9,10 @@ public static class AuditActions
     public const string ToggleStatus = "TOGGLE_STATUS";
     public const string RevokeSession = "REVOKE_SESSION";
     public const string Import = "IMPORT";
+    public const string Activate = "ACTIVATE";
+    public const string Cancel = "CANCEL";
+    public const string Publish = "PUBLISH";
+    public const string Retire = "RETIRE";
 
     public static IReadOnlyCollection<string> All { get; } =
     [
@@ -18,6 +22,10 @@ public static class AuditActions
         UpdateStatus,
         ToggleStatus,
         RevokeSession,
-        Import
+        Import,
+        Activate,
+        Cancel,
+        Publish,
+        Retire
     ];
 }

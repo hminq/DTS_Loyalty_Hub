@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Core.Abstractions;
-using Core.Entities;
-using Core.Entities.Constants;
-using Core.Exceptions;
-using Core.Requests;
+using Scheduler.Core.Abstractions;
+using Scheduler.Core.Entities;
+using Scheduler.Core.Entities.Constants;
+using Scheduler.Core.Exceptions;
+using Scheduler.Core.Requests;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;

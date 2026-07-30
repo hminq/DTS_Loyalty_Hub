@@ -9,4 +9,5 @@ public sealed record RegisterCommand(
     string Email,
     string Password,
     string FullName,
-    string Phone) : IRequest<RegisterResult>, ITransactionalRequest;
+    string Phone,
+    string? ReferralUsername = null) : IRequest<RegisterResult>, ITransactionalRequest;

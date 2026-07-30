@@ -8,11 +8,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <Compile Remove="Core\**" />
+    <Compile Remove="Infrastructure\**" />
+    <EmbeddedResource Remove="Core\**" />
+    <EmbeddedResource Remove="Infrastructure\**" />
+    <None Remove="Core\**" />
+    <None Remove="Infrastructure\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Core\Consumer.Core.csproj" />
+    <ProjectReference Include="Infrastructure\Consumer.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

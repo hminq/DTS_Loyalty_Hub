@@ -11,9 +11,6 @@ services:
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "8081:8080"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     networks:
       - loyalty_net
 
@@ -29,9 +26,6 @@ services:
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "8082:8080"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     networks:
       - loyalty_net
 
@@ -44,9 +38,6 @@ services:
       - worker/Consumer/.env
     environment:
       DOTNET_ENVIRONMENT: Development
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     networks:
       - loyalty_net
 
@@ -59,33 +50,8 @@ services:
       - worker/Scheduler/.env
     environment:
       DOTNET_ENVIRONMENT: Development
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     networks:
       - loyalty_net
-
-  rabbitmq:
-    container_name: loyalty-rabbitmq
-    image: rabbitmq:management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - loyalty_net
-
-volumes:
-  rabbitmq_data:
 
 networks:
   loyalty_net:

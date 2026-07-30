@@ -13,8 +13,6 @@ public partial class ActionUsage
 
     public int UsedCount { get; set; }
 
-    public decimal UsedAmount { get; set; }
-
     public DateTime CreatedAt { get; set; }
 
     public virtual Action Action { get; set; } = null!;
