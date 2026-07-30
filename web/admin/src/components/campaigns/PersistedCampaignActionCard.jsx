@@ -135,20 +135,20 @@ export function PersistedCampaignActionCard({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 gap-1 px-2 text-xs"
+                className="h-7 gap-1.5 px-2.5 text-xs font-medium"
                 onClick={() => setIsEditing(true)}
               >
-                <PencilSimpleIcon size={14} weight="bold" />
+                <PencilSimpleIcon size={14} />
                 {t('common.edit', { defaultValue: 'Edit' })}
               </Button>
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-destructive"
+                className="h-7 gap-1.5 px-2.5 text-xs font-medium text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive transition-colors"
                 onClick={() => onDelete && onDelete(action)}
               >
-                <TrashIcon size={14} weight="bold" />
+                <TrashIcon size={14} />
                 {t('common.delete', { defaultValue: 'Delete' })}
               </Button>
             </div>
@@ -184,34 +184,26 @@ export function PersistedCampaignActionCard({
               </div>
             ))}
 
-            <div className={actionDesc.parameters.length === 0 ? 'sm:col-span-2' : ''}>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t('campaigns.form.actionLimitsTitle', {
-                  defaultValue: 'Action execution limits',
-                })}
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                {t('campaigns.detail.actionTotalLimit', { defaultValue: 'Total action limit' })}
               </p>
-              <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-                <div>
-                  <span className="font-medium">
-                    {t('campaigns.detail.actionTotalLimit', {
-                      defaultValue: 'Total action execution limit',
-                    })}:
-                  </span>{' '}
-                  {action.totalCount != null
-                    ? formatCampaignNumber(action.totalCount, language)
-                    : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
-                </div>
-                <div>
-                  <span className="font-medium">
-                    {t('campaigns.detail.actionSessionLimit', {
-                      defaultValue: 'Action execution limit per session',
-                    })}:
-                  </span>{' '}
-                  {action.sessionCount != null
-                    ? formatCampaignNumber(action.sessionCount, language)
-                    : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
-                </div>
-              </div>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                {action.totalCount != null
+                  ? formatCampaignNumber(action.totalCount, language)
+                  : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                {t('campaigns.detail.actionSessionLimit', { defaultValue: 'Session action limit' })}
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                {action.sessionCount != null
+                  ? formatCampaignNumber(action.sessionCount, language)
+                  : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
+              </p>
             </div>
           </div>
         </CardContent>

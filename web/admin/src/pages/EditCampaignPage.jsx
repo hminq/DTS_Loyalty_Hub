@@ -285,28 +285,25 @@ function EditCampaignPage() {
               formError={formError}
               fieldErrors={fieldErrors}
               onSubmit={handleMetadataSubmit}
-              onReset={() => {
-                setFormError('')
-                setFieldErrors({})
-              }}
+              onCancel={() => navigate(`/campaigns/${campaignId}`)}
               t={t}
-            />
-          </div>
-
-          {/* Action manager section */}
-          <div className="border-t border-border pt-6">
-            <CampaignActionManager
-              campaignId={campaignId}
-              actions={campaign.actions || []}
-              isDraft={isDraft}
-              canEdit={canUpdate}
-              options={options}
-              selectedVersion={selectedCampaignVersion}
-              eventDefinition={campaign.eventDefinition}
-              onActionsChanged={handleRefreshActions}
-              language={i18n.resolvedLanguage}
-              t={t}
-            />
+            >
+              {/* Action manager section */}
+              <div className="border-t border-border pt-6">
+                <CampaignActionManager
+                  campaignId={campaignId}
+                  actions={campaign.actions || []}
+                  isDraft={isDraft}
+                  canEdit={canUpdate}
+                  options={options}
+                  selectedVersion={selectedCampaignVersion}
+                  eventDefinition={campaign.eventDefinition}
+                  onActionsChanged={handleRefreshActions}
+                  language={i18n.resolvedLanguage}
+                  t={t}
+                />
+              </div>
+            </CampaignEditMetadataForm>
           </div>
         </div>
       ) : null}

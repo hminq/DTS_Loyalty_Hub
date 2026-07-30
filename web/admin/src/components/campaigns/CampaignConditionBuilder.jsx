@@ -204,10 +204,10 @@ export function CampaignConditionBuilder({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveRow(idx)}
-                      className="text-muted-foreground hover:text-destructive shrink-0"
+                      className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 transition-colors"
                       title={t('campaigns.actions.removeCondition', { defaultValue: 'Remove condition' })}
                     >
-                      <TrashIcon size={16} weight="bold" />
+                      <TrashIcon size={15} />
                     </Button>
                   )}
                 </div>
@@ -225,12 +225,12 @@ export function CampaignConditionBuilder({
           {!disabled && (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleAddRow}
-              className="gap-1 mt-1 text-primary hover:text-primary hover:bg-primary/5"
+              className="mt-2"
             >
-              <PlusIcon size={14} weight="bold" />
+              <PlusIcon size={14} data-icon="inline-start" />
               {t('campaigns.actions.addCondition', { defaultValue: 'Add condition' })}
             </Button>
           )}

@@ -42,7 +42,7 @@ export function CampaignActionCard({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-destructive"
+            className="h-7 gap-1 px-2 text-xs text-destructive hover:bg-destructive/10 transition-colors"
             onClick={() => onRemove(index)}
             disabled={isSubmitting}
           >

@@ -12,7 +12,8 @@ export function CampaignEditMetadataForm({
   formError = '',
   fieldErrors = {},
   onSubmit,
-  onReset,
+  onCancel,
+  children,
   t,
 }) {
   const [formValues, setFormValues] = useState(initialValues)
@@ -31,13 +32,6 @@ export function CampaignEditMetadataForm({
       eventTypeVersionId: nextVersionId,
       ...createMatchAllConditionFormState(),
     }))
-  }
-
-  function handleReset() {
-    setFormValues(initialValues)
-    if (onReset) {
-      onReset()
-    }
   }
 
   function handleSubmit(event) {
@@ -66,14 +60,16 @@ export function CampaignEditMetadataForm({
         t={t}
       />
 
+      {children}
+
       <div className="flex items-center justify-end gap-3 border-t border-border pt-6">
         <Button
           type="button"
           variant="outline"
-          onClick={handleReset}
+          onClick={onCancel}
           disabled={isSubmitting}
         >
-          {t('common.reset', { defaultValue: 'Reset' })}
+          {t('common.cancel', { defaultValue: 'Cancel' })}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
