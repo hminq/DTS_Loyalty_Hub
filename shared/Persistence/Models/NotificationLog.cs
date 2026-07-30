@@ -9,6 +9,8 @@ public partial class NotificationLog
 
     public Guid? TemplateId { get; set; }
 
+    public string NotificationCode { get; set; } = null!;
+
     public string EventTypeCode { get; set; } = null!;
 
     public string Channel { get; set; } = null!;

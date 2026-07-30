@@ -137,6 +137,8 @@
   <data name="TEMPLATE_NAME_LENGTH_INVALID" xml:space="preserve"><value>Template name must be between 3 and 255 characters.</value></data>
   <data name="TEMPLATE_TITLE_REQUIRED" xml:space="preserve"><value>Title template is required.</value></data>
   <data name="TEMPLATE_BODY_REQUIRED" xml:space="preserve"><value>Body template is required.</value></data>
+  <data name="TEMPLATE_PLACEHOLDER_UNDEFINED" xml:space="preserve"><value>Every placeholder used in the title or body must have a configured variable.</value></data>
+  <data name="VARIABLE_DESCRIPTION_TOO_LONG" xml:space="preserve"><value>Variable description cannot exceed 500 characters.</value></data>
   <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and valid to are required for fixed validity.</value></data>
   <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Valid from and duration day are required for dynamic validity.</value></data>
   <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Remaining stock must be between 0 and total stock.</value></data>

@@ -7,6 +7,8 @@ import { RequireAuth } from './components/auth/RequireAuth'
 import { RequirePermission } from './components/auth/RequirePermission'
 import { PermissionCodes } from './constants/permissionCodes'
 import { AppLayout } from './layouts/AppLayout'
+import { NotificationTemplatesPage } from './pages/NotificationTemplatesPage'
+import { NotificationTemplateDesignerPage } from './pages/NotificationTemplateDesignerPage'
 
 const AdminAccountDetailPage = lazyNamed(() => import('./pages/AdminAccountDetailPage'), 'AdminAccountDetailPage')
 const AdminAccountsPage = lazyNamed(() => import('./pages/AdminAccountsPage'), 'AdminAccountsPage')
@@ -412,6 +414,36 @@ function App() {
           element={
             <RequirePermission permission={PermissionCodes.AuditLogs.View}>
               <AuditLogsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates"
+          element={
+            <RequirePermission permission={PermissionCodes.NotificationTemplates.View}>
+              <NotificationTemplatesPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates/new"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.NotificationTemplates.View,
+              PermissionCodes.NotificationTemplates.Create,
+            ]}>
+              <NotificationTemplateDesignerPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="notification-templates/:id"
+          element={
+            <RequirePermission permissions={[
+              PermissionCodes.NotificationTemplates.View,
+              PermissionCodes.NotificationTemplates.Update,
+            ]}>
+              <NotificationTemplateDesignerPage />
             </RequirePermission>
           }
         />

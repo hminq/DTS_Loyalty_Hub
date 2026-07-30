@@ -10,7 +10,7 @@ public record GetNotificationTemplatesQuery(
     int Page,
     int PageSize,
     string? Keyword = null,
-    string? EventTypeCode = null,
+    string? NotificationCode = null,
     string? Channel = null,
     string? Language = null,
     bool? IsActive = null) : IRequest<PagedResult<NotificationTemplateResult>>;

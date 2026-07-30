@@ -27,9 +27,8 @@ public sealed class UserController : CustomerControllerBase
     [HttpGet("profile")]
     public async Task<ActionResult<ApiResponseDto<UserProfileAndWalletResponseDto>>> GetProfile(CancellationToken ct)
     {
-        var result = await _sender.Send(
-            new GetProfileAndWalletQuery(CurrentCustomer.CustomerId),
-            ct);
+        var result = await _sender.Send(new GetProfileAndWalletQuery
+            (CurrentCustomer.CustomerId), ct);
 
         if (result is null)
         {
@@ -50,8 +49,8 @@ public sealed class UserController : CustomerControllerBase
         CancellationToken ct = default)
     {
         var query = new GetPointTransactionsQuery(
-            CurrentCustomer.CustomerId, 
-            filter.Page, 
+            CurrentCustomer.CustomerId,
+            filter.Page,
             filter.PageSize,
             filter.TransactionType,
             filter.FromDate,

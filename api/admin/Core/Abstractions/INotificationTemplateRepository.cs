@@ -9,10 +9,11 @@ public interface INotificationTemplateRepository
 {
     Task<PagedResult<NotificationTemplateResult>> GetPagedAsync(
         int page, int pageSize,
-        string? keyword = null, string? eventTypeCode = null, string? channel = null, string? language = null, bool? isActive = null,
+        string? keyword = null, string? notificationCode = null, string? channel = null, string? language = null, bool? isActive = null,
         CancellationToken ct = default);
     Task<NotificationTemplateResult?> GetByIdAsync(Guid templateId, CancellationToken ct = default);
     Task<NotificationTemplate?> GetEntityByIdAsync(Guid templateId, CancellationToken ct = default);
     NotificationTemplate Add(NotificationTemplate template);
     Task UpdateAsync(NotificationTemplate template, CancellationToken ct = default);
+    Task DeactivateOtherTemplatesAsync(Guid excludeTemplateId, string notificationCode, string channel, string language, CancellationToken ct = default);
 }

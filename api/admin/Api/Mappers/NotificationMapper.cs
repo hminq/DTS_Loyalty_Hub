@@ -11,12 +11,13 @@ public static class NotificationMapper
         Guid actorUserId)
     {
         return new CreateNotificationTemplateCommand(
-            request.NotificationEventTypeId,
+            request.NotificationCode,
             request.Channel,
             request.Language,
             request.Name,
             request.TitleTemplate,
             request.BodyTemplate,
+            request.Variables,
             actorUserId);
     }
 
@@ -27,12 +28,13 @@ public static class NotificationMapper
     {
         return new UpdateNotificationTemplateCommand(
             templateId,
-            request.NotificationEventTypeId,
+            request.NotificationCode,
             request.Channel,
             request.Language,
             request.Name,
             request.TitleTemplate,
             request.BodyTemplate,
+            request.Variables,
             request.IsActive,
             actorUserId);
     }

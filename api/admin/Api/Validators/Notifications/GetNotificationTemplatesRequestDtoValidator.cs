@@ -23,11 +23,11 @@ public sealed class GetNotificationTemplatesRequestDtoValidator : AbstractValida
             .When(x => !string.IsNullOrEmpty(x.Keyword))
             .OverridePropertyName("keyword");
 
-        RuleFor(request => request.EventTypeCode)
+        RuleFor(request => request.NotificationCode)
             .MaximumLength(50)
-            .WithErrorCode("EVENT_TYPE_CODE_TOO_LONG")
-            .When(x => !string.IsNullOrEmpty(x.EventTypeCode))
-            .OverridePropertyName("eventTypeCode");
+            .WithErrorCode("NOTIFICATION_CODE_TOO_LONG")
+            .When(x => !string.IsNullOrEmpty(x.NotificationCode))
+            .OverridePropertyName("notificationCode");
 
         RuleFor(request => request.Channel)
             .MaximumLength(50)

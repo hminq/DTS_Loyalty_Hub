@@ -137,6 +137,8 @@
   <data name="TEMPLATE_NAME_LENGTH_INVALID" xml:space="preserve"><value>Tên mẫu phải từ 3 đến 255 ký tự.</value></data>
   <data name="TEMPLATE_TITLE_REQUIRED" xml:space="preserve"><value>Tiêu đề mẫu là bắt buộc.</value></data>
   <data name="TEMPLATE_BODY_REQUIRED" xml:space="preserve"><value>Nội dung mẫu là bắt buộc.</value></data>
+  <data name="TEMPLATE_PLACEHOLDER_UNDEFINED" xml:space="preserve"><value>Mọi placeholder trong tiêu đề hoặc nội dung phải có variable tương ứng.</value></data>
+  <data name="VARIABLE_DESCRIPTION_TOO_LONG" xml:space="preserve"><value>Mô tả variable không được vượt quá 500 ký tự.</value></data>
   <data name="VOUCHER_FIXED_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và kết thúc là bắt buộc đối với hiệu lực cố định.</value></data>
   <data name="VOUCHER_DYNAMIC_VALIDITY_REQUIRED" xml:space="preserve"><value>Thời điểm bắt đầu và số ngày hiệu lực là bắt buộc đối với hiệu lực động.</value></data>
   <data name="VOUCHER_REMAINING_STOCK_INVALID" xml:space="preserve"><value>Tồn kho còn lại phải nằm trong khoảng từ 0 đến tổng tồn kho.</value></data>

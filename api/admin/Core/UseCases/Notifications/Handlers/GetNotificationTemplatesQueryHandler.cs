@@ -23,7 +23,7 @@ public sealed class GetNotificationTemplatesQueryHandler : IRequestHandler<GetNo
     {
         return _repository.GetPagedAsync(
             request.Page, request.PageSize,
-            request.Keyword, request.EventTypeCode, request.Channel, request.Language, request.IsActive,
+            request.Keyword, request.NotificationCode, request.Channel, request.Language, request.IsActive,
             ct);
     }
 }

@@ -7,10 +7,10 @@ public sealed class CreateNotificationTemplateRequestDtoValidator : AbstractVali
 {
     public CreateNotificationTemplateRequestDtoValidator()
     {
-        RuleFor(x => x.NotificationEventTypeId)
+        RuleFor(x => x.NotificationCode)
             .NotEmpty()
-            .WithErrorCode("NOTIFICATION_EVENT_TYPE_ID_REQUIRED")
-            .OverridePropertyName("notificationEventTypeId");
+            .WithErrorCode("NOTIFICATION_CODE_REQUIRED")
+            .OverridePropertyName("notificationCode");
 
         RuleFor(x => x.Channel)
             .NotEmpty()
@@ -46,5 +46,9 @@ public sealed class CreateNotificationTemplateRequestDtoValidator : AbstractVali
             .MaximumLength(5000)
             .WithErrorCode("BODY_TEMPLATE_TOO_LONG")
             .OverridePropertyName("bodyTemplate");
+
+        RuleFor(x => x.Variables)
+            .NotNull()
+            .OverridePropertyName("variables");
     }
 }

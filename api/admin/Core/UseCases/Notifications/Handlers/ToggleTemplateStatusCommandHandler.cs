@@ -15,16 +15,13 @@ namespace Core.UseCases.Notifications.Handlers;
 public sealed class ToggleTemplateStatusCommandHandler : IRequestHandler<ToggleTemplateStatusCommand, NotificationTemplateResult>
 {
     private readonly INotificationTemplateRepository _templateRepository;
-    private readonly INotificationEventTypeRepository _eventTypeRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
     public ToggleTemplateStatusCommandHandler(
         INotificationTemplateRepository templateRepository,
-        INotificationEventTypeRepository eventTypeRepository,
         IAuditLogWriter auditLogWriter)
     {
         _templateRepository = templateRepository;
-        _eventTypeRepository = eventTypeRepository;
         _auditLogWriter = auditLogWriter;
     }
 
@@ -38,19 +35,21 @@ public sealed class ToggleTemplateStatusCommandHandler : IRequestHandler<ToggleT
                 DomainErrorType.NotFound);
         }
 
-        var eventType = await _eventTypeRepository.GetByIdAsync(template.NotificationEventTypeId, ct);
-        if (eventType == null)
-        {
-            throw new DomainException(
-                "EVENT_TYPE_NOT_FOUND",
-                DomainErrorType.NotFound);
-        }
-
         var oldState = JsonSerializer.Serialize(new { isActive = template.IsActive });
 
         template.ToggleStatus();
 
         await _templateRepository.UpdateAsync(template, ct);
+
+        if (template.IsActive)
+        {
+            await _templateRepository.DeactivateOtherTemplatesAsync(
+                template.TemplateId, 
+                template.NotificationCode,
+                template.Channel, 
+                template.Language, 
+                ct);
+        }
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,
@@ -63,14 +62,13 @@ public sealed class ToggleTemplateStatusCommandHandler : IRequestHandler<ToggleT
 
         return new NotificationTemplateResult(
             template.TemplateId,
-            template.NotificationEventTypeId,
-            eventType.EventTypeCode,
-            eventType.DisplayName,
+            template.NotificationCode,
             template.Channel,
             template.Language,
             template.Name,
             template.TitleTemplate,
             template.BodyTemplate,
+            template.Variables,
             template.IsActive,
             template.CreatedBy,
             template.CreatedAt,

@@ -13,9 +13,8 @@ public sealed class GetProfileAndWalletQueryHandler : IRequestHandler<GetProfile
         _customerRepository = customerRepository;
     }
 
-    public async Task<ProfileAndWalletResult?> Handle(
-        GetProfileAndWalletQuery request,
-        CancellationToken ct)
+    public async Task<ProfileAndWalletResult?> Handle(GetProfileAndWalletQuery request,
+CancellationToken ct)
     {
         return await _customerRepository.GetProfileAndWalletAsync(request.CustomerId, ct);
     }
