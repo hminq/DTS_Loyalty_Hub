@@ -11,9 +11,9 @@ public partial class OutboxMessage
 
     public string RoutingKey { get; set; } = null!;
 
-    public Guid? EventTypeVersionId { get; set; }
+    public Guid EventTypeVersionId { get; set; }
 
-    public int? EventVersion { get; set; }
+    public int EventVersion { get; set; }
 
     public string Payload { get; set; } = null!;
 
@@ -33,5 +33,5 @@ public partial class OutboxMessage
 
     public DateTime? PublishedAt { get; set; }
 
-    public virtual EventTypeVersion? EventTypeVersion { get; set; }
+    public virtual EventTypeVersion EventTypeVersion { get; set; } = null!;
 }

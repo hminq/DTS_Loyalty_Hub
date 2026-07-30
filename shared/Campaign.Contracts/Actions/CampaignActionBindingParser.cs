@@ -12,7 +12,8 @@ public sealed class CampaignActionBindingParser
         string actionType,
         string actionConfigJson,
         CampaignEventDefinition eventDefinition,
-        CampaignActionDefinition actionDefinition)
+        CampaignActionDefinition actionDefinition,
+        bool trimSelector = true)
     {
         if (!string.Equals(actionType, actionDefinition.Code, StringComparison.OrdinalIgnoreCase))
         {
@@ -27,7 +28,7 @@ public sealed class CampaignActionBindingParser
         try
         {
             using var document = JsonDocument.Parse(actionConfigJson);
-            return Parse(document.RootElement, eventDefinition, actionDefinition);
+            return Parse(document.RootElement, eventDefinition, actionDefinition, trimSelector);
         }
         catch (JsonException)
         {
@@ -38,7 +39,8 @@ public sealed class CampaignActionBindingParser
     public CampaignActionBindingParseResult Parse(
         JsonElement actionConfig,
         CampaignEventDefinition eventDefinition,
-        CampaignActionDefinition actionDefinition)
+        CampaignActionDefinition actionDefinition,
+        bool trimSelector = true)
     {
         var errors = new List<CampaignDefinitionError>();
 
@@ -77,7 +79,8 @@ public sealed class CampaignActionBindingParser
                 "Campaign action target must contain one selector string.");
         }
 
-        var selector = targetElement.GetProperty("selector").GetString()?.Trim();
+        var rawSelector = targetElement.GetProperty("selector").GetString();
+        var selector = trimSelector ? rawSelector?.Trim() : rawSelector;
         if (string.IsNullOrWhiteSpace(selector))
         {
             return Invalid("CAMPAIGN_ACTION_TARGET_INVALID", "Campaign action target selector is required.");

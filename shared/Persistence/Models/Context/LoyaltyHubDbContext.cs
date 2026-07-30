@@ -627,6 +627,9 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasIndex(e => new { e.EventTypeId, e.Version }, "uq_event_type_versions_event_type_version")
                 .IsUnique();
 
+            entity.HasIndex(e => new { e.EventTypeVersionId, e.Version }, "uq_event_type_versions_id_version")
+                .IsUnique();
+
             entity.HasIndex(e => e.EventTypeId, "uq_event_type_versions_one_draft_per_event_type")
                 .IsUnique()
                 .HasFilter("status = 'DRAFT'");
@@ -1351,7 +1354,7 @@ public partial class LoyaltyHubDbContext : DbContext
                     "NULLIF(BTRIM(event_type), '') IS NOT NULL");
                 table.HasCheckConstraint(
                     "ck_outbox_messages_event_version",
-                    "event_version IS NULL OR event_version > 0");
+                    "event_version > 0");
                 table.HasCheckConstraint(
                     "ck_outbox_messages_routing_key",
                     "NULLIF(BTRIM(routing_key), '') IS NOT NULL");
@@ -1413,7 +1416,8 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.PublishedAt).HasColumnName("published_at");
 
             entity.HasOne(d => d.EventTypeVersion).WithMany(p => p.OutboxMessages)
-                .HasForeignKey(d => d.EventTypeVersionId)
+                .HasForeignKey(d => new { d.EventTypeVersionId, d.EventVersion })
+                .HasPrincipalKey(p => new { p.EventTypeVersionId, p.Version })
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("fk_outbox_messages_event_type_version");
         });
