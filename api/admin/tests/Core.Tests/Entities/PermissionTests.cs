@@ -9,10 +9,10 @@ public sealed class PermissionTests
 {
     public static TheoryData<string, string> NotificationPermissionCodes => new()
     {
-        { PermissionCodes.NotificationTemplates.View, "notification_template" },
-        { PermissionCodes.NotificationTemplates.Create, "notification_template" },
-        { PermissionCodes.NotificationTemplates.Update, "notification_template" },
-        { PermissionCodes.NotificationLogs.View, "notification_log" },
+        { PermissionCodes.Notifications.View, "notification" },
+        { PermissionCodes.Notifications.Create, "notification" },
+        { PermissionCodes.Notifications.Update, "notification" },
+        { PermissionCodes.Notifications.Delete, "notification" },
     };
 
     public static TheoryData<string> LegacyNotificationPermissionCodes => new()

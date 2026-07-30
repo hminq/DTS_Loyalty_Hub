@@ -22,10 +22,10 @@ public static class PermissionCodes
         Tiers.Create,
         Tiers.Update,
         AuditLogs.View,
-        NotificationTemplates.View,
-        NotificationTemplates.Create,
-        NotificationTemplates.Update,
-        NotificationLogs.View,
+        Notifications.View,
+        Notifications.Create,
+        Notifications.Update,
+        Notifications.Delete,
         Media.Upload,
         VoucherDefinitions.View,
         VoucherDefinitions.Create,
@@ -116,7 +116,6 @@ public static class PermissionCodes
     {
         public const string View = "tier.view";
         public const string Create = "tier.create";
-
         public const string Update = "tier.update";
     }
 
@@ -130,16 +129,25 @@ public static class PermissionCodes
         public const string View = "customer_voucher.view";
     }
 
+    public static class Notifications
+    {
+        public const string View = "notification.view";
+        public const string Create = "notification.create";
+        public const string Update = "notification.update";
+        public const string Delete = "notification.delete";
+    }
+
     public static class NotificationTemplates
     {
-        public const string View = "notification_template.view";
-        public const string Create = "notification_template.create";
-        public const string Update = "notification_template.update";
+        public const string View = Notifications.View;
+        public const string Create = Notifications.Create;
+        public const string Update = Notifications.Update;
+        public const string Delete = Notifications.Delete;
     }
 
     public static class NotificationLogs
     {
-        public const string View = "notification_log.view";
+        public const string View = Notifications.View;
     }
 
     public static class Media

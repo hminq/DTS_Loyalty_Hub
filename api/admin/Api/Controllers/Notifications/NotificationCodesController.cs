@@ -10,7 +10,7 @@ namespace Api.Controllers.Notifications;
 
 [ApiController]
 [Route("api/admin/notification-codes")]
-[Authorize(Policy = PermissionCodes.NotificationTemplates.View)]
+[Authorize(Policy = PermissionCodes.Notifications.View)]
 public sealed class NotificationCodesController : ControllerBase
 {
     private readonly ISender _sender;

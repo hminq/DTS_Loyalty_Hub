@@ -33,7 +33,7 @@ public sealed class NotificationLogsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = PermissionCodes.NotificationLogs.View)]
+    [Authorize(Policy = PermissionCodes.Notifications.View)]
     public async Task<ActionResult<ApiResponseDto<IReadOnlyCollection<NotificationLogResult>>>> GetPaged(
         [FromQuery] GetNotificationLogsRequestDto request,
         [FromServices] IValidator<GetNotificationLogsRequestDto> validator,
