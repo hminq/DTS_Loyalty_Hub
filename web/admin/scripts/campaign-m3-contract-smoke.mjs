@@ -36,6 +36,7 @@ const sampleOptions = {
         },
         targets: [
           { selector: 'REGISTERED_CUSTOMER', targetKind: 'CUSTOMER' },
+          { selector: 'REFERRED_CUSTOMER', targetKind: 'CUSTOMER' },
           { selector: 'ACCOUNT_ID', targetKind: 'ACCOUNT' }
         ]
       }
@@ -66,6 +67,14 @@ async function runSmokeTests() {
   
   assert.equal(mappedOptions.eventTypeVersions[0].targets[0].value, 'REGISTERED_CUSTOMER')
   assert.equal(mappedOptions.eventTypeVersions[0].targets[0].selector, 'REGISTERED_CUSTOMER')
+  assert.equal(
+    mappedOptions.eventTypeVersions[0].targets[0].label,
+    'REGISTERED_CUSTOMER',
+  )
+  assert.equal(
+    mappedOptions.eventTypeVersions[0].targets[1].label,
+    'REFERRED_CUSTOMER',
+  )
 
   const selectedVersion = mappedOptions.eventTypeVersions[0]
 

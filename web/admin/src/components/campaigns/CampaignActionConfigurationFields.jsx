@@ -139,9 +139,6 @@ export function CampaignActionConfigurationFields({
           placeholder={t('campaigns.form.selectTarget', {
             defaultValue: 'Select target',
           })}
-          emptyOptionLabel={t('campaigns.form.selectTarget', {
-            defaultValue: 'Select target',
-          })}
           disabled={targetDisabled}
           ariaLabel={t('campaigns.form.targetSelectorLabel', { defaultValue: 'Target' })}
         />

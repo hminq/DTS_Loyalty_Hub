@@ -16,14 +16,14 @@ import { CloneEventDefinitionDialog } from '../components/event-definitions/Clon
 import { PublishEventDefinitionDialog } from '../components/event-definitions/PublishEventDefinitionDialog'
 import { RetireEventDefinitionDialog } from '../components/event-definitions/RetireEventDefinitionDialog'
 import { mapEventDefinitionOptions } from '../components/event-definitions/eventDefinitionOptions'
-import { mapVersionToFormState } from '../components/event-definitions/eventDefinitionPayloads'
+import { mapVersionToFormState, buildUpdateDraftSchemaPayload } from '../components/event-definitions/eventDefinitionPayloads'
 import { validateSchemaForm } from '../components/event-definitions/eventDefinitionValidation'
 import { getStatusBadgeVariant } from '../components/event-definitions/eventDefinitionFormatters'
 import { PermissionCodes } from '../constants/permissionCodes'
+import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
-import { buildUpdateDraftSchemaPayload } from '../components/event-definitions/eventDefinitionPayloads'
 
 export function EventDefinitionVersionPage() {
   const { t } = useTranslation()
@@ -173,7 +173,7 @@ export function EventDefinitionVersionPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-12 text-muted-foreground">
+      <div className="mt-5 flex h-48 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-2">
           {t('eventDefinitions.loading')}
         </span>
@@ -183,8 +183,11 @@ export function EventDefinitionVersionPage() {
 
   if (error && !versionDetail) {
     return (
-      <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
-        {error}
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
+        <p>{error}</p>
+        <Button variant="outline" size="sm" onClick={fetchVersionDetail}>
+          {t('common.retry')}
+        </Button>
       </div>
     )
   }
@@ -192,9 +195,16 @@ export function EventDefinitionVersionPage() {
   const statusVariant = getStatusBadgeVariant(versionDetail?.status)
   const statusLabel = t(`eventDefinitions.versionStatuses.${versionDetail?.status}`, versionDetail?.status)
 
+  const breadcrumbItems = [
+    { label: t('eventDefinitions.title'), to: '/event-definitions' },
+    { label: versionDetail?.eventTypeCode || eventTypeId, to: `/event-definitions/${eventTypeId}` },
+    { label: `v${versionDetail?.version || ''}` },
+  ]
+
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={<Breadcrumb items={breadcrumbItems} />}
         title={`${versionDetail?.eventTypeCode || ''} — v${versionDetail?.version || ''}`}
         description={
           <div className="flex items-center gap-2 mt-1">
@@ -208,35 +218,57 @@ export function EventDefinitionVersionPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => navigate(`/event-definitions/${eventTypeId}`)}
             >
               {t('eventDefinitions.actions.backToDetail')}
             </Button>
 
             {canEdit && (
-              <Button onClick={handleSaveDraft} disabled={isSaving}>
-                <FloppyDiskIcon data-icon="inline-start" />
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveDraft}
+                disabled={isSaving}
+                className="gap-1.5"
+              >
+                <FloppyDiskIcon size={15} weight="bold" />
                 {t('eventDefinitions.actions.saveDraft')}
               </Button>
             )}
 
             {canPublish && (
-              <Button onClick={() => setShowPublishDialog(true)}>
-                <CheckIcon data-icon="inline-start" />
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowPublishDialog(true)}
+                className="gap-1.5 bg-success text-success-foreground shadow-sm transition-all hover:bg-success/90 hover:shadow"
+              >
+                <CheckIcon size={15} weight="bold" />
                 {t('eventDefinitions.actions.publishDraft')}
               </Button>
             )}
 
             {canClone && (
-              <Button variant="outline" onClick={() => setShowCloneDialog(true)}>
-                <CopyIcon data-icon="inline-start" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCloneDialog(true)}
+                className="gap-1.5"
+              >
+                <CopyIcon size={15} weight="bold" />
                 {t('eventDefinitions.actions.cloneVersion')}
               </Button>
             )}
 
             {canRetire && (
-              <Button variant="destructive" onClick={() => setShowRetireDialog(true)}>
-                <ProhibitIcon data-icon="inline-start" />
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowRetireDialog(true)}
+                className="gap-1.5"
+              >
+                <ProhibitIcon size={15} weight="bold" />
                 {t('eventDefinitions.actions.retireVersion')}
               </Button>
             )}
@@ -245,14 +277,14 @@ export function EventDefinitionVersionPage() {
       />
 
       {notice && (
-        <div className="rounded-md bg-emerald-500/10 p-4 text-sm font-medium text-emerald-600">
+        <div className="rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
           {notice}
         </div>
       )}
 
       {error && (
-        <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
-          {error}
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
+          <p>{error}</p>
         </div>
       )}
 

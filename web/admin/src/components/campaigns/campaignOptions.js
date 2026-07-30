@@ -39,7 +39,7 @@ function mapEventTypeVersions(eventTypeVersions = [], t) {
     const targets = (item?.targets || []).map(target => ({
       value: target.selector,
       selector: target.selector,
-      label: t(`campaigns.targetSelectors.${target.selector}`, { defaultValue: target.selector }),
+      label: target.selector,
       targetKind: target.targetKind,
       idField: target.idField,
     }))

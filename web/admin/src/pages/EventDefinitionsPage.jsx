@@ -131,7 +131,7 @@ export function EventDefinitionsPage() {
         actions={
           canCreate ? (
             <Link to="/event-definitions/new">
-              <Button>
+              <Button size="sm">
                 <PlusIcon data-icon="inline-start" />
                 {t('eventDefinitions.create')}
               </Button>
@@ -141,7 +141,7 @@ export function EventDefinitionsPage() {
       />
 
       {error && (
-        <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
           {error}
         </div>
       )}

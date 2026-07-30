@@ -14,7 +14,9 @@ import { EventDefinitionVersionHistory } from '../components/event-definitions/E
 import { CloneEventDefinitionDialog } from '../components/event-definitions/CloneEventDefinitionDialog'
 import { RetireEventDefinitionDialog } from '../components/event-definitions/RetireEventDefinitionDialog'
 import { PermissionCodes } from '../constants/permissionCodes'
+import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
+import { Button } from '../components/ui/button'
 
 export function EventDefinitionDetailPage() {
   const { t } = useTranslation()
@@ -97,24 +99,35 @@ export function EventDefinitionDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-12 text-muted-foreground">
-        <CircleNotchIcon className="mr-2 animate-spin" size={20} />
-        {t('eventDefinitions.loadingDetail')}
+      <div className="mt-5 flex h-48 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+        <span className="inline-flex items-center gap-2">
+          <CircleNotchIcon className="animate-spin" size={18} aria-hidden="true" />
+          {t('eventDefinitions.loadingDetail')}
+        </span>
       </div>
     )
   }
 
   if (error || !detail) {
     return (
-      <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
-        {error || t('eventDefinitions.errors.notFound')}
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
+        <p>{error || t('eventDefinitions.errors.notFound')}</p>
+        <Button variant="outline" size="sm" onClick={fetchDetail}>
+          {t('common.retry')}
+        </Button>
       </div>
     )
   }
 
+  const breadcrumbItems = [
+    { label: t('eventDefinitions.title'), to: '/event-definitions' },
+    { label: detail.name || detail.code || eventTypeId },
+  ]
+
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={<Breadcrumb items={breadcrumbItems} />}
         title={detail.name}
         description={detail.code}
         actions={
@@ -127,7 +140,7 @@ export function EventDefinitionDetailPage() {
       />
 
       {notice && (
-        <div className="rounded-md bg-emerald-500/10 p-4 text-sm font-medium text-emerald-600">
+        <div className="rounded-lg border border-success/20 bg-success-muted px-4 py-3 text-[13px] font-medium text-success">
           {notice}
         </div>
       )}

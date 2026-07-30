@@ -7,6 +7,7 @@ import { getEventDefinition, updateEventDefinition } from '../api/eventDefinitio
 import { EventDefinitionMetadataForm } from '../components/event-definitions/EventDefinitionMetadataForm'
 import { mapDetailToMetadataForm, buildUpdateMetadataPayload } from '../components/event-definitions/eventDefinitionPayloads'
 import { validateMetadataForm } from '../components/event-definitions/eventDefinitionValidation'
+import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { toFieldErrorMap } from '../api/apiError'
@@ -78,24 +79,33 @@ export function EditEventDefinitionPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-12 text-muted-foreground">
-        <CircleNotchIcon className="mr-2 animate-spin" size={20} />
-        {t('eventDefinitions.loadingDetail')}
+      <div className="mt-5 flex h-48 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+        <span className="inline-flex items-center gap-2">
+          <CircleNotchIcon className="animate-spin" size={18} aria-hidden="true" />
+          {t('eventDefinitions.loadingDetail')}
+        </span>
       </div>
     )
   }
 
   if (apiError && !detail) {
     return (
-      <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
-        {apiError}
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
+        <p>{apiError}</p>
       </div>
     )
   }
 
+  const breadcrumbItems = [
+    { label: t('eventDefinitions.title'), to: '/event-definitions' },
+    { label: detail?.name || detail?.code || eventTypeId, to: `/event-definitions/${eventTypeId}` },
+    { label: t('common.edit') },
+  ]
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <PageHeader
+        breadcrumb={<Breadcrumb items={breadcrumbItems} />}
         title={t('eventDefinitions.editTitle', { name: detail?.name })}
         description={detail?.code}
         actions={
@@ -103,12 +113,13 @@ export function EditEventDefinitionPage() {
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => navigate(`/event-definitions/${eventTypeId}`)}
               disabled={isSubmitting}
             >
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" size="sm" disabled={isSubmitting}>
               {isSubmitting ? (
                 <span className="inline-flex items-center gap-1.5">
                   <CircleNotchIcon className="animate-spin" size={14} />
@@ -123,7 +134,7 @@ export function EditEventDefinitionPage() {
       />
 
       {apiError && (
-        <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
           {apiError}
         </div>
       )}

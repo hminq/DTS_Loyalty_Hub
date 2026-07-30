@@ -15,7 +15,6 @@ export function getStatusBadgeVariant(status) {
     case 'PUBLISHED':
       return 'success'
     case 'DRAFT':
-      return 'warning'
     case 'RETIRED':
       return 'secondary'
     default:

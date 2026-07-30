@@ -21,16 +21,16 @@ export function EventDefinitionLifecycleActions({
     <div className="flex items-center gap-2">
       {canEdit && (
         <Link to={`/event-definitions/${detail.eventTypeId}/edit`}>
-          <Button variant="outline">
-            <PencilSimpleIcon className="mr-1.5 h-4 w-4" />
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <PencilSimpleIcon size={15} weight="bold" />
             {t('eventDefinitions.actions.editMetadata')}
           </Button>
         </Link>
       )}
 
       {canRetire && (
-        <Button variant="destructive" onClick={onRetireType}>
-          <ProhibitIcon className="mr-1.5 h-4 w-4" />
+        <Button variant="destructive" size="sm" onClick={onRetireType} className="gap-1.5">
+          <ProhibitIcon size={15} weight="bold" />
           {t('eventDefinitions.actions.retireType')}
         </Button>
       )}

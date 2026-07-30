@@ -8,6 +8,7 @@ import { EventDefinitionSchemaBuilder } from '../components/event-definitions/Ev
 import { mapEventDefinitionOptions } from '../components/event-definitions/eventDefinitionOptions'
 import { buildCreateEventDefinitionPayload } from '../components/event-definitions/eventDefinitionPayloads'
 import { validateMetadataForm, validateSchemaForm } from '../components/event-definitions/eventDefinitionValidation'
+import { Breadcrumb } from '../components/layout/Breadcrumb'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/button'
 import { toFieldErrorMap } from '../api/apiError'
@@ -85,16 +86,21 @@ export function CreateEventDefinitionPage() {
     }
   }
 
+  const breadcrumbItems = [
+    { label: t('eventDefinitions.title'), to: '/event-definitions' },
+    { label: t('eventDefinitions.create') },
+  ]
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <PageHeader
+        breadcrumb={<Breadcrumb items={breadcrumbItems} />}
         title={t('eventDefinitions.createTitle')}
         description={t('eventDefinitions.createDescription')}
-        backUrl="/event-definitions"
       />
 
       {apiError && (
-        <div className="rounded-md bg-destructive/10 p-4 text-sm font-medium text-destructive">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-[13px] font-medium text-destructive">
           {apiError}
         </div>
       )}
@@ -123,12 +129,13 @@ export function CreateEventDefinitionPage() {
         <Button
           type="button"
           variant="outline"
+          size="sm"
           onClick={() => navigate('/event-definitions')}
           disabled={isSubmitting}
         >
           {t('common.cancel')}
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" size="sm" disabled={isSubmitting}>
           {isSubmitting ? t('common.creating') : t('common.create')}
         </Button>
       </div>
