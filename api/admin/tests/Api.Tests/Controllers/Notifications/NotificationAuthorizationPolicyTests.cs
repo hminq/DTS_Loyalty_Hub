@@ -11,11 +11,6 @@ public sealed class NotificationAuthorizationPolicyTests
     public static TheoryData<Type, string, string> ActionPolicies => new()
     {
         {
-            typeof(NotificationEventTypesController),
-            nameof(NotificationEventTypesController.GetList),
-            PermissionCodes.NotificationEventTypes.View
-        },
-        {
             typeof(NotificationTemplatesController),
             nameof(NotificationTemplatesController.GetPaged),
             PermissionCodes.NotificationTemplates.View

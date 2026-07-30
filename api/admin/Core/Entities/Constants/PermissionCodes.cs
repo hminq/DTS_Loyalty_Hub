@@ -22,7 +22,6 @@ public static class PermissionCodes
         Tiers.Create,
         Tiers.Update,
         AuditLogs.View,
-        NotificationEventTypes.View,
         NotificationTemplates.View,
         NotificationTemplates.Create,
         NotificationTemplates.Update,
@@ -129,11 +128,6 @@ public static class PermissionCodes
     public static class CustomerVouchers
     {
         public const string View = "customer_voucher.view";
-    }
-
-    public static class NotificationEventTypes
-    {
-        public const string View = "notification_event_type.view";
     }
 
     public static class NotificationTemplates

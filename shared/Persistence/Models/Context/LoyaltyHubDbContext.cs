@@ -61,8 +61,6 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<VoucherRedemption> VoucherRedemptions { get; set; }
 
-    public virtual DbSet<NotificationEventType> NotificationEventTypes { get; set; }
-
     public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
     public virtual DbSet<NotificationLog> NotificationLogs { get; set; }
@@ -1233,28 +1231,6 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.HasOne(d => d.VoucherPool).WithMany(p => p.VoucherRedemptions)
                 .HasForeignKey(d => d.VoucherPoolId)
                 .HasConstraintName("fk_voucher_redemptions_pool");
-        });
-
-        modelBuilder.Entity<NotificationEventType>(entity =>
-        {
-            entity.HasKey(e => e.NotificationEventTypeId).HasName("notification_event_type_pkey");
-            entity.ToTable("notification_event_type");
-            entity.HasIndex(e => e.EventTypeCode, "uq_notification_event_type_code").IsUnique();
-
-            entity.Property(e => e.NotificationEventTypeId)
-                .HasDefaultValueSql("gen_random_uuid()")
-                .HasColumnName("notification_event_type_id");
-            entity.Property(e => e.EventTypeCode)
-                .HasMaxLength(100)
-                .HasColumnName("event_type_code");
-            entity.Property(e => e.DisplayName)
-                .HasMaxLength(255)
-                .HasColumnName("display_name");
-            entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.AvailableVariables)
-                .HasDefaultValueSql("'[]'::jsonb")
-                .HasColumnType("jsonb")
-                .HasColumnName("available_variables");
         });
 
         modelBuilder.Entity<NotificationTemplate>(entity =>

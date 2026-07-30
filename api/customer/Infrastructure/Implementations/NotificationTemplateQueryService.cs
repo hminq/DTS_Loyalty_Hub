@@ -25,10 +25,7 @@ public sealed class NotificationTemplateQueryService : INotificationTemplateQuer
                 t.TitleTemplate,
                 t.BodyTemplate,
                 t.Channel,
-                AvailableVariables = _dbContext.NotificationEventTypes
-                    .Where(e => e.EventTypeCode == eventTypeCode)
-                    .Select(e => e.AvailableVariables)
-                    .FirstOrDefault() ?? "[]"
+                AvailableVariables = t.VariableDefinitions
             })
             .FirstOrDefaultAsync(ct);
 

@@ -9,7 +9,6 @@ public sealed class PermissionTests
 {
     public static TheoryData<string, string> NotificationPermissionCodes => new()
     {
-        { PermissionCodes.NotificationEventTypes.View, "notification_event_type" },
         { PermissionCodes.NotificationTemplates.View, "notification_template" },
         { PermissionCodes.NotificationTemplates.Create, "notification_template" },
         { PermissionCodes.NotificationTemplates.Update, "notification_template" },
