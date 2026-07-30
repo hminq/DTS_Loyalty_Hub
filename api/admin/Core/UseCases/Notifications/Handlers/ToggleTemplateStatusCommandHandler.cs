@@ -37,19 +37,21 @@ public sealed class ToggleTemplateStatusCommandHandler : IRequestHandler<ToggleT
 
         var oldState = JsonSerializer.Serialize(new { isActive = template.IsActive });
 
+        if (!template.IsActive && await _templateRepository.HasActiveTemplateAsync(
+                template.TemplateId,
+                template.NotificationCode,
+                template.Channel,
+                template.Language,
+                ct))
+        {
+            throw new DomainException(
+                "NOTIFICATION_TEMPLATE_ALREADY_ACTIVE",
+                DomainErrorType.Conflict);
+        }
+
         template.ToggleStatus();
 
         await _templateRepository.UpdateAsync(template, ct);
-
-        if (template.IsActive)
-        {
-            await _templateRepository.DeactivateOtherTemplatesAsync(
-                template.TemplateId, 
-                template.NotificationCode,
-                template.Channel, 
-                template.Language, 
-                ct);
-        }
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,

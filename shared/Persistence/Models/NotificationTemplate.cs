@@ -9,8 +9,6 @@ public partial class NotificationTemplate
 
     public string NotificationCode { get; set; } = null!;
 
-    public Guid NotificationEventTypeId { get; set; }
-
     public string Channel { get; set; } = null!;
 
     public string Language { get; set; } = null!;
@@ -30,8 +28,6 @@ public partial class NotificationTemplate
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
-
-    public virtual NotificationEventType NotificationEventType { get; set; } = null!;
 
     public virtual ICollection<NotificationLog> NotificationLogs { get; set; } = new List<NotificationLog>();
 }

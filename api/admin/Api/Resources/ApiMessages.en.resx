@@ -194,4 +194,5 @@
   <data name="EVENT_DEFINITION_TARGET_FIELD_INVALID" xml:space="preserve"><value>Event definition target idField must be a required UUID string field.</value></data>
   <data name="EVENT_DEFINITION_PUBLISH_FIELDS_REQUIRED" xml:space="preserve"><value>At least one payload field is required before publishing.</value></data>
   <data name="EVENT_DEFINITION_PUBLISH_TARGETS_REQUIRED" xml:space="preserve"><value>At least one event target is required before publishing.</value></data>
+  <data name="NOTIFICATION_TEMPLATE_ALREADY_ACTIVE" xml:space="preserve"><value>An active template already exists for the same notification code, channel, and language.</value></data>
 </root>

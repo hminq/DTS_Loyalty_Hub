@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Persistence.Models;
 
@@ -15,5 +14,4 @@ public partial class NotificationEventType
 
     public string AvailableVariables { get; set; } = "[]";
 
-    public virtual ICollection<NotificationTemplate> NotificationTemplates { get; set; } = new List<NotificationTemplate>();
 }

@@ -194,4 +194,5 @@
   <data name="EVENT_DEFINITION_TARGET_FIELD_INVALID" xml:space="preserve"><value>Target idField phải là field UUID string bắt buộc.</value></data>
   <data name="EVENT_DEFINITION_PUBLISH_FIELDS_REQUIRED" xml:space="preserve"><value>Cần ít nhất một payload field trước khi publish.</value></data>
   <data name="EVENT_DEFINITION_PUBLISH_TARGETS_REQUIRED" xml:space="preserve"><value>Cần ít nhất một event target trước khi publish.</value></data>
+  <data name="NOTIFICATION_TEMPLATE_ALREADY_ACTIVE" xml:space="preserve"><value>ÄÃ£ tá»“n táº¡i má»™t máº«u Ä‘ang hoáº¡t Ä‘á»™ng vá»›i cÃ¹ng mÃ£ thÃ´ng bÃ¡o, kÃªnh vÃ  ngÃ´n ngá»¯.</value></data>
 </root>

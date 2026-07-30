@@ -88,6 +88,22 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
         return template;
     }
 
+    public Task<bool> HasActiveTemplateAsync(
+        Guid excludeTemplateId,
+        string notificationCode,
+        string channel,
+        string language,
+        CancellationToken ct = default)
+    {
+        return _dbContext.NotificationTemplates.AnyAsync(t =>
+            t.TemplateId != excludeTemplateId &&
+            t.NotificationCode == notificationCode &&
+            t.Channel == channel &&
+            t.Language == language &&
+            t.IsActive,
+            ct);
+    }
+
     public async Task UpdateAsync(
         DomainNotificationTemplate template,
         CancellationToken ct = default)
@@ -107,29 +123,6 @@ public sealed class NotificationTemplateRepository : INotificationTemplateReposi
         persisted.VariableDefinitions = JsonSerializer.Serialize(template.Variables);
         persisted.IsActive = template.IsActive;
         persisted.UpdatedAt = template.UpdatedAt;
-    }
-
-    public async Task DeactivateOtherTemplatesAsync(
-        Guid excludeTemplateId,
-        string notificationCode,
-        string channel,
-        string language,
-        CancellationToken ct = default)
-    {
-        var templates = await _dbContext.NotificationTemplates
-            .Where(t =>
-                t.NotificationCode == notificationCode &&
-                t.Channel == channel &&
-                t.Language == language &&
-                t.IsActive &&
-                t.TemplateId != excludeTemplateId)
-            .ToListAsync(ct);
-
-        foreach (var template in templates)
-        {
-            template.IsActive = false;
-            template.UpdatedAt = DateTime.UtcNow;
-        }
     }
 
     private static PersistenceNotificationTemplate ToPersistence(DomainNotificationTemplate template) =>
