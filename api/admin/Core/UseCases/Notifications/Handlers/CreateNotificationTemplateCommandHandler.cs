@@ -16,36 +16,26 @@ namespace Core.UseCases.Notifications.Handlers;
 public sealed class CreateNotificationTemplateCommandHandler : IRequestHandler<CreateNotificationTemplateCommand, NotificationTemplateResult>
 {
     private readonly INotificationTemplateRepository _templateRepository;
-    private readonly INotificationEventTypeRepository _eventTypeRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
     public CreateNotificationTemplateCommandHandler(
         INotificationTemplateRepository templateRepository,
-        INotificationEventTypeRepository eventTypeRepository,
         IAuditLogWriter auditLogWriter)
     {
         _templateRepository = templateRepository;
-        _eventTypeRepository = eventTypeRepository;
         _auditLogWriter = auditLogWriter;
     }
 
     public async Task<NotificationTemplateResult> Handle(CreateNotificationTemplateCommand request, CancellationToken ct)
     {
-        var eventType = await _eventTypeRepository.GetByIdAsync(request.NotificationEventTypeId, ct);
-        if (eventType == null)
-        {
-            throw new DomainException(
-                "EVENT_TYPE_NOT_FOUND",
-                DomainErrorType.NotFound);
-        }
-
         var template = NotificationTemplate.Create(
-            request.NotificationEventTypeId,
+            request.NotificationCode,
             request.Channel,
             request.Language,
             request.Name,
             request.TitleTemplate,
             request.BodyTemplate,
+            request.Variables,
             request.ActorUserId);
 
         var createdTemplate = _templateRepository.Add(template);
@@ -59,7 +49,7 @@ public sealed class CreateNotificationTemplateCommandHandler : IRequestHandler<C
             JsonSerializer.Serialize(new
             {
                 templateId = createdTemplate.TemplateId,
-                notificationEventTypeId = createdTemplate.NotificationEventTypeId,
+                notificationCode = createdTemplate.NotificationCode,
                 name = createdTemplate.Name,
                 channel = createdTemplate.Channel,
                 language = createdTemplate.Language,
@@ -69,14 +59,13 @@ public sealed class CreateNotificationTemplateCommandHandler : IRequestHandler<C
 
         return new NotificationTemplateResult(
             createdTemplate.TemplateId,
-            createdTemplate.NotificationEventTypeId,
-            eventType.EventTypeCode,
-            eventType.DisplayName,
+            createdTemplate.NotificationCode,
             createdTemplate.Channel,
             createdTemplate.Language,
             createdTemplate.Name,
             createdTemplate.TitleTemplate,
             createdTemplate.BodyTemplate,
+            createdTemplate.Variables,
             createdTemplate.IsActive,
             createdTemplate.CreatedBy,
             createdTemplate.CreatedAt,

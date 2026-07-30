@@ -50,7 +50,7 @@ public sealed class NotificationTemplatesController : ControllerBase
         }
 
         var result = await _sender.Send(new GetNotificationTemplatesQuery(
-            request.Page, request.PageSize, request.Keyword, request.EventTypeCode, request.Channel, request.Language, request.IsActive), ct);
+            request.Page, request.PageSize, request.Keyword, request.NotificationCode, request.Channel, request.Language, request.IsActive), ct);
 
         return Ok(new ApiResponseDto<IReadOnlyCollection<NotificationTemplateResult>>
         {

@@ -935,6 +935,9 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.TemplateId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("template_id");
+            entity.Property(e => e.NotificationCode)
+                .HasMaxLength(100)
+                .HasColumnName("notification_code");
             entity.Property(e => e.NotificationEventTypeId).HasColumnName("notification_event_type_id");
             entity.Property(e => e.Channel)
                 .HasMaxLength(50)
@@ -949,6 +952,10 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.TitleTemplate).HasColumnName("title_template");
             entity.Property(e => e.BodyTemplate).HasColumnName("body_template");
+            entity.Property(e => e.VariableDefinitions)
+                .HasDefaultValueSql("'[]'::jsonb")
+                .HasColumnType("jsonb")
+                .HasColumnName("variable_definitions");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
@@ -976,6 +983,9 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("log_id");
             entity.Property(e => e.TemplateId).HasColumnName("template_id");
+            entity.Property(e => e.NotificationCode)
+                .HasMaxLength(100)
+                .HasColumnName("notification_code");
             entity.Property(e => e.EventTypeCode)
                 .HasMaxLength(100)
                 .HasColumnName("event_type_code");

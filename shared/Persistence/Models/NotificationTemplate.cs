@@ -7,6 +7,8 @@ public partial class NotificationTemplate
 {
     public Guid TemplateId { get; set; }
 
+    public string NotificationCode { get; set; } = null!;
+
     public Guid NotificationEventTypeId { get; set; }
 
     public string Channel { get; set; } = null!;
@@ -18,6 +20,8 @@ public partial class NotificationTemplate
     public string TitleTemplate { get; set; } = null!;
 
     public string BodyTemplate { get; set; } = null!;
+
+    public string VariableDefinitions { get; set; } = "[]";
 
     public bool IsActive { get; set; }
 

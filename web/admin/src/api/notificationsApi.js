@@ -1,12 +1,12 @@
 import httpClient from './httpClient'
 
-export async function getNotificationTemplates({ page = 1, pageSize = 20, keyword, eventTypeCode, channel, language, isActive } = {}) {
+export async function getNotificationTemplates({ page = 1, pageSize = 20, keyword, notificationCode, channel, language, isActive } = {}) {
   const response = await httpClient.get('/notification-templates', {
     params: {
       page,
       pageSize,
       keyword: keyword || undefined,
-      eventTypeCode: eventTypeCode || undefined,
+      notificationCode: notificationCode || undefined,
       channel: channel || undefined,
       language: language || undefined,
       isActive: isActive !== undefined ? isActive : undefined,
@@ -36,11 +36,7 @@ export async function toggleTemplateStatus(templateId) {
   return response.data.data
 }
 
-export async function getNotificationEventTypes({ searchKeyword } = {}) {
-  const response = await httpClient.get('/notification-event-types', {
-    params: {
-      searchKeyword: searchKeyword || undefined,
-    },
-  })
+export async function getNotificationCodes() {
+  const response = await httpClient.get('/notification-codes')
   return response.data.data
 }

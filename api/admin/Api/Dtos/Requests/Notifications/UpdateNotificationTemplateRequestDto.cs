@@ -1,12 +1,13 @@
-using System;
+using Core.Entities;
 
 namespace Api.Dtos.Requests.Notifications;
 
 public sealed record UpdateNotificationTemplateRequestDto(
-    Guid NotificationEventTypeId,
+    string NotificationCode,
     string Channel,
     string Language,
     string Name,
     string TitleTemplate,
     string BodyTemplate,
+    IReadOnlyCollection<NotificationTemplateVariable> Variables,
     bool IsActive);

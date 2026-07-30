@@ -16,7 +16,7 @@ function NotificationTemplatesTable({ templates, isLoading, isRefreshing, langua
         <thead className="bg-muted/55 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
             <th className="px-4 py-2.5 font-semibold">{t('notifications.columns.name', 'Template Name')}</th>
-            <th className="px-4 py-2.5 font-semibold">{t('notifications.columns.eventType', 'Event Type')}</th>
+            <th className="px-4 py-2.5 font-semibold">{t('notifications.columns.notificationCode', 'Notification Code')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('notifications.columns.channel', 'Channel')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('notifications.columns.status', 'Status')}</th>
             <th className="px-4 py-2.5 font-semibold">{t('notifications.columns.createdAt', 'Created At')}</th>
@@ -39,7 +39,7 @@ function NotificationTemplatesTable({ templates, isLoading, isRefreshing, langua
                 <p className="font-semibold text-foreground">{template.name}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{template.language}</p>
               </td>
-              <td className="px-4 py-3 text-muted-foreground">{template.eventTypeDisplayName || template.eventTypeCode}</td>
+              <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{template.notificationCode}</td>
               <td className="px-4 py-3">
                 <Badge variant="outline">{template.channel}</Badge>
               </td>

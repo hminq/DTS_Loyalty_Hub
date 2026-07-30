@@ -9,7 +9,6 @@ import { PermissionCodes } from './constants/permissionCodes'
 import { AppLayout } from './layouts/AppLayout'
 import { NotificationTemplatesPage } from './pages/NotificationTemplatesPage'
 import { NotificationTemplateDesignerPage } from './pages/NotificationTemplateDesignerPage'
-import { NotificationEventTypesPage } from './pages/NotificationEventTypesPage'
 
 const AdminAccountDetailPage = lazyNamed(() => import('./pages/AdminAccountDetailPage'), 'AdminAccountDetailPage')
 const AdminAccountsPage = lazyNamed(() => import('./pages/AdminAccountsPage'), 'AdminAccountsPage')
@@ -325,14 +324,6 @@ function App() {
         />
         <Route
           path="notification-templates"
-          element={
-            <RequirePermission permission={PermissionCodes.NotificationTemplates.View}>
-              <NotificationEventTypesPage />
-            </RequirePermission>
-          }
-        />
-        <Route
-          path="notification-templates/events/:eventTypeCode"
           element={
             <RequirePermission permission={PermissionCodes.NotificationTemplates.View}>
               <NotificationTemplatesPage />

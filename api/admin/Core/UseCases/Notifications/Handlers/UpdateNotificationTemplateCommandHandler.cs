@@ -15,16 +15,13 @@ namespace Core.UseCases.Notifications.Handlers;
 public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<UpdateNotificationTemplateCommand, NotificationTemplateResult>
 {
     private readonly INotificationTemplateRepository _templateRepository;
-    private readonly INotificationEventTypeRepository _eventTypeRepository;
     private readonly IAuditLogWriter _auditLogWriter;
 
     public UpdateNotificationTemplateCommandHandler(
         INotificationTemplateRepository templateRepository,
-        INotificationEventTypeRepository eventTypeRepository,
         IAuditLogWriter auditLogWriter)
     {
         _templateRepository = templateRepository;
-        _eventTypeRepository = eventTypeRepository;
         _auditLogWriter = auditLogWriter;
     }
 
@@ -38,17 +35,9 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
                 DomainErrorType.NotFound);
         }
         
-        var eventType = await _eventTypeRepository.GetByIdAsync(request.NotificationEventTypeId, ct);
-        if (eventType == null)
-        {
-            throw new DomainException(
-                "EVENT_TYPE_NOT_FOUND",
-                DomainErrorType.NotFound);
-        }
-
         var oldState = JsonSerializer.Serialize(new
         {
-            notificationEventTypeId = template.NotificationEventTypeId,
+            notificationCode = template.NotificationCode,
             channel = template.Channel,
             language = template.Language,
             name = template.Name,
@@ -58,12 +47,13 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
         });
 
         template.Update(
-            request.NotificationEventTypeId,
+            request.NotificationCode,
             request.Channel,
             request.Language,
             request.Name, 
             request.TitleTemplate, 
             request.BodyTemplate,
+            request.Variables,
             request.IsActive);
 
         await _templateRepository.UpdateAsync(template, ct);
@@ -72,7 +62,7 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
         {
             await _templateRepository.DeactivateOtherTemplatesAsync(
                 template.TemplateId, 
-                template.NotificationEventTypeId, 
+                template.NotificationCode,
                 template.Channel, 
                 template.Language, 
                 ct);
@@ -86,7 +76,7 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
             oldState,
             JsonSerializer.Serialize(new
             {
-                notificationEventTypeId = template.NotificationEventTypeId,
+                notificationCode = template.NotificationCode,
                 channel = template.Channel,
                 language = template.Language,
                 name = template.Name,
@@ -98,14 +88,13 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
 
         return new NotificationTemplateResult(
             template.TemplateId,
-            template.NotificationEventTypeId,
-            eventType.EventTypeCode,
-            eventType.DisplayName,
+            template.NotificationCode,
             template.Channel,
             template.Language,
             template.Name,
             template.TitleTemplate,
             template.BodyTemplate,
+            template.Variables,
             template.IsActive,
             template.CreatedBy,
             template.CreatedAt,
