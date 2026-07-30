@@ -19,14 +19,13 @@ public sealed class NotificationTemplateQueryService : INotificationTemplateQuer
     public async Task<(string TitleTemplate, string BodyTemplate, string Channel, string AvailableVariablesJson)?> GetActiveTemplateAsync(string eventTypeCode, CancellationToken ct)
     {
         var template = await _dbContext.NotificationTemplates
-            .Include(t => t.NotificationEventType)
-            .Where(t => t.NotificationEventType.EventTypeCode == eventTypeCode && t.IsActive)
+            .Where(t => t.NotificationCode == eventTypeCode && t.IsActive)
             .Select(t => new
             {
                 t.TitleTemplate,
                 t.BodyTemplate,
                 t.Channel,
-                t.NotificationEventType.AvailableVariables
+                AvailableVariables = t.VariableDefinitions
             })
             .FirstOrDefaultAsync(ct);
 

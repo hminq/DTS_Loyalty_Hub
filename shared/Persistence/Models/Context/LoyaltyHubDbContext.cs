@@ -61,8 +61,6 @@ public partial class LoyaltyHubDbContext : DbContext
 
     public virtual DbSet<VoucherRedemption> VoucherRedemptions { get; set; }
 
-    public virtual DbSet<NotificationEventType> NotificationEventTypes { get; set; }
-
     public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
     public virtual DbSet<NotificationLog> NotificationLogs { get; set; }
@@ -1235,33 +1233,14 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasConstraintName("fk_voucher_redemptions_pool");
         });
 
-        modelBuilder.Entity<NotificationEventType>(entity =>
-        {
-            entity.HasKey(e => e.NotificationEventTypeId).HasName("notification_event_type_pkey");
-            entity.ToTable("notification_event_type");
-            entity.HasIndex(e => e.EventTypeCode, "uq_notification_event_type_code").IsUnique();
-
-            entity.Property(e => e.NotificationEventTypeId)
-                .HasDefaultValueSql("gen_random_uuid()")
-                .HasColumnName("notification_event_type_id");
-            entity.Property(e => e.EventTypeCode)
-                .HasMaxLength(100)
-                .HasColumnName("event_type_code");
-            entity.Property(e => e.DisplayName)
-                .HasMaxLength(255)
-                .HasColumnName("display_name");
-            entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.AvailableVariables)
-                .HasDefaultValueSql("'[]'::jsonb")
-                .HasColumnType("jsonb")
-                .HasColumnName("available_variables");
-        });
-
         modelBuilder.Entity<NotificationTemplate>(entity =>
         {
             entity.HasKey(e => e.TemplateId).HasName("notification_template_pkey");
             entity.ToTable("notification_template");
-            entity.HasIndex(e => new { e.NotificationEventTypeId, e.Channel, e.Language, e.IsActive }, "idx_notif_template_lookup");
+            entity.HasIndex(e => new { e.NotificationCode, e.Channel, e.Language, e.IsActive }, "idx_notif_template_lookup");
+            entity.HasIndex(e => new { e.NotificationCode, e.Channel, e.Language }, "uq_notification_template_active")
+                .HasFilter("is_active = true")
+                .IsUnique();
 
             entity.Property(e => e.TemplateId)
                 .HasDefaultValueSql("gen_random_uuid()")
@@ -1269,7 +1248,6 @@ public partial class LoyaltyHubDbContext : DbContext
             entity.Property(e => e.NotificationCode)
                 .HasMaxLength(100)
                 .HasColumnName("notification_code");
-            entity.Property(e => e.NotificationEventTypeId).HasColumnName("notification_event_type_id");
             entity.Property(e => e.Channel)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("'PUSH'::character varying")
@@ -1298,10 +1276,6 @@ public partial class LoyaltyHubDbContext : DbContext
                 .HasDefaultValueSql("now()")
                 .HasColumnName("updated_at");
 
-            entity.HasOne(d => d.NotificationEventType).WithMany(p => p.NotificationTemplates)
-                .HasForeignKey(d => d.NotificationEventTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_notification_template_event_type");
         });
 
         modelBuilder.Entity<NotificationLog>(entity =>

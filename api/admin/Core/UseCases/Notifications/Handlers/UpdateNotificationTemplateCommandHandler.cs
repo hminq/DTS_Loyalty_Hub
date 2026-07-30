@@ -34,6 +34,18 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
                 "TEMPLATE_NOT_FOUND",
                 DomainErrorType.NotFound);
         }
+
+        if (request.IsActive && await _templateRepository.HasActiveTemplateAsync(
+                template.TemplateId,
+                request.NotificationCode,
+                request.Channel,
+                request.Language,
+                ct))
+        {
+            throw new DomainException(
+                "NOTIFICATION_TEMPLATE_ALREADY_ACTIVE",
+                DomainErrorType.Conflict);
+        }
         
         var oldState = JsonSerializer.Serialize(new
         {
@@ -57,16 +69,6 @@ public sealed class UpdateNotificationTemplateCommandHandler : IRequestHandler<U
             request.IsActive);
 
         await _templateRepository.UpdateAsync(template, ct);
-
-        if (template.IsActive)
-        {
-            await _templateRepository.DeactivateOtherTemplatesAsync(
-                template.TemplateId, 
-                template.NotificationCode,
-                template.Channel, 
-                template.Language, 
-                ct);
-        }
 
         _auditLogWriter.Add(new AuditLogEntry(
             request.ActorUserId,

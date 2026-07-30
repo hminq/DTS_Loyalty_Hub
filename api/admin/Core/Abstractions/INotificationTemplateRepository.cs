@@ -13,7 +13,12 @@ public interface INotificationTemplateRepository
         CancellationToken ct = default);
     Task<NotificationTemplateResult?> GetByIdAsync(Guid templateId, CancellationToken ct = default);
     Task<NotificationTemplate?> GetEntityByIdAsync(Guid templateId, CancellationToken ct = default);
+    Task<bool> HasActiveTemplateAsync(
+        Guid excludeTemplateId,
+        string notificationCode,
+        string channel,
+        string language,
+        CancellationToken ct = default);
     NotificationTemplate Add(NotificationTemplate template);
     Task UpdateAsync(NotificationTemplate template, CancellationToken ct = default);
-    Task DeactivateOtherTemplatesAsync(Guid excludeTemplateId, string notificationCode, string channel, string language, CancellationToken ct = default);
 }
