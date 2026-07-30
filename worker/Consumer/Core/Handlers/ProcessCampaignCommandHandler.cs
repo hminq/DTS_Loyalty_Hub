@@ -22,11 +22,10 @@ public sealed class ProcessCampaignCommandHandler
     private readonly IVersionedEnvelopeParser _envelopeParser;
     private readonly IEventDefinitionProvider _definitionProvider;
     private readonly GenericCampaignEventFactory _eventFactory;
+    private readonly GenericCampaignTargetResolver _targetResolver;
     private readonly ICampaignActionExecutorRegistry _actionExecutorRegistry;
-    private readonly CampaignDefinitionCatalog _definitionCatalog;
-    private readonly CampaignConditionParser _conditionParser;
-    private readonly CampaignConditionEvaluator _conditionEvaluator;
-    private readonly CampaignConditionCompatibilityAnalyzer _compatibilityAnalyzer;
+    private readonly CampaignActionCatalog _actionCatalog;
+    private readonly GenericCampaignConditionEvaluator _conditionEvaluator;
     private readonly CampaignActionBindingParser _actionBindingParser;
     private readonly TimeProvider _timeProvider;
 
@@ -35,11 +34,10 @@ public sealed class ProcessCampaignCommandHandler
         IVersionedEnvelopeParser envelopeParser,
         IEventDefinitionProvider definitionProvider,
         GenericCampaignEventFactory eventFactory,
+        GenericCampaignTargetResolver targetResolver,
         ICampaignActionExecutorRegistry actionExecutorRegistry,
-        CampaignDefinitionCatalog definitionCatalog,
-        CampaignConditionParser conditionParser,
-        CampaignConditionEvaluator conditionEvaluator,
-        CampaignConditionCompatibilityAnalyzer compatibilityAnalyzer,
+        CampaignActionCatalog actionCatalog,
+        GenericCampaignConditionEvaluator conditionEvaluator,
         CampaignActionBindingParser actionBindingParser,
         TimeProvider timeProvider)
     {
@@ -50,16 +48,14 @@ public sealed class ProcessCampaignCommandHandler
             throw new ArgumentNullException(nameof(definitionProvider));
         _eventFactory = eventFactory ??
             throw new ArgumentNullException(nameof(eventFactory));
+        _targetResolver = targetResolver ??
+            throw new ArgumentNullException(nameof(targetResolver));
         _actionExecutorRegistry = actionExecutorRegistry ??
             throw new ArgumentNullException(nameof(actionExecutorRegistry));
-        _definitionCatalog = definitionCatalog ??
-            throw new ArgumentNullException(nameof(definitionCatalog));
-        _conditionParser = conditionParser ??
-            throw new ArgumentNullException(nameof(conditionParser));
+        _actionCatalog = actionCatalog ??
+            throw new ArgumentNullException(nameof(actionCatalog));
         _conditionEvaluator = conditionEvaluator ??
             throw new ArgumentNullException(nameof(conditionEvaluator));
-        _compatibilityAnalyzer = compatibilityAnalyzer ??
-            throw new ArgumentNullException(nameof(compatibilityAnalyzer));
         _actionBindingParser = actionBindingParser ??
             throw new ArgumentNullException(nameof(actionBindingParser));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
@@ -106,22 +102,16 @@ public sealed class ProcessCampaignCommandHandler
         var eventDefinition = _eventFactory.ToCampaignDefinition(
             campaignEvent.Definition);
 
-        var conditionResult = _conditionParser.Parse(
+        var conditionResult = _conditionEvaluator.Evaluate(
             context.CampaignConditionJson,
-            eventDefinition);
+            campaignEvent.Definition,
+            campaignEvent.PayloadValues);
         if (!conditionResult.IsValid || conditionResult.Condition is null)
         {
             throw InvalidConfiguration();
         }
 
-        var facts = eventDefinition.ConditionFields.ToDictionary(
-            field => field.Code,
-            field => _eventFactory.GetFact(campaignEvent, field.Code).Value,
-            StringComparer.Ordinal);
-        if (!_conditionEvaluator.Matches(
-                conditionResult.Condition,
-                eventDefinition,
-                facts))
+        if (!conditionResult.IsMatch)
         {
             return Skip(
                 context,
@@ -141,7 +131,7 @@ public sealed class ProcessCampaignCommandHandler
         var executableActions = new List<ResolvedCampaignAction>(actions.Count);
         foreach (var action in actions)
         {
-            if (!_definitionCatalog.TryGetAction(
+            if (!_actionCatalog.TryGetAction(
                     action.ActionType,
                     out var actionDefinition))
             {
@@ -152,7 +142,8 @@ public sealed class ProcessCampaignCommandHandler
                 action.ActionType,
                 action.ActionConfigJson,
                 eventDefinition,
-                actionDefinition);
+                actionDefinition,
+                trimSelector: false);
             if (!parseResult.IsValid ||
                 parseResult.Binding is null ||
                 parseResult.Parameters is null)
@@ -160,26 +151,10 @@ public sealed class ProcessCampaignCommandHandler
                 throw InvalidActionConfiguration();
             }
 
-            var targetDefinition = eventDefinition.Targets.Single(target =>
-                string.Equals(
-                    target.Selector,
-                    parseResult.Binding.Target.Selector,
-                    StringComparison.OrdinalIgnoreCase));
-            if (!_compatibilityAnalyzer.CanOverlap(
-                    conditionResult.Condition,
-                    targetDefinition.Applicability,
-                    eventDefinition))
-            {
-                throw InvalidActionConfiguration();
-            }
-
-            var resolution = _eventFactory.ResolveTarget(
+            var resolution = _targetResolver.Resolve(
                 campaignEvent,
-                parseResult.Binding.Target.Selector);
-            if (resolution.Status == CampaignTargetResolutionStatuses.NotApplicable)
-            {
-                continue;
-            }
+                parseResult.Binding.Target.Selector,
+                actionDefinition.RequiredTargetKind);
 
             if (resolution.Status == CampaignTargetResolutionStatuses.InvalidEvent)
             {
@@ -210,14 +185,6 @@ public sealed class ProcessCampaignCommandHandler
                     action.TotalCount,
                     action.SessionCount,
                     action.UsedCount));
-        }
-
-        if (executableActions.Count == 0)
-        {
-            return Skip(
-                context,
-                CampaignProcessingOutcomeCodes.TargetNotApplicable,
-                operationTime);
         }
 
         var targetCustomerIds = executableActions
@@ -346,25 +313,40 @@ public sealed class ProcessCampaignCommandHandler
         CampaignRewardProcessingContext context,
         CancellationToken cancellationToken)
     {
-        var envelope = _envelopeParser.Parse(
-            Encoding.UTF8.GetBytes(context.NormalizedPayload),
-            context.EventId.ToString("D"),
-            context.EventType);
-        var definition = await _definitionProvider.GetDefinitionAsync(
-            envelope.EventType,
-            envelope.EventVersion,
-            cancellationToken)
-            ?? throw InvalidConfiguration();
-        var campaignEvent = _eventFactory.Create(
-            envelope,
-            definition,
-            context.RoutingKey);
-
-        if (campaignEvent.PayloadHash != context.PayloadHash)
+        GenericValidatedCampaignEvent campaignEvent;
+        try
         {
-            throw new CampaignProcessingException(
-                CampaignProcessingErrorCodes.CampaignProcessingPersistenceFailed,
-                retriable: false);
+            var envelope = _envelopeParser.Parse(
+                Encoding.UTF8.GetBytes(context.NormalizedPayload),
+                context.EventId.ToString("D"),
+                context.EventType);
+            var definition = await _definitionProvider.GetDefinitionAsync(
+                envelope.EventType,
+                envelope.EventVersion,
+                cancellationToken)
+                ?? throw InvalidConfiguration();
+            campaignEvent = _eventFactory.Create(
+                envelope,
+                definition,
+                context.RoutingKey);
+        }
+        catch (EventEnvelopeParseException exception)
+        {
+            throw PersistedEventCorruption(exception);
+        }
+        catch (CampaignEventValidationException exception)
+        {
+            throw PersistedEventCorruption(exception);
+        }
+
+        if (campaignEvent.EventId != context.EventId ||
+            !string.Equals(campaignEvent.EventType, context.EventType, StringComparison.Ordinal) ||
+            campaignEvent.EventVersion != context.EventVersion ||
+            !string.Equals(campaignEvent.RoutingKey, context.RoutingKey, StringComparison.Ordinal) ||
+            campaignEvent.OccurredAt != context.OccurredAt ||
+            !string.Equals(campaignEvent.PayloadHash, context.PayloadHash, StringComparison.Ordinal))
+        {
+            throw PersistedEventCorruption();
         }
 
         return campaignEvent;
@@ -398,7 +380,7 @@ public sealed class ProcessCampaignCommandHandler
 
         if (!campaignEligible || !sessionEligible)
         {
-            throw PersistenceFailure();
+            throw InvalidConfiguration();
         }
     }
 
@@ -448,5 +430,14 @@ public sealed class ProcessCampaignCommandHandler
         return new CampaignProcessingException(
             CampaignProcessingErrorCodes.CampaignProcessingPersistenceFailed,
             retriable: true);
+    }
+
+    private static CampaignProcessingException PersistedEventCorruption(
+        Exception? innerException = null)
+    {
+        return new CampaignProcessingException(
+            CampaignProcessingErrorCodes.CampaignProcessingPersistenceFailed,
+            retriable: false,
+            innerException);
     }
 }

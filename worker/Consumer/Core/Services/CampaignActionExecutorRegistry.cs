@@ -10,10 +10,10 @@ public sealed class CampaignActionExecutorRegistry : ICampaignActionExecutorRegi
     private readonly IReadOnlyDictionary<string, ICampaignActionExecutor> _executors;
 
     public CampaignActionExecutorRegistry(
-        CampaignDefinitionCatalog catalog,
+        CampaignActionCatalog actionCatalog,
         IEnumerable<ICampaignActionExecutor> executors)
     {
-        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(actionCatalog);
         ArgumentNullException.ThrowIfNull(executors);
 
         var registered = executors.ToArray();
@@ -30,7 +30,7 @@ public sealed class CampaignActionExecutorRegistry : ICampaignActionExecutorRegi
             executor => executor.ActionType,
             StringComparer.Ordinal);
 
-        var catalogActions = catalog.Actions.ToDictionary(
+        var catalogActions = actionCatalog.Actions.ToDictionary(
             definition => definition.Code,
             StringComparer.Ordinal);
         var missingExecutors = catalogActions.Keys

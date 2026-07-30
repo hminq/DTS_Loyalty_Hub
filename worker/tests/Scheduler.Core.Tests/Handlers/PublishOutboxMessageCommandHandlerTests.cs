@@ -146,7 +146,9 @@ public sealed class PublishOutboxMessageCommandHandlerTests
     {
         return new OutboxDispatchMessage(
             Guid.NewGuid(),
+            Guid.NewGuid(),
             "CUSTOMER_ACCOUNT_REGISTERED",
+            1,
             "customer.account.registered",
             """{"eventId":"test"}""",
             attemptCount);

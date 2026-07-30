@@ -6,8 +6,6 @@ public static class CampaignProcessingErrorCodes
     public const string CampaignConfigurationInvalid = "CAMPAIGN_CONFIGURATION_INVALID";
     public const string CampaignActionConfigurationInvalid =
         "CAMPAIGN_ACTION_CONFIGURATION_INVALID";
-    public const string EventCustomerNotFound = "EVENT_CUSTOMER_NOT_FOUND";
-    public const string ReferrerCustomerNotFound = "REFERRER_CUSTOMER_NOT_FOUND";
     public const string CampaignTargetCustomerNotFound =
         "CAMPAIGN_TARGET_CUSTOMER_NOT_FOUND";
     public const string PointRewardAmountInvalid = "POINT_REWARD_AMOUNT_INVALID";
@@ -24,6 +22,4 @@ public static class CampaignProcessingErrorCodes
     public const string EventRoutingKeyMismatch = "EVENT_ROUTING_KEY_MISMATCH";
     public const string EventOccurredAtInvalid = "EVENT_OCCURRED_AT_INVALID";
     public const string EventPayloadInvalid = "EVENT_PAYLOAD_INVALID";
-    public const string EventSourceInvalid = "EVENT_SOURCE_INVALID";
-    public const string EventReferrerInvalid = "EVENT_REFERRER_INVALID";
 }

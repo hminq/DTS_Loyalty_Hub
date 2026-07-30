@@ -15,7 +15,7 @@ public sealed class CampaignActionExecutorRegistryTests
         var executor = Executor("ISSUE_POINT", "CUSTOMER");
 
         var registry = new CampaignActionExecutorRegistry(
-            CampaignDefinitionCatalog.BuiltIn,
+            CampaignActionCatalog.BuiltIn,
             [executor.Object]);
 
         registry.GetRequired("ISSUE_POINT").Should().BeSameAs(executor.Object);
@@ -25,7 +25,7 @@ public sealed class CampaignActionExecutorRegistryTests
     public void Constructor_MissingExecutor_FailsStartupIntegrity()
     {
         var act = () => new CampaignActionExecutorRegistry(
-            CampaignDefinitionCatalog.BuiltIn,
+            CampaignActionCatalog.BuiltIn,
             []);
 
         act.Should().Throw<InvalidOperationException>()
@@ -38,7 +38,7 @@ public sealed class CampaignActionExecutorRegistryTests
         var executor = Executor("ISSUE_POINT", "VOUCHER");
 
         var act = () => new CampaignActionExecutorRegistry(
-            CampaignDefinitionCatalog.BuiltIn,
+            CampaignActionCatalog.BuiltIn,
             [executor.Object]);
 
         act.Should().Throw<InvalidOperationException>()
@@ -46,10 +46,24 @@ public sealed class CampaignActionExecutorRegistryTests
     }
 
     [Fact]
+    public void Constructor_UnknownExecutor_FailsStartupIntegrity()
+    {
+        var act = () => new CampaignActionExecutorRegistry(
+            CampaignActionCatalog.BuiltIn,
+            [
+                Executor("ISSUE_POINT", "CUSTOMER").Object,
+                Executor("UNKNOWN_ACTION", "CUSTOMER").Object
+            ]);
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Unknown=[UNKNOWN_ACTION]*");
+    }
+
+    [Fact]
     public void Constructor_DuplicateExecutor_FailsStartupIntegrity()
     {
         var act = () => new CampaignActionExecutorRegistry(
-            CampaignDefinitionCatalog.BuiltIn,
+            CampaignActionCatalog.BuiltIn,
             [
                 Executor("ISSUE_POINT", "CUSTOMER").Object,
                 Executor("ISSUE_POINT", "CUSTOMER").Object

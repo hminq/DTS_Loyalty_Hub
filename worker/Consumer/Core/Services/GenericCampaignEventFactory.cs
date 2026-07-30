@@ -36,8 +36,9 @@ public sealed class GenericCampaignEventFactory
                 CampaignProcessingErrorCodes.EventRoutingKeyMismatch);
         }
 
+        var normalizedOccurredAt = NormalizeUtcMicrosecond(envelope.OccurredAt);
         var values = ValidatePayload(envelope.PayloadElement, definition);
-        var normalizedEnvelope = WriteCanonicalEnvelope(envelope, definition, values);
+        var normalizedEnvelope = WriteCanonicalEnvelope(envelope, definition, values, normalizedOccurredAt);
         var payloadHash = Convert.ToHexString(
                 SHA256.HashData(Encoding.UTF8.GetBytes(normalizedEnvelope)))
             .ToLowerInvariant();
@@ -49,7 +50,7 @@ public sealed class GenericCampaignEventFactory
             definition.EventTypeCode,
             definition.Version,
             definition.RoutingKey,
-            NormalizeUtc(envelope.OccurredAt),
+            normalizedOccurredAt,
             definition,
             values,
             normalizedEnvelope,
@@ -79,50 +80,6 @@ public sealed class GenericCampaignEventFactory
                     target.Kind,
                     CampaignCondition.MatchAll))
                 .ToArray());
-    }
-
-    public CampaignFactValue GetFact(
-        GenericValidatedCampaignEvent campaignEvent,
-        string fieldCode)
-    {
-        if (!campaignEvent.PayloadValues.TryGetValue(fieldCode, out var value))
-        {
-            return new CampaignFactValue(fieldCode, string.Empty);
-        }
-
-        return new CampaignFactValue(fieldCode, value.AsFactString());
-    }
-
-    public CampaignTargetResolution ResolveTarget(
-        GenericValidatedCampaignEvent campaignEvent,
-        string selector)
-    {
-        if (!campaignEvent.Definition.TargetsBySelector.TryGetValue(selector, out var target))
-        {
-            return new CampaignTargetResolution(
-                CampaignTargetResolutionStatuses.Unsupported,
-                string.Empty,
-                null,
-                CampaignProcessingErrorCodes.CampaignActionConfigurationInvalid);
-        }
-
-        if (!campaignEvent.PayloadValues.TryGetValue(target.IdField, out var value) ||
-            value.Value is not string rawId ||
-            !Guid.TryParse(rawId, out var targetId) ||
-            targetId == Guid.Empty)
-        {
-            return new CampaignTargetResolution(
-                CampaignTargetResolutionStatuses.InvalidEvent,
-                target.Kind,
-                null,
-                CampaignProcessingErrorCodes.EventPayloadInvalid);
-        }
-
-        return new CampaignTargetResolution(
-            CampaignTargetResolutionStatuses.Resolved,
-            target.Kind,
-            targetId,
-            null);
     }
 
     private static IReadOnlyDictionary<string, ValidatedPayloadValue> ValidatePayload(
@@ -243,7 +200,8 @@ public sealed class GenericCampaignEventFactory
     private static string WriteCanonicalEnvelope(
         RawEventEnvelope envelope,
         PublishedEventDefinition definition,
-        IReadOnlyDictionary<string, ValidatedPayloadValue> values)
+        IReadOnlyDictionary<string, ValidatedPayloadValue> values,
+        DateTime normalizedOccurredAt)
     {
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(
@@ -256,8 +214,8 @@ public sealed class GenericCampaignEventFactory
             writer.WriteNumber("eventVersion", definition.Version);
             writer.WriteString(
                 "occurredAt",
-                NormalizeUtc(envelope.OccurredAt).ToString(
-                    "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+                normalizedOccurredAt.ToString(
+                    "yyyy-MM-dd'T'HH:mm:ss.ffffff'Z'",
                     CultureInfo.InvariantCulture));
             writer.WritePropertyName("payload");
             writer.WriteStartObject();
@@ -291,11 +249,15 @@ public sealed class GenericCampaignEventFactory
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static DateTime NormalizeUtc(DateTime value)
+    public static DateTime NormalizeUtcMicrosecond(DateTime value)
     {
-        return value.Kind == DateTimeKind.Utc
+        var utc = value.Kind == DateTimeKind.Utc
             ? value
             : DateTime.SpecifyKind(value, DateTimeKind.Utc);
+
+        var ticks = utc.Ticks;
+        var microsecondTicks = ticks - (ticks % 10);
+        return new DateTime(microsecondTicks, DateTimeKind.Utc);
     }
 
     private static IReadOnlyList<string> GetOperators(string fieldType)

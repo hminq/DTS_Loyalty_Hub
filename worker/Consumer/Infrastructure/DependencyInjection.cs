@@ -66,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped<IEventDefinitionStore, EfEventDefinitionStore>();
         services.AddSingleton<IEventDefinitionProvider, BoundedEventDefinitionCache>();
         services.AddSingleton<Core.Services.GenericCampaignEventFactory>();
+        services.AddSingleton<Core.Services.GenericCampaignTargetResolver>();
 
         services.AddScoped<ICampaignEventPreparationStore, CampaignEventPreparationStore>();
         services.AddScoped<ICampaignRewardExecutionStore, CampaignRewardExecutionStore>();
@@ -74,7 +75,7 @@ public static class DependencyInjection
         services.AddSingleton<ICampaignProcessingScopeExecutor, CampaignProcessingScopeExecutor>();
         services.AddSingleton<Core.Services.CampaignEventProcessingCoordinator>();
         services.AddSingleton<Core.Services.CampaignEventDeliveryProcessor>();
-        services.AddSingleton(CampaignDefinitionCatalog.BuiltIn);
+        services.AddSingleton(CampaignActionCatalog.BuiltIn);
         services.AddScoped<
             ICampaignActionExecutor,
             Core.Services.IssuePointActionExecutor>();
@@ -82,9 +83,7 @@ public static class DependencyInjection
             ICampaignActionExecutorRegistry,
             Core.Services.CampaignActionExecutorRegistry>();
         services.AddSingleton<CampaignActionBindingParser>();
-        services.AddSingleton<CampaignConditionParser>();
-        services.AddSingleton<CampaignConditionEvaluator>();
-        services.AddSingleton<CampaignConditionCompatibilityAnalyzer>();
+        services.AddSingleton<Core.Services.GenericCampaignConditionEvaluator>();
 
         return services;
     }

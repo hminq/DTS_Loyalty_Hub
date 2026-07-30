@@ -53,7 +53,9 @@ public sealed class OutboxDispatchStore : IOutboxDispatchStore
             ? null
             : new OutboxDispatchMessage(
                 entity.EventId,
+                entity.EventTypeVersionId,
                 entity.EventType,
+                entity.EventVersion,
                 entity.RoutingKey,
                 entity.Payload,
                 entity.AttemptCount);

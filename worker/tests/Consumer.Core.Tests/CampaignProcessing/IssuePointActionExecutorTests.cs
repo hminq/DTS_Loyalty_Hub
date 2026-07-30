@@ -84,7 +84,7 @@ public sealed class IssuePointActionExecutorTests
             Guid.NewGuid(),
             ActionTypes.IssuePoint,
             1,
-            CustomerRegistrationTargetSelectors.EventCustomer,
+            "customer",
             CampaignTargetKinds.Customer,
             customerId,
             new IssuePointParameters(amount),

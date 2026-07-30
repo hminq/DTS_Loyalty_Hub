@@ -8,5 +8,4 @@ public static class CampaignProcessingOutcomeCodes
     public const string ActionTotalLimitReached = "ACTION_TOTAL_LIMIT_REACHED";
     public const string ActionSessionLimitReached = "ACTION_SESSION_LIMIT_REACHED";
     public const string CampaignCancelled = "CAMPAIGN_CANCELLED";
-    public const string TargetNotApplicable = "CAMPAIGN_TARGET_NOT_APPLICABLE";
 }
