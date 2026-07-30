@@ -68,7 +68,7 @@ export function CampaignActionsDetails({ actions = [], eventDefinition, options 
                   </div>
                 )}
 
-                <div className="mt-3 grid gap-4 sm:grid-cols-4">
+                <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       {t('campaigns.form.targetSelectorLabel', { defaultValue: 'Target' })}
@@ -93,32 +93,28 @@ export function CampaignActionsDetails({ actions = [], eventDefinition, options 
 
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {t('campaigns.form.actionLimitsTitle', {
-                        defaultValue: 'Action execution limits',
+                      {t('campaigns.detail.actionTotalLimit', {
+                        defaultValue: 'Total action limit',
                       })}
                     </p>
-                    <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-                      <div>
-                        <span className="font-medium">
-                          {t('campaigns.detail.actionTotalLimit', {
-                            defaultValue: 'Total action execution limit',
-                          })}:
-                        </span>{' '}
-                        {actionDesc.totalCount != null
-                          ? formatCampaignNumber(actionDesc.totalCount, language)
-                          : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
-                      </div>
-                      <div>
-                        <span className="font-medium">
-                          {t('campaigns.detail.actionSessionLimit', {
-                            defaultValue: 'Action execution limit per session',
-                          })}:
-                        </span>{' '}
-                        {actionDesc.sessionCount != null
-                          ? formatCampaignNumber(actionDesc.sessionCount, language)
-                          : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
-                      </div>
-                    </div>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {actionDesc.totalCount != null
+                        ? formatCampaignNumber(actionDesc.totalCount, language)
+                        : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      {t('campaigns.detail.actionSessionLimit', {
+                        defaultValue: 'Session action limit',
+                      })}
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {actionDesc.sessionCount != null
+                        ? formatCampaignNumber(actionDesc.sessionCount, language)
+                        : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })}
+                    </p>
                   </div>
                 </div>
               </div>

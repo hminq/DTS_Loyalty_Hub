@@ -26,7 +26,9 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
   })
 
   const eventTypeLabel = campaign.eventDefinition
-    ? `${campaign.eventDefinition.name} (${campaign.eventDefinition.code}) · v${campaign.eventDefinition.version}`
+    ? campaign.eventDefinition.name && campaign.eventDefinition.name !== campaign.eventDefinition.code
+      ? `${campaign.eventDefinition.name} - ${campaign.eventDefinition.code} (v${campaign.eventDefinition.version})`
+      : `${campaign.eventDefinition.code} (v${campaign.eventDefinition.version})`
     : t('campaigns.detail.unknownEvent', { defaultValue: 'Unknown event' })
 
   const conditionDesc = describeCampaignCondition({
@@ -41,6 +43,7 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
 
   return (
     <div className="grid gap-5">
+      {/* Banner Card */}
       <Card className="overflow-hidden rounded-xl border-border/80 shadow-none">
         <CardContent className="p-0">
           {hasBanner ? (
@@ -78,15 +81,17 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="rounded-xl border-border/80 shadow-none lg:row-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle>
-              {t('campaigns.detail.identityTitle', { defaultValue: 'General information' })}
-            </CardTitle>
-            <Badge variant={statusVariant}>{statusLabel}</Badge>
-          </CardHeader>
-          <CardContent className="grid gap-5">
+      {/* Big Card: General Info + Event Type + Schedule & Active Range */}
+      <Card className="rounded-xl border-border/80 shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>
+            {t('campaigns.detail.identityTitle', { defaultValue: 'General information' })}
+          </CardTitle>
+          <Badge variant={statusVariant}>{statusLabel}</Badge>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          {/* General Information */}
+          <div className="grid gap-4 sm:grid-cols-2">
             <DetailItem
               label={t('campaigns.form.campaignNameLabel', { defaultValue: 'Campaign name' })}
               value={campaign.campaignName}
@@ -96,62 +101,13 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
               label={t('campaigns.form.descriptionLabel', { defaultValue: 'Description' })}
               value={campaign.description || t('common.none', { defaultValue: 'None' })}
             />
-            <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
-              <DetailItem
-                label={t('campaigns.detail.campaignId', { defaultValue: 'Campaign ID' })}
-                value={campaign.campaignId}
-                mono
-              />
-              <DetailItem
-                label={t('common.createdAt', { defaultValue: 'Created at' })}
-                value={formatCampaignDateTime(campaign.createdAt, language)}
-                muted
-              />
-              <DetailItem
-                label={t('campaigns.columns.updatedAt', { defaultValue: 'Updated at' })}
-                value={formatCampaignDateTime(campaign.updatedAt, language)}
-                muted
-              />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="rounded-xl border-border/80 shadow-none">
-          <CardHeader>
-            <CardTitle>
-              {t('campaigns.detail.eventConditionTitle', { defaultValue: 'Event & eligibility' })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-5 sm:grid-cols-2">
+          {/* Event Type & Customer Limits */}
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
             <DetailItem
               label={t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
               value={eventTypeLabel}
-            />
-            <DetailItem
-              label={t('campaigns.form.conditionLabel', { defaultValue: 'Campaign condition' })}
-              value={
-                <div className="space-y-1">
-                  <div>{conditionDesc.label}</div>
-                  {!conditionDesc.isSupported && (
-                    <div className="text-xs text-amber-600 font-medium">
-                      {t('campaigns.detail.unsupportedCondition', { defaultValue: 'Warning: Unsupported condition configuration.' })}
-                    </div>
-                  )}
-                  {conditionDesc.predicates?.length > 0 && (
-                    <ul className="mt-2 space-y-1.5">
-                      {conditionDesc.predicates.map((p, i) => (
-                        <li key={i} className="flex flex-wrap items-center gap-1.5 text-xs">
-                          <span className="font-semibold text-foreground">{p.fieldLabel}</span>
-                          <span className="text-muted-foreground">{p.operatorLabel}</span>
-                          <span className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-[11px] font-medium text-foreground">
-                            {p.valueLabels.join(', ')}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              }
             />
             <DetailItem
               label={t('campaigns.form.userLimitTotalLabel', {
@@ -160,7 +116,7 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
               value={
                 campaign.userLimitTotal != null
                   ? formatCampaignNumber(campaign.userLimitTotal, language)
-                  : t('common.unlimited', { defaultValue: 'Unlimited' })
+                  : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })
               }
             />
             <DetailItem
@@ -170,19 +126,13 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
               value={
                 campaign.userLimitSession != null
                   ? formatCampaignNumber(campaign.userLimitSession, language)
-                  : t('common.unlimited', { defaultValue: 'Unlimited' })
+                  : t('campaigns.detail.unlimited', { defaultValue: 'Unlimited' })
               }
             />
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="rounded-xl border-border/80 shadow-none">
-          <CardHeader>
-            <CardTitle>
-              {t('campaigns.form.scheduleTitle', { defaultValue: 'Schedule & active range' })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-5 sm:grid-cols-2">
+          {/* Schedule & Active Range */}
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
             <DetailItem
               label={t('campaigns.form.startDateLabel', { defaultValue: 'Start date' })}
               value={formatCampaignDateTime(campaign.startDate, language)}
@@ -191,20 +141,74 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
               label={t('campaigns.form.endDateLabel', { defaultValue: 'End date' })}
               value={formatCampaignDateTime(campaign.endDate, language)}
             />
-            <div className="sm:col-span-2">
-              <DetailItem
-                label={t('campaigns.form.scheduleCronLabel', { defaultValue: 'Schedule CRON' })}
-                value={`${formatCampaignSchedule(
-                  campaign.scheduleCron,
-                  campaign.durationHour,
-                  t,
-                )} (${timeZone})`}
-                mono
-              />
+            <DetailItem
+              label={t('campaigns.form.scheduleCronLabel', { defaultValue: 'Schedule CRON' })}
+              value={`${formatCampaignSchedule(
+                campaign.scheduleCron,
+                campaign.durationHour,
+                t,
+              )} (${timeZone})`}
+              mono
+            />
+          </div>
+
+          {/* Timestamps & ID */}
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
+            <DetailItem
+              label={t('campaigns.detail.campaignId', { defaultValue: 'Campaign ID' })}
+              value={campaign.campaignId}
+              mono
+            />
+            <DetailItem
+              label={t('common.createdAt', { defaultValue: 'Created at' })}
+              value={formatCampaignDateTime(campaign.createdAt, language)}
+              muted
+            />
+            <DetailItem
+              label={t('campaigns.columns.updatedAt', { defaultValue: 'Updated at' })}
+              value={formatCampaignDateTime(campaign.updatedAt, language)}
+              muted
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Separate Card: Campaign Condition */}
+      <Card className="rounded-xl border-border/80 shadow-none">
+        <CardHeader>
+          <CardTitle>
+            {t('campaigns.form.conditionLabel', { defaultValue: 'Campaign condition' })}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!conditionDesc.isSupported ? (
+            <div className="text-xs font-medium text-amber-600">
+              {t('campaigns.detail.unsupportedCondition', { defaultValue: 'Warning: Unsupported condition configuration.' })}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          ) : conditionDesc.predicates?.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {conditionDesc.predicates.map((p, i) => (
+                <div
+                  key={i}
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs"
+                >
+                  <span className="font-semibold text-foreground">{p.fieldLabel}</span>
+                  <span className="rounded bg-muted/80 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                    {p.operatorLabel}
+                  </span>
+                  <span className="rounded bg-background px-2 py-0.5 font-mono text-[11px] font-semibold text-primary border border-border/50">
+                    {p.valueLabels.join(', ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="inline-flex items-center rounded-md bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              {conditionDesc.label}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
