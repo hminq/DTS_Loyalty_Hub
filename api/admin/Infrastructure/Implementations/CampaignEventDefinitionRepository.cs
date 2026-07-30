@@ -2,6 +2,8 @@ using Core.Abstractions;
 using Core.UseCases.Campaigns.Results;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Models.Context;
+using Persistence.Models;
+using System.Linq.Expressions;
 
 namespace Infrastructure.Implementations;
 
@@ -70,13 +72,13 @@ public sealed class CampaignEventDefinitionRepository : ICampaignEventDefinition
             .ToArrayAsync(ct);
     }
 
-    private IQueryable<Persistence.Models.EventTypeVersion> ProjectVersions()
+    private IQueryable<EventTypeVersion> ProjectVersions()
     {
         return _dbContext.EventTypeVersions
             .AsNoTracking();
     }
 
-    private static System.Linq.Expressions.Expression<Func<Persistence.Models.EventTypeVersion, CampaignEventDefinitionResult>> ToEventDefinitionResult()
+    private static Expression<Func<EventTypeVersion, CampaignEventDefinitionResult>> ToEventDefinitionResult()
     {
         return version => new CampaignEventDefinitionResult(
                 version.EventType.EventTypeId,
