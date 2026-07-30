@@ -9,12 +9,16 @@ public sealed class CampaignScheduleCron
         int minute,
         bool isDaily,
         IReadOnlyList<DayOfWeek> daysOfWeek,
+        IReadOnlyList<int> daysOfMonth,
+        bool isLastDayOfMonth,
         string canonicalCron)
     {
         Hour = hour;
         Minute = minute;
         IsDaily = isDaily;
         DaysOfWeek = daysOfWeek;
+        DaysOfMonth = daysOfMonth;
+        IsLastDayOfMonth = isLastDayOfMonth;
         CanonicalCron = canonicalCron;
     }
 
@@ -22,6 +26,9 @@ public sealed class CampaignScheduleCron
     public int Minute { get; }
     public bool IsDaily { get; }
     public IReadOnlyList<DayOfWeek> DaysOfWeek { get; }
+    public IReadOnlyList<int> DaysOfMonth { get; }
+    public int? DayOfMonth => DaysOfMonth.Count == 1 ? DaysOfMonth[0] : null;
+    public bool IsLastDayOfMonth { get; }
     public string CanonicalCron { get; }
 
     public static CampaignScheduleCron Parse(string input)
@@ -71,7 +78,59 @@ public sealed class CampaignScheduleCron
                 minute,
                 true,
                 Array.Empty<DayOfWeek>(),
+                Array.Empty<int>(),
+                false,
                 $"0 {minute} {hour} * * ?");
+            return true;
+        }
+
+        if (parts[4] == "*" && parts[5] == "?")
+        {
+            if (parts[3] == "L")
+            {
+                schedule = new CampaignScheduleCron(
+                    hour,
+                    minute,
+                    false,
+                    Array.Empty<DayOfWeek>(),
+                    Array.Empty<int>(),
+                    true,
+                    $"0 {minute} {hour} L * ?");
+                return true;
+            }
+
+            var dayTokens = parts[3].Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (dayTokens.Length == 0 || dayTokens.Length != parts[3].Split(',').Length)
+            {
+                return false;
+            }
+
+            var daysOfMonth = new List<int>(dayTokens.Length);
+            int previousDay = 0;
+
+            foreach (var token in dayTokens)
+            {
+                if (!int.TryParse(token, out var dayOfMonth) ||
+                    dayOfMonth < 1 ||
+                    dayOfMonth > 31 ||
+                    token != dayOfMonth.ToString() ||
+                    dayOfMonth <= previousDay)
+                {
+                    return false;
+                }
+
+                previousDay = dayOfMonth;
+                daysOfMonth.Add(dayOfMonth);
+            }
+
+            schedule = new CampaignScheduleCron(
+                hour,
+                minute,
+                false,
+                Array.Empty<DayOfWeek>(),
+                daysOfMonth,
+                false,
+                $"0 {minute} {hour} {string.Join(',', daysOfMonth)} * ?");
             return true;
         }
 
@@ -103,6 +162,8 @@ public sealed class CampaignScheduleCron
                 minute,
                 false,
                 daysOfWeek,
+                Array.Empty<int>(),
+                false,
                 $"0 {minute} {hour} ? * {string.Join(',', tokens)}");
             return true;
         }
@@ -139,7 +200,7 @@ public sealed class CampaignScheduleCron
 
         while (currentDate <= endLimitDate)
         {
-            if (IsDaily || DaysOfWeek.Contains(currentDate.DayOfWeek))
+            if (MatchesDate(currentDate))
             {
                 var candidateStart = DateTime.SpecifyKind(currentDate.AddHours(Hour).AddMinutes(Minute), DateTimeKind.Utc);
                 if (candidateStart >= startDateUtc && candidateStart < endDateUtc)
@@ -174,6 +235,26 @@ public sealed class CampaignScheduleCron
 
         occurrences = list;
         return true;
+    }
+
+    private bool MatchesDate(DateTime date)
+    {
+        if (IsDaily)
+        {
+            return true;
+        }
+
+        if (DaysOfMonth.Count > 0)
+        {
+            return DaysOfMonth.Contains(date.Day);
+        }
+
+        if (IsLastDayOfMonth)
+        {
+            return date.Day == DateTime.DaysInMonth(date.Year, date.Month);
+        }
+
+        return DaysOfWeek.Contains(date.DayOfWeek);
     }
 
     private static int IndexOfCanonicalDay(string token)

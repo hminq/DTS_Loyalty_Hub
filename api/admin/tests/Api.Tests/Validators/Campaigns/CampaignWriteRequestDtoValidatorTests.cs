@@ -78,6 +78,21 @@ public sealed class CampaignWriteRequestDtoValidatorTests
             error.ErrorCode == "CAMPAIGN_SCHEDULE_INVALID");
     }
 
+    [Theory]
+    [InlineData("0 0 9 15 * ?")]
+    [InlineData("0 0 9 1,5,6 * ?")]
+    [InlineData("0 0 9 L * ?")]
+    public async Task CampaignRequest_MonthlyScheduleCron_PassesScheduleValidation(
+        string scheduleCron)
+    {
+        var request = ValidCampaignRequest() with { ScheduleCron = scheduleCron };
+
+        var result = await _campaignValidator.ValidateAsync(request);
+
+        result.Errors.Should().NotContain(error =>
+            error.PropertyName == "scheduleCron");
+    }
+
     [Fact]
     public async Task CreateCampaignRequest_ValidShapeWithAction_Passes()
     {
