@@ -3,8 +3,10 @@ import { Combobox } from '../ui/combobox'
 import { DateTimePicker } from '../ui/date-time-picker'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { Input } from '../ui/input'
+import { Textarea } from '../ui/textarea'
 import { CampaignBannerField } from './CampaignBannerField'
 import { CampaignConditionBuilder } from './CampaignConditionBuilder'
+import { CampaignScheduleBuilder } from './CampaignScheduleBuilder'
 
 export function CampaignMetadataFormFields({
   formValues,
@@ -17,13 +19,6 @@ export function CampaignMetadataFormFields({
   t,
 }) {
   const selectedVersion = (options.eventTypeVersions || []).find((e) => e.value === formValues.eventTypeVersionId)
-
-  const timeZoneText = t('campaigns.form.timeZoneHelper', {
-    timeZone: options.schedule?.timeZone || 'UTC',
-    defaultValue: `Schedule operates in ${options.schedule?.timeZone || 'UTC'} timezone.`,
-  })
-
-  const weekdayLabels = (options.schedule?.daysOfWeek || []).map((day) => day.label).join(', ')
 
   return (
     <>
@@ -58,55 +53,24 @@ export function CampaignMetadataFormFields({
                 <FieldLabel>
                   {t('campaigns.form.descriptionLabel', { defaultValue: 'Description' })}
                 </FieldLabel>
-                <Input
+                <Textarea
                   value={formValues.description}
                   onChange={(e) => updateField('description', e.target.value)}
                   placeholder={t('campaigns.form.descriptionPlaceholder', {
                     defaultValue: 'Describe the campaign purpose and rewards',
                   })}
+                  className="h-32 resize-none overflow-y-auto"
                   aria-invalid={Boolean(fieldErrors.description)}
+                  disabled={isSubmitting}
                 />
                 {fieldErrors.description ? (
                   <FieldError>{fieldErrors.description}</FieldError>
                 ) : null}
               </Field>
-
-              <div className="space-y-4">
-                <Field invalid={Boolean(fieldErrors.eventTypeVersionId)} disabled={isSubmitting}>
-                  <FieldLabel>
-                    {t('campaigns.form.eventVersionLabel', { defaultValue: 'Event type' })}
-                  </FieldLabel>
-                  <Combobox
-                    value={formValues.eventTypeVersionId}
-                    onValueChange={handleEventTypeChange}
-                    options={options.eventTypeVersions ?? []}
-                    placeholder={t('campaigns.form.selectEventVersion', {
-                      defaultValue: 'Select event type',
-                    })}
-                    emptyOptionLabel={t('campaigns.form.selectEventVersion', {
-                      defaultValue: 'Select event type',
-                    })}
-                    ariaLabel={t('campaigns.form.eventVersionLabel', {
-                      defaultValue: 'Event type',
-                    })}
-                    disabled={isSubmitting}
-                  />
-                  {fieldErrors.eventTypeVersionId ? (
-                    <FieldError>{fieldErrors.eventTypeVersionId}</FieldError>
-                  ) : null}
-                </Field>
-
-                <CampaignConditionBuilder
-                  formValues={formValues}
-                  setFormValue={updateField}
-                  selectedVersion={selectedVersion}
-                  errors={fieldErrors}
-                  disabled={isSubmitting}
-                />
-              </div>
             </FieldGroup>
 
             <Field
+              className="h-full"
               invalid={Boolean(fieldErrors.bannerImageUrl)}
               disabled={!canUploadBanner || isSubmitting}
             >
@@ -128,6 +92,50 @@ export function CampaignMetadataFormFields({
               />
             </Field>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Event and condition */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {t('campaigns.form.eventConditionTitle', { defaultValue: 'Event & condition' })}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FieldGroup>
+            <Field invalid={Boolean(fieldErrors.eventTypeVersionId)} disabled={isSubmitting}>
+              <FieldLabel>
+                {t('campaigns.form.eventVersionLabel', { defaultValue: 'Event type' })}
+              </FieldLabel>
+              <Combobox
+                value={formValues.eventTypeVersionId}
+                onValueChange={handleEventTypeChange}
+                options={options.eventTypeVersions ?? []}
+                placeholder={t('campaigns.form.selectEventVersion', {
+                  defaultValue: 'Select event type',
+                })}
+                emptyOptionLabel={t('campaigns.form.selectEventVersion', {
+                  defaultValue: 'Select event type',
+                })}
+                ariaLabel={t('campaigns.form.eventVersionLabel', {
+                  defaultValue: 'Event type',
+                })}
+                disabled={isSubmitting}
+              />
+              {fieldErrors.eventTypeVersionId ? (
+                <FieldError>{fieldErrors.eventTypeVersionId}</FieldError>
+              ) : null}
+            </Field>
+
+            <CampaignConditionBuilder
+              formValues={formValues}
+              setFormValue={updateField}
+              selectedVersion={selectedVersion}
+              errors={fieldErrors}
+              disabled={isSubmitting}
+            />
+          </FieldGroup>
         </CardContent>
       </Card>
 
@@ -168,43 +176,19 @@ export function CampaignMetadataFormFields({
                 />
                 {fieldErrors.endDate ? <FieldError>{fieldErrors.endDate}</FieldError> : null}
               </Field>
-              <Field invalid={Boolean(fieldErrors.scheduleCron)} disabled={isSubmitting}>
-                <FieldLabel>
-                  {t('campaigns.form.scheduleCronLabel', { defaultValue: 'Schedule CRON' })}
-                </FieldLabel>
-                <Input
-                  value={formValues.scheduleCron}
-                  onChange={(e) => updateField('scheduleCron', e.target.value)}
-                  placeholder="0 0 2 * * ?"
-                  aria-invalid={Boolean(fieldErrors.scheduleCron)}
-                  disabled={isSubmitting}
-                />
-                {fieldErrors.scheduleCron ? (
-                  <FieldError>{fieldErrors.scheduleCron}</FieldError>
-                ) : null}
-                <FieldDescription>
-                  <span>
-                    {t('campaigns.form.scheduleCronDailyPattern', {
-                      defaultValue: 'Daily',
-                    })}
-                    {': '}
-                  </span>
-                  <code className="rounded bg-muted px-1 py-0.5 text-foreground">
-                    0 42 15 * * ?
-                  </code>
-                  <span>
-                    {' · '}
-                    {t('campaigns.form.scheduleCronWeekdayPattern', {
-                      defaultValue: 'Selected weekdays',
-                    })}
-                    {': '}
-                  </span>
-                  <code className="rounded bg-muted px-1 py-0.5 text-foreground">
-                    0 42 15 ? * MON,WED,SAT
-                  </code>
-                </FieldDescription>
-              </Field>
+            </div>
 
+            <CampaignScheduleBuilder
+              value={formValues.scheduleCron}
+              onChange={(value) => updateField('scheduleCron', value)}
+              daysOfWeek={options.schedule?.daysOfWeek || []}
+              timeZone={options.schedule?.timeZone || 'UTC'}
+              disabled={isSubmitting}
+              error={fieldErrors.scheduleCron || ''}
+              t={t}
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field invalid={Boolean(fieldErrors.durationHour)} disabled={isSubmitting}>
                 <FieldLabel>
                   {t('campaigns.form.durationHourLabel', { defaultValue: 'Duration (hours)' })}
@@ -223,15 +207,6 @@ export function CampaignMetadataFormFields({
                 ) : null}
               </Field>
             </div>
-            <FieldDescription>{timeZoneText}</FieldDescription>
-            {weekdayLabels ? (
-              <FieldDescription>
-                {t('campaigns.form.daysOfWeekHelper', {
-                  days: weekdayLabels,
-                  defaultValue: `Available days of week: ${weekdayLabels}`,
-                })}
-              </FieldDescription>
-            ) : null}
           </FieldGroup>
         </CardContent>
       </Card>

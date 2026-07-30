@@ -188,6 +188,7 @@ export const vi = {
     },
     form: {
       generalTitle: 'Thông tin chung',
+      eventConditionTitle: 'Sự kiện & điều kiện',
       campaignNameLabel: 'Tên chiến dịch',
       campaignNamePlaceholder: 'Nhập tên chiến dịch',
       bannerLabel: 'Banner chiến dịch',
@@ -218,6 +219,25 @@ export const vi = {
       timeZoneHelper: 'Lịch chạy hoạt động theo múi giờ {{timeZone}}.',
       scheduleTitle: 'Lịch chạy và thời gian hoạt động',
       scheduleCronLabel: 'CRON lịch chạy',
+      scheduleCronHelper:
+        'Định dạng Quartz theo UTC. Hỗ trợ hàng ngày, các thứ đã chọn, các ngày trong tháng và ngày cuối tháng.',
+      schedulePatternLabel: 'Lặp lại',
+      scheduleModeDaily: 'Hàng ngày',
+      scheduleModeWeekly: 'Hàng tuần',
+      scheduleModeMonthly: 'Hàng tháng',
+      scheduleModeLastDay: 'Ngày cuối tháng',
+      scheduleModeCustom: 'Cron',
+      scheduleTimeLabel: 'Chạy lúc',
+      scheduleTimeZoneBadge: 'Múi giờ: {{timeZone}}',
+      scheduleWeekdaysLabel: 'Các thứ trong tuần',
+      scheduleDaysOfMonthLabel: 'Các ngày trong tháng',
+      scheduleDaysOfMonthHelper: 'Chọn một hoặc nhiều ngày theo lịch.',
+      scheduleWarningTitle: 'Lưu ý lịch',
+      scheduleWarningDay29:
+        'Ngày 29 sẽ bị bỏ qua trong tháng 2, trừ năm nhuận.',
+      scheduleWarningDay30: 'Ngày 30 sẽ bị bỏ qua trong tháng 2.',
+      scheduleWarningDay31:
+        'Ngày 31 sẽ bị bỏ qua trong tháng 2, 4, 6, 9 và 11.',
       scheduleCronDailyPattern: 'Hàng ngày',
       scheduleCronWeekdayPattern: 'Theo ngày đã chọn',
       durationHourLabel: 'Thời lượng (giờ)',
@@ -269,7 +289,7 @@ export const vi = {
       scheduleCronRequired: 'Biểu thức CRON lịch chạy là bắt buộc.',
       scheduleCronTooLong: 'Biểu thức CRON lịch chạy không được vượt quá 100 ký tự.',
       scheduleCronInvalid:
-        'Hãy dùng định dạng CRON được hỗ trợ, ví dụ 0 42 15 * * ? hoặc 0 42 15 ? * MON,WED,SAT.',
+        'Hãy dùng định dạng CRON được hỗ trợ: hàng ngày, các thứ đã chọn, các ngày trong tháng hoặc ngày cuối tháng.',
       durationHourInvalid: 'Thời lượng phải là số nguyên dương.',
       userLimitTotalInvalid: 'Giới hạn toàn chiến dịch của mỗi khách hàng phải là số nguyên dương.',
       userLimitSessionInvalid: 'Giới hạn mỗi phiên của mỗi khách hàng phải là số nguyên dương.',
@@ -334,6 +354,8 @@ export const vi = {
     },
     scheduleDaily: 'Hàng ngày lúc {{time}}',
     scheduleWeekly: 'Mỗi {{days}} lúc {{time}}',
+    scheduleMonthly: 'Ngày {{days}} hàng tháng lúc {{time}}',
+    scheduleLastDay: 'Ngày cuối mỗi tháng lúc {{time}}',
     activate: {
       button: 'Kích hoạt chiến dịch',
       title: 'Kích hoạt chiến dịch',

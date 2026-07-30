@@ -70,7 +70,7 @@ export function CampaignBannerField({
 
   return (
     <div
-      className="flex flex-col gap-3"
+      className="flex min-h-0 flex-1 flex-col gap-3"
       data-invalid={displayError ? true : undefined}
       data-disabled={disabled ? true : undefined}
     >
@@ -85,12 +85,12 @@ export function CampaignBannerField({
       />
 
       {previewUrl || existingUrl ? (
-        <div className="flex flex-col gap-3">
-          <div className="relative overflow-hidden rounded-lg border bg-muted/30">
+        <div className="flex min-h-0 flex-1 flex-col gap-3">
+          <div className="relative min-h-[160px] flex-1 overflow-hidden rounded-lg border bg-muted/30">
             <img
               src={previewUrl || existingUrl}
               alt={t('campaigns.form.bannerPreviewAlt')}
-              className="h-[200px] w-full object-cover"
+              className="absolute inset-0 size-full object-cover"
             />
             <div className="absolute right-2 top-2">
               <Button
@@ -119,7 +119,7 @@ export function CampaignBannerField({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-8 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+          className="flex min-h-[160px] w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
         >
           <div className="rounded-full bg-muted p-3">
             {disabled

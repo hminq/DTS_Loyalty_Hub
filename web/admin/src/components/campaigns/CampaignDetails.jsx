@@ -81,7 +81,7 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
         </CardContent>
       </Card>
 
-      {/* Big Card: General Info + Event Type + Schedule & Active Range */}
+      {/* General information */}
       <Card className="rounded-xl border-border/80 shadow-none">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>
@@ -103,12 +103,8 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
             />
           </div>
 
-          {/* Event Type & Customer Limits */}
-          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
-            <DetailItem
-              label={t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
-              value={eventTypeLabel}
-            />
+          {/* Customer limits */}
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
             <DetailItem
               label={t('campaigns.form.userLimitTotalLabel', {
                 defaultValue: 'Max rewards per customer',
@@ -173,40 +169,50 @@ export function CampaignDetails({ campaign, options = {}, language, t }) {
         </CardContent>
       </Card>
 
-      {/* Separate Card: Campaign Condition */}
+      {/* Event and condition */}
       <Card className="rounded-xl border-border/80 shadow-none">
         <CardHeader>
           <CardTitle>
-            {t('campaigns.form.conditionLabel', { defaultValue: 'Campaign condition' })}
+            {t('campaigns.detail.eventConditionTitle', { defaultValue: 'Event & condition' })}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          {!conditionDesc.isSupported ? (
-            <div className="text-xs font-medium text-amber-600">
-              {t('campaigns.detail.unsupportedCondition', { defaultValue: 'Warning: Unsupported condition configuration.' })}
-            </div>
-          ) : conditionDesc.predicates?.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {conditionDesc.predicates.map((p, i) => (
-                <div
-                  key={i}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs"
-                >
-                  <span className="font-semibold text-foreground">{p.fieldLabel}</span>
-                  <span className="rounded bg-muted/80 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    {p.operatorLabel}
-                  </span>
-                  <span className="rounded bg-background px-2 py-0.5 font-mono text-[11px] font-semibold text-primary border border-border/50">
-                    {p.valueLabels.join(', ')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="inline-flex items-center rounded-md bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-              {conditionDesc.label}
-            </div>
-          )}
+        <CardContent className="grid gap-5">
+          <DetailItem
+            label={t('campaigns.form.eventTypeLabel', { defaultValue: 'Event type' })}
+            value={eventTypeLabel}
+          />
+
+          <div className="border-t border-border pt-4">
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              {t('campaigns.form.conditionLabel', { defaultValue: 'Campaign condition' })}
+            </p>
+            {!conditionDesc.isSupported ? (
+              <div className="text-xs font-medium text-amber-600">
+                {t('campaigns.detail.unsupportedCondition', { defaultValue: 'Warning: Unsupported condition configuration.' })}
+              </div>
+            ) : conditionDesc.predicates?.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {conditionDesc.predicates.map((p, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs"
+                  >
+                    <span className="font-semibold text-foreground">{p.fieldLabel}</span>
+                    <span className="rounded bg-muted/80 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {p.operatorLabel}
+                    </span>
+                    <span className="rounded border border-border/50 bg-background px-2 py-0.5 font-mono text-[11px] font-semibold text-primary">
+                      {p.valueLabels.join(', ')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="inline-flex items-center rounded-md bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                {conditionDesc.label}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

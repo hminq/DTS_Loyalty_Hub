@@ -1,61 +1,10 @@
 import { validateConditionFormState } from './campaignConditions.js'
+import { isValidCampaignScheduleCron } from './campaignSchedule.js'
 
-const CAMPAIGN_SCHEDULE_WEEKDAYS = [
-  'MON',
-  'TUE',
-  'WED',
-  'THU',
-  'FRI',
-  'SAT',
-  'SUN',
-]
+export { isValidCampaignScheduleCron }
 
 function toFieldKey(prefix, field) {
   return prefix ? `${prefix}.${field}` : field
-}
-
-function isCanonicalCronNumber(value, minimum, maximum) {
-  const parsed = Number(value)
-  return (
-    Number.isInteger(parsed) &&
-    parsed >= minimum &&
-    parsed <= maximum &&
-    value === String(parsed)
-  )
-}
-
-export function isValidCampaignScheduleCron(value) {
-  if (typeof value !== 'string' || !value.trim()) return false
-
-  const parts = value.trim().split(/\s+/)
-  if (parts.length !== 6) return false
-
-  const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts
-  if (
-    second !== '0' ||
-    !isCanonicalCronNumber(minute, 0, 59) ||
-    !isCanonicalCronNumber(hour, 0, 23)
-  ) {
-    return false
-  }
-
-  if (dayOfMonth === '*' && month === '*' && dayOfWeek === '?') {
-    return true
-  }
-
-  if (dayOfMonth !== '?' || month !== '*') return false
-
-  const weekdays = dayOfWeek.split(',')
-  if (weekdays.length === 0 || weekdays.some((day) => !day)) return false
-
-  let previousIndex = -1
-  for (const weekday of weekdays) {
-    const currentIndex = CAMPAIGN_SCHEDULE_WEEKDAYS.indexOf(weekday)
-    if (currentIndex === -1 || currentIndex <= previousIndex) return false
-    previousIndex = currentIndex
-  }
-
-  return true
 }
 
 function validateActionLimits(action = {}, prefix = '', t) {
@@ -277,7 +226,7 @@ export function validateCampaignMetadata(formValues = {}, options = {}, t) {
   } else if (!isValidCampaignScheduleCron(scheduleCron)) {
     errors.scheduleCron = t('campaigns.errors.scheduleCronInvalid', {
       defaultValue:
-        'Use a supported CRON format, for example 0 42 15 * * ? or 0 42 15 ? * MON,WED,SAT.',
+        'Use a supported CRON format: daily, selected weekdays, selected days of month, or the last day of month.',
     })
   }
 

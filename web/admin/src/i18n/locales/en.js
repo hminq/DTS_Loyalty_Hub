@@ -188,6 +188,7 @@ export const en = {
     },
     form: {
       generalTitle: 'General information',
+      eventConditionTitle: 'Event & condition',
       campaignNameLabel: 'Campaign name',
       campaignNamePlaceholder: 'Enter campaign name',
       bannerLabel: 'Campaign banner',
@@ -218,6 +219,25 @@ export const en = {
       timeZoneHelper: 'Schedule operates in {{timeZone}} timezone.',
       scheduleTitle: 'Schedule & active range',
       scheduleCronLabel: 'Schedule CRON',
+      scheduleCronHelper:
+        'Quartz format in UTC. Supported patterns: daily, selected weekdays, selected days of month, and last day of month.',
+      schedulePatternLabel: 'Repeat',
+      scheduleModeDaily: 'Daily',
+      scheduleModeWeekly: 'Weekly',
+      scheduleModeMonthly: 'Monthly',
+      scheduleModeLastDay: 'Last day',
+      scheduleModeCustom: 'Cron',
+      scheduleTimeLabel: 'Run at',
+      scheduleTimeZoneBadge: 'Timezone: {{timeZone}}',
+      scheduleWeekdaysLabel: 'Days of week',
+      scheduleDaysOfMonthLabel: 'Days of month',
+      scheduleDaysOfMonthHelper: 'Select one or more calendar days.',
+      scheduleWarningTitle: 'Calendar warning',
+      scheduleWarningDay29:
+        'Day 29 will be skipped in February except during leap years.',
+      scheduleWarningDay30: 'Day 30 will be skipped in February.',
+      scheduleWarningDay31:
+        'Day 31 will be skipped in February, April, June, September, and November.',
       scheduleCronDailyPattern: 'Daily',
       scheduleCronWeekdayPattern: 'Selected weekdays',
       durationHourLabel: 'Duration (hours)',
@@ -269,7 +289,7 @@ export const en = {
       scheduleCronRequired: 'Schedule CRON expression is required.',
       scheduleCronTooLong: 'Schedule CRON expression cannot exceed 100 characters.',
       scheduleCronInvalid:
-        'Use a supported CRON format, for example 0 42 15 * * ? or 0 42 15 ? * MON,WED,SAT.',
+        'Use a supported CRON format: daily, selected weekdays, selected days of month, or the last day of month.',
       durationHourInvalid: 'Duration must be a positive integer.',
       userLimitTotalInvalid: 'Customer campaign limit must be a positive integer.',
       userLimitSessionInvalid: 'Customer session limit must be a positive integer.',
@@ -332,6 +352,8 @@ export const en = {
     },
     scheduleDaily: 'Daily at {{time}}',
     scheduleWeekly: 'Every {{days}} at {{time}}',
+    scheduleMonthly: 'Days {{days}} of every month at {{time}}',
+    scheduleLastDay: 'Last day of every month at {{time}}',
     activate: {
       button: 'Activate Campaign',
       title: 'Activate campaign',

@@ -1,3 +1,8 @@
+import {
+  CAMPAIGN_SCHEDULE_MODES,
+  parseCampaignScheduleCron,
+} from './campaignSchedule.js'
+
 export function formatCampaignNumber(value, language) {
   if (value === null || value === undefined) return '0'
   return new Intl.NumberFormat(language || 'en').format(value)
@@ -15,20 +20,46 @@ export function formatCampaignDateTime(value, language) {
 
 function describeQuartzCron(cron, t) {
   if (!cron) return ''
-  const parts = cron.trim().split(/\s+/)
-  if (parts.length !== 6) return cron
+  const schedule = parseCampaignScheduleCron(cron)
 
-  const [, minute, hour, dayOfMonth, month, dayOfWeek] = parts
-  const mm = minute.padStart(2, '0')
-  const hh = hour.padStart(2, '0')
-  const timeStr = `${hh}:${mm}`
-
-  if (dayOfMonth === '*' && month === '*' && dayOfWeek === '?') {
-    return t ? t('campaigns.scheduleDaily', { time: timeStr, defaultValue: `Daily at ${timeStr}` }) : `Daily at ${timeStr}`
+  if (schedule.mode === CAMPAIGN_SCHEDULE_MODES.DAILY) {
+    return t
+      ? t('campaigns.scheduleDaily', {
+          time: schedule.time,
+          defaultValue: `Daily at ${schedule.time}`,
+        })
+      : `Daily at ${schedule.time}`
   }
 
-  if (dayOfMonth === '?' && month === '*' && dayOfWeek !== '*') {
-    return t ? t('campaigns.scheduleWeekly', { days: dayOfWeek, time: timeStr, defaultValue: `Every ${dayOfWeek} at ${timeStr}` }) : `Every ${dayOfWeek} at ${timeStr}`
+  if (schedule.mode === CAMPAIGN_SCHEDULE_MODES.WEEKLY) {
+    const days = schedule.weekdays.join(',')
+    return t
+      ? t('campaigns.scheduleWeekly', {
+          days,
+          time: schedule.time,
+          defaultValue: `Every ${days} at ${schedule.time}`,
+        })
+      : `Every ${days} at ${schedule.time}`
+  }
+
+  if (schedule.mode === CAMPAIGN_SCHEDULE_MODES.MONTHLY) {
+    const days = schedule.daysOfMonth.join(', ')
+    return t
+      ? t('campaigns.scheduleMonthly', {
+          days,
+          time: schedule.time,
+          defaultValue: `Days ${days} of every month at ${schedule.time}`,
+        })
+      : `Days ${days} of every month at ${schedule.time}`
+  }
+
+  if (schedule.mode === CAMPAIGN_SCHEDULE_MODES.LAST_DAY) {
+    return t
+      ? t('campaigns.scheduleLastDay', {
+          time: schedule.time,
+          defaultValue: `Last day of every month at ${schedule.time}`,
+        })
+      : `Last day of every month at ${schedule.time}`
   }
 
   return cron
