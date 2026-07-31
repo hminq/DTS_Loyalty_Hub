@@ -14,6 +14,7 @@ using Infrastructure.Auditing;
 using Infrastructure.Behaviors;
 using Core.UseCases.Campaigns;
 using Core.UseCases.EventDefinitions;
+using Infrastructure.RabbitMq;
 
 namespace Infrastructure;
 
@@ -51,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<ICampaignEventDefinitionRepository, CampaignEventDefinitionRepository>();
         services.AddSingleton<ICampaignConfigurationService, CampaignConfigurationService>();
         services.AddSingleton<EventDefinitionSchemaService>();
+        services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
         services.AddScoped<IEventDefinitionRepository, EventDefinitionRepository>();
         services.AddScoped<IVoucherPoolProvisioningJobWriter, VoucherPoolProvisioningJobWriter>();
         services.AddScoped<ICustomerVoucherRepository, CustomerVoucherRepository>();
